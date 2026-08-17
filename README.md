@@ -70,9 +70,9 @@ Launch the interactive web UI provided by Google ADK:
 ```bash
 ./deploy.sh --web
 # or directly via:
-uv run adk web .
+uv run adk web . --port 8088
 ```
-> Open `http://localhost:8000` in your browser and select **`hr-agentic-solution-team-12`** or **`agents`** to interact with the multi-agent system.
+> Open `http://localhost:8088` in your browser and select **`agents`** to interact with the multi-agent system in real time.
 
 ---
 
@@ -98,9 +98,13 @@ Run a one-off query through the orchestrator:
 Verify authentication and tool discovery against the live mock SaaS portal:
 ```bash
 ./deploy.sh --test
-# or directly via:
-python3 tests/test_mcp_connection.py
 ```
+
+---
+
+## 🧪 Testing & Verification Prompts
+For a complete test suite covering Policy Q&A, WorkWeek HCM, ServiceImmediately ITSM, and Multi-Agent Cross-System Chaining (Medical Leave, Relocation, Hardware), see:
+👉 **[TESTING_GUIDE.md](TESTING_GUIDE.md)**
 
 ---
 

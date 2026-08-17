@@ -41,15 +41,16 @@ MODE="${1:-}"
 
 case "$MODE" in
     --web|-w)
-        echo "[*] Starting Google ADK Web View UI on http://localhost:8000 ..."
+        PORT="${2:-8088}"
+        echo "[*] Starting Google ADK Web View UI on http://localhost:$PORT ..."
         if command -v uv >/dev/null 2>&1; then
-            uv run adk web .
+            uv run adk web . --port "$PORT"
         elif [ -f "$REPO_ROOT/.venv/bin/adk" ]; then
-            "$REPO_ROOT/.venv/bin/adk" web .
+            "$REPO_ROOT/.venv/bin/adk" web . --port "$PORT"
         else
             echo "[!] adk command not found in .venv. Installing google-adk..."
             "$REPO_ROOT/.venv/bin/pip" install google-adk
-            "$REPO_ROOT/.venv/bin/adk" web .
+            "$REPO_ROOT/.venv/bin/adk" web . --port "$PORT"
         fi
         ;;
     --cli|-c|--interactive|-i)
