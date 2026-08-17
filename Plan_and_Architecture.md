@@ -10,13 +10,13 @@ The **HR Agentic Solution (MVP 1)** is an enterprise-grade, AI-driven multi-agen
 - **Deflect Tier 1 HR/IT Queries**: Target $\ge 40\%$ deflection of routine inquiries within 6 months through grounded policy retrieval.
 - **Self-Service Transactions**: Enable direct leave balance checks, leave submissions, contact updates, and ticket lifecycle tracking via natural language.
 - **Cross-System Orchestration**: Validate end-to-end multi-agent execution across policies, HCM, and ITSM (e.g., Medical Leave, Equipment Procurement, Relocation).
-- **Enterprise AI Governance**: Zero-trust execution, 0% policy hallucinations, strict role-based data isolation, SPII redaction, and deterministic guardrails.
+- **Enterprise AI Governance & Zero-Trust Security**: Zero-trust execution, 0% policy hallucinations, strict tenant/role-based data isolation, SPII redaction, GFE-compliant header authentication, and deterministic guardrails.
 
 ---
 
 ## 2. Target System Architecture
 
-The solution uses a decoupled architecture where a lightweight, visually engaging UI wrapper interfaces with a **Google ADK (Agent Development Kit)** multi-agent runtime. The agents interact with enterprise backends through the **Model Context Protocol (MCP)** and direct tool integrations.
+The solution uses a decoupled architecture where a lightweight, visually engaging UI wrapper interfaces with a **Google ADK (Agent Development Kit)** multi-agent runtime. The agents interact with enterprise backends through the **Model Context Protocol (MCP)** over stateless Streamable HTTP and direct tool integrations.
 
 ![System Architecture](images/system_architecture.jpg)
 
@@ -34,101 +34,172 @@ The solution uses a decoupled architecture where a lightweight, visually engagin
      - **WorkWeek HCM Specialist Agent (`hcm_agent`)**
      - **ServiceImmediately ITSM Specialist Agent (`itsm_agent`)**
 
-3. **Integration & Tools Layer (Model Context Protocol - MCP)**:
-   - Standardized MCP server interfaces exposing structured tools with strict schema validation, input sanitation, and response formatting.
-   - Enforces transaction integrity, parameter bounds, and audit logging.
+3. **Security, Authentication & MCP Transport Layer**:
+   - **Custom Header Transport (`X-MCP-Token`)**: Circumvents Google Frontend (GFE) standard `Authorization` header interception.
+   - **Stateless Streamable HTTP**: Direct integration with mounted FastMCP servers.
+   - **Tenant Context Verification**: Enforces that authenticated sessions can only read/write their own employee data.
 
-4. **Enterprise Backend Layer (MVP 1 Target Systems)**:
+4. **Enterprise Backend Layer (Mock SaaS Ecosystem: `mock-saas.aishprabhat.demo.altostrat.com`)**:
    - **HR Policy Knowledge Base**: Curated policies (PDFs, Markdown) indexed for semantic retrieval.
-   - **WorkWeek HCM**: Core HR system for profiles, leave accruals, and PTO submissions.
-   - **ServiceImmediately ITSM**: IT Service Management platform for incident logging, comment timelines, and status lifecycle management.
+   - **WorkWeek FastMCP Server (`/work-week/mcp/`)**: Core HR system for profiles, leave accruals, and PTO submissions.
+   - **ServiceImmediately FastMCP Server (`/service-immediately/mcp/`)**: IT Service Management platform for incident logging, comment timelines, and status lifecycle management.
 
 ---
 
-## 3. Multi-Agent System Design (Google ADK)
+## 3. Security, Authentication & Token Architecture
 
-The multi-agent system is built using the **Google ADK (`google.adk.agents.LlmAgent`)** framework. Rather than relying on a single monolithic prompt, tasks are distributed to domain-specific sub-agents configured with specialized instructions and isolated toolsets.
+Enterprise security and zero-trust governance are foundational to the system's design.
 
 ```
-                  ┌─────────────────────────────────────┐
-                  │    Main Orchestrator Agent          │
-                  │       (hr_orchestrator)             │
-                  │  • Intent Detection & Routing       │
-                  │  • Context & Memory Management      │
-                  │  • Multi-Agent Chain Coordination   │
-                  └──────────────────┬──────────────────┘
-                                     │
-         ┌───────────────────────────┼───────────────────────────┐
-         ▼                           ▼                           ▼
-┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐
-│  Policy Agent    │       │  WorkWeek HCM    │       │ ServiceImmediately│
-│ (policy_agent)   │       │     Agent        │       │   ITSM Agent     │
-│                  │       │  (hcm_agent)     │       │  (itsm_agent)    │
-│ • Policy RAG     │       │ • Profile Lookup │       │ • Ticket Creation│
-│ • Citation Engine│       │ • PTO Balances   │       │ • Status Tracking│
-│ • Domain Bounds  │       │ • Leave Booking  │       │ • State Machine  │
-└──────────────────┘       └──────────────────┘       └──────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             Authentication Flow                             │
+│                                                                             │
+│  1. Token Minting:                                                          │
+│     POST /api/mcp-tokens  ──► { "token_name": "hr-agent-prod" }             │
+│                           ◄── Returns { "token": "mcp_abc123..." }          │
+│                                                                             │
+│  2. Agent Tool Invocation (GFE-Safe Transport):                              │
+│     ADK McpToolset ──► Streamable HTTP Request                              │
+│                        Header: "X-MCP-Token: mcp_abc123..."                 │
+│                        Endpoint: https://mock-saas.../work-week/mcp/        │
+│                                                                             │
+│  3. Tenant Isolation & Identity Context:                                    │
+│     FastMCP Server verifies token ownership.                                │
+│     Enforces: Caller ID == Target Employee ID (blocks cross-user tampering) │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Agent Roles & Configurations:
-
-#### A. Main Orchestrator Agent (`hr_orchestrator`)
-- **Role**: Entry point for all user interactions.
-- **Model**: `gemini-2.5-pro`
-- **Responsibilities**:
-  - Validates user input against safety filters and prompt injection boundaries (FR-1.3).
-  - Routes single-domain queries directly to the appropriate specialist sub-agent.
-  - Decomposes multi-intent cross-system requests into sequential sub-agent calls, maintaining state across the execution chain.
-  - Synthesizes specialist outputs into an employee-friendly, unified response.
-
-#### B. HR Policy Specialist Agent (`policy_agent`)
-- **Role**: Answers inquiries regarding company policies, benefits, guidelines, and compliance perimeters.
-- **Model**: `gemini-2.5-pro`
-- **Instruction Perimeters**:
-  - Grounded strictly in retrieved policy chunks; explicitly declines out-of-scope or unverified questions (0% hallucination mandate).
-  - Mandatory citation inclusion: Returns exact document titles, section headers, and deep-link URLs (FR-5.3).
-  - Refuses general non-HR questions (coding, creative writing, personal advice).
-
-#### C. WorkWeek HCM Specialist Agent (`hcm_agent`)
-- **Role**: Manages employee profile information and leave transactions.
-- **Model**: `gemini-2.5-pro`
-- **Instruction Perimeters**:
-  - Always verifies real-time PTO balance before submitting leave requests (FR-3.4).
-  - Enforces chronological validity: `start_date <= end_date` and forbids past-dated requests.
-  - Enforces balance limits: Blocks requests where `requested_days > remaining_accrual`.
-  - Enforces syntax validation on contact updates (email, phone, address).
-
-#### D. ServiceImmediately ITSM Specialist Agent (`itsm_agent`)
-- **Role**: Manages IT and HR service desk incident tickets.
-- **Model**: `gemini-2.5-pro`
-- **Instruction Perimeters**:
-  - Enforces valid ticket status transitions (`New` $\rightarrow$ `In Progress` $\rightarrow$ `Resolved` $\rightarrow$ `Closed`). Blocks direct `New` $\rightarrow$ `Closed` jumps.
-  - Validates priority levels (`1 - Critical`, `2 - High`, `3 - Moderate`, `4 - Low`) against incident severity rules.
-  - Appends comments and tracks ticket timelines with explicit origin tagging (FR-4.1).
+### Security Specifications:
+1. **GFE Header Compliance**: Standard OAuth/Bearer headers are intercepted and strictly parsed by Google Frontend (GFE). To ensure uninterrupted end-to-end authentication with FastMCP sub-applications, all MCP requests transmit the Personal Access Token via the custom header:
+   ```http
+   X-MCP-Token: mcp_your_token_here
+   ```
+2. **Token Management API (`/api/mcp-tokens`)**:
+   - `POST /api/mcp-tokens`: Dynamically mints new Personal Access Tokens.
+   - `GET /api/mcp-tokens`: Lists active tokens and expiration metadata.
+   - `DELETE /api/mcp-tokens/{token_id}`: Revokes tokens instantaneously.
+3. **Tenant & Data Isolation (FR-1.5)**: Every resource read (`workweek://employees/{id}/profile`) and tool execution (`request_time_off`) verifies identity context. Queries attempting to access other employee records without administrative delegation are blocked and logged.
+4. **SPII Data Redaction (FR-1.4)**: User inputs, tool payloads, and chat logs are scrubbed for sensitive personally identifiable information (credit cards, national IDs, passwords).
 
 ---
 
-## 4. Tools & MCP Integration Layer
+## 4. Live FastMCP Server Catalog & Tool Mappings
 
-The integration layer wraps backend APIs inside **Model Context Protocol (MCP)** compliant tools, providing structured JSON schemas and robust error handling.
+The backend exposes two stateless **FastMCP** applications mounted over Streamable HTTP transport at `https://mock-saas.aishprabhat.demo.altostrat.com`.
 
-### Tool Specification Catalog:
+### A. WorkWeek Server (`/work-week/mcp/`)
 
-| Tool Name | Sub-Agent | Input Parameters | Output / Action | Guardrails & Validations |
-| :--- | :--- | :--- | :--- | :--- |
-| `retrieve_policy_docs` | `policy_agent` | `query: str`, `domain_filter: str` | Top-K grounded chunks with source metadata | Strict similarity threshold; filters irrelevant content |
-| `retrieve_employee_profile` | `hcm_agent` | `employee_id: str` | JSON profile: department, manager, contact, hire date | Scoped to authenticated user token; no cross-user access |
-| `query_time_off_balances` | `hcm_agent` | `employee_id: str` | Vacation & Sick: accrued, used, remaining | Live fetch on every query; dynamic cache bypass |
-| `submit_leave_request` | `hcm_agent` | `employee_id`, `start_date`, `end_date`, `leave_type`, `days` | Success/Failure status, updated balance | Balance check, date chronology check ($Start \le End$) |
-| `update_contact_information`| `hcm_agent` | `employee_id`, `address`, `phone_number` | Update status confirmation | Regex syntax checks on phone/email; SPII audit masking |
-| `query_ticket_details` | `itsm_agent` | `ticket_id: str` | Priority, category, status, assignee, comments timeline | Verifies ticket existence; returns clean history |
-| `create_incident_ticket` | `itsm_agent` | `requestor_id`, `category`, `short_desc`, `priority` | New Ticket ID (e.g. `INC123456`) | Priority validation; duplicate detection in quick succession |
-| `post_ticket_comment` | `itsm_agent` | `ticket_id`, `user_id`, `comment` | Confirmation of added note | Tags automation source; masks SPII in comment body |
-| `update_ticket_status` | `itsm_agent` | `ticket_id`, `new_status`, `resolution_notes` | Status update confirmation | Enforces strict lifecycle state transition rules |
+#### Resources:
+- `workweek://employees/{employee_id}/profile`: Returns core metadata (name, email, role, home address, phone number, manager ID).
+- `workweek://employees/{employee_id}/timeoff`: Returns raw database leave balances (accrued and used vacation/sick days).
+
+#### Tools:
+| Tool Name | Parameters | Description & Guardrails |
+| :--- | :--- | :--- |
+| `get_current_employee_id()` | *None* | Resolves the verified employee ID of the authenticated user session. |
+| `get_employee_balances` | `employee_id: str` | Fetches remaining vacation and sick leave balances. Live fetch on every turn. |
+| `request_time_off` | `employee_id`, `start_date`, `end_date`, `leave_type`, `days` | Books PTO. Validates date format (`YYYY-MM-DD`), chronological ordering ($Start \le End$, no past dates), and balance sufficiency ($Days \le Remaining$). |
+| `update_personal_info` | `employee_id`, `address`, `phone` | Updates contact details. Enforces minimum 5 chars on address and phone regex: `^\+?[\d\s\-()]{7,20}$`. |
+| `get_personal_info` | `employee_id: str` | Fetches current home address and personal phone number. |
+| `get_leave_requests` | `employee_id: str` | Retrieves full historical timeline of submitted leave requests. |
+| `cancel_leave_request` | `employee_id: str`, `request_id: int` | Cancels a pending/approved request and restores balance. |
 
 ---
 
-## 5. Cross-System Orchestration Flow
+### B. ServiceImmediately Server (`/service-immediately/mcp/`)
+
+#### Resources:
+- `serviceimmediately://tickets/{ticket_id}`: Returns ticket details, current status, assignment details, and comment timelines.
+
+#### Tools:
+| Tool Name | Parameters | Description & Guardrails |
+| :--- | :--- | :--- |
+| `list_tickets` | `employee_id: str` | Lists all support incidents requested by the employee. |
+| `create_ticket` | `requested_by`, `category`, `short_description`, `priority`, `assignment_group='Service Desk'` | Opens new ticket. Rejects duplicate submissions within 5 minutes. Enforces that `priority='1 - Critical'` tickets describe active outages, crashes, or downtime keywords. |
+| `add_ticket_comment` | `ticket_id`, `author`, `comment` | Appends a comment to the ticket activity timeline. |
+| `update_ticket_status` | `ticket_id`, `status`, `resolution_notes=''`, `updated_by='System'` | Enforces the ITSM state machine: `New` $\rightarrow$ `In Progress`/`Closed`; `In Progress` $\rightarrow$ `Resolved`/`Closed`; `Resolved` $\rightarrow$ `In Progress`/`Closed`. `Closed` tickets are immutable. |
+
+---
+
+## 5. Google ADK Multi-Agent Implementation Code
+
+Below is the production-ready ADK multi-agent configuration leveraging `McpToolset` with `StreamableHTTPConnectionParams` and custom headers.
+
+```python
+import os
+from google.adk.agents import Agent, LlmAgent
+from google.adk.tools.mcp_tool import McpToolset
+from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
+
+BASE_URL = "https://mock-saas.aishprabhat.demo.altostrat.com"
+MCP_TOKEN = os.getenv("MCP_TOKEN", "mcp_functional_token_here")
+AUTH_HEADERS = {"X-MCP-Token": MCP_TOKEN}
+
+# 1. Initialize WorkWeek MCP Toolset
+workweek_toolset = McpToolset(
+    connection_params=StreamableHTTPConnectionParams(
+        url=f"{BASE_URL}/work-week/mcp/",
+        headers=AUTH_HEADERS
+    )
+)
+
+# 2. Initialize ServiceImmediately MCP Toolset
+serviceimmediately_toolset = McpToolset(
+    connection_params=StreamableHTTPConnectionParams(
+        url=f"{BASE_URL}/service-immediately/mcp/",
+        headers=AUTH_HEADERS
+    )
+)
+
+# 3. Define Domain Sub-Agents
+hcm_subagent = LlmAgent(
+    name="hcm_specialist",
+    model="gemini-2.5-pro",
+    description="Specialist in WorkWeek HCM operations (profiles, leave requests, contact updates).",
+    instruction="""You manage WorkWeek HCM workflows.
+    - Always verify balances before submitting leave.
+    - Enforce chronological dates (start <= end).
+    - Validate phone numbers and address lengths before updates.""",
+    tools=[workweek_toolset],
+)
+
+itsm_subagent = LlmAgent(
+    name="itsm_specialist",
+    model="gemini-2.5-pro",
+    description="Specialist in ServiceImmediately IT/HR incident management.",
+    instruction="""You manage ServiceImmediately ITSM tickets.
+    - Create, comment on, and update tickets.
+    - Strictly enforce lifecycle state transitions (New -> In Progress -> Resolved -> Closed).
+    - Block invalid transitions on Closed tickets.""",
+    tools=[serviceimmediately_toolset],
+)
+
+policy_subagent = LlmAgent(
+    name="policy_specialist",
+    model="gemini-2.5-pro",
+    description="Specialist in answering queries strictly grounded in HR policy documentation.",
+    instruction="""You answer questions using only ingested HR policies.
+    - Always cite document title, section, and deep-link URLs.
+    - If information is not in the policy docs, state that you do not know. 0% hallucination.""",
+    tools=[], # Policy RAG tools attached here
+)
+
+# 4. Define Central Orchestrator Agent
+root_agent = LlmAgent(
+    name="hr_orchestrator",
+    model="gemini-2.5-pro",
+    description="Central HR Orchestrator routing and executing multi-agent workflows.",
+    instruction="""You are the Centralized HR Orchestrator.
+    - Analyze user intent and delegate to hcm_specialist, itsm_specialist, or policy_specialist.
+    - For cross-system tasks (e.g. medical leave + ticket routing), chain calls across specialists sequentially.
+    - Synthesize a clear, cohesive final response for the user.""",
+    tools=[hcm_subagent, itsm_subagent, policy_subagent],
+)
+```
+
+---
+
+## 6. Cross-System Orchestration Flow
 
 ![Multi-Agent Flow Diagram](images/flow_diagram.jpg)
 
@@ -137,52 +208,28 @@ The integration layer wraps backend APIs inside **Model Context Protocol (MCP)**
 #### Use Case 2.1: Equipment Procurement (Remote Work Policy + HCM + ITSM)
 1. **User Prompt**: *"I read the remote work policy and saw I'm eligible for a home office monitor. Can you verify my status and order one for me?"*
 2. **Step 1 (`policy_agent`)**: Queries `remote_work_policy.pdf`, extracts home office monitor eligibility criteria (must be full-time remote).
-3. **Step 2 (`hcm_agent`)**: Calls `retrieve_employee_profile(emp_001)` to verify work location and shipping address.
-4. **Step 3 (`itsm_agent`)**: Calls `create_incident_ticket(category="Hardware", priority="3 - Moderate", short_desc="Home Office Monitor Order - emp_001")` including shipping details.
+3. **Step 2 (`hcm_agent`)**: Calls `get_personal_info(emp_001)` to verify work location and shipping address.
+4. **Step 3 (`itsm_agent`)**: Calls `create_ticket(requested_by="emp_001", category="Hardware", priority="3 - Moderate", short_description="Home Office Monitor Order - emp_001")`.
 5. **Step 4 (Synthesis)**: Orchestrator presents policy quote, confirmed shipping address, and the generated Ticket ID.
 
 #### Use Case 2.2: Short-Term Medical Leave (Policy + Leave Booking + Ticket Routing)
 1. **User Prompt**: *"I need to take short-term medical leave starting next Monday. What is the process and can you set it up?"*
 2. **Step 1 (`policy_agent`)**: Retrieves medical leave policy guidelines (outpatient vs. hospitalization allowance).
-3. **Step 2 (`hcm_agent`)**: Calls `query_time_off_balances`, verifies sick balance, then calls `submit_leave_request(start_date="2026-08-24", end_date="2026-08-28", leave_type="Sick", days=5)`.
-4. **Step 3 (`itsm_agent`)**: Calls `create_incident_ticket(category="Access", short_desc="Route emp_001 incoming emails to manager during medical leave")`.
+3. **Step 2 (`hcm_agent`)**: Calls `get_employee_balances`, verifies sick balance, then calls `request_time_off(employee_id="emp_001", start_date="2026-08-24", end_date="2026-08-28", leave_type="Sick", days=5)`.
+4. **Step 3 (`itsm_agent`)**: Calls `create_ticket(requested_by="emp_001", category="Access", priority="3 - Moderate", short_description="Route incoming emails to manager during medical leave")`.
 5. **Step 4 (Synthesis)**: Orchestrator confirms leave approval, remaining balance, and IT delegation ticket status.
 
 #### Use Case 2.3: International Office Relocation (Policy + Contact Update + Facility Badge)
 1. **User Prompt**: *"I'm transferring to London next month. Can you tell me the relocation allowance, update my record, and get my building access sorted?"*
 2. **Step 1 (`policy_agent`)**: Returns the London relocation tier allowance.
-3. **Step 2 (`hcm_agent`)**: Prompts and updates employee record with new London address.
-4. **Step 3 (`itsm_agent`)**: Opens a facilities ticket for a London building security badge.
-
----
-
-## 6. Guardrails, AI Governance & Non-Functional Compliance
-
-```
-User Prompt ──► [Input Guardrail: Prompt Injection / SPII Check]
-                      │ (Passed)
-                      ▼
-               [ADK Orchestrator & Sub-Agents]
-                      │
-                      ▼
-               [MCP Tools: Schema & State Validation]
-                      │
-                      ▼
-         [Output Guardrail: Grounding & Hallucination Scan] ──► Render to UI
-```
-
-### Governance Controls Matrix:
-- **Zero Hallucinations (NFR-3.1)**: Model answers are strictly constrained to tool responses. If context is missing, the agent explicitly replies with a graceful fallback.
-- **Safety & Injection Defense (FR-1.3, NFR-1.1)**: Inputs are screened against jailbreak patterns, prompt leaks, and toxic phrases before reaching sub-agents ($< 300\text{ms}$ latency overhead).
-- **SPII Redaction (FR-1.4)**: National IDs, credit card numbers, and private passwords are automatically masked (`[REDACTED]`) in session logs and ticket comments.
-- **Deterministic State Machines**: Leave balances cannot become negative; closed tickets cannot be directly commented on or re-opened without authorization.
-- **Performance & Latency (NFR-2.1)**: Response generation starts in $< 10.0\text{s}$; async background execution ensures multi-system tool calls don't freeze the conversational turn.
+3. **Step 2 (`hcm_agent`)**: Calls `update_personal_info` with new London address.
+4. **Step 3 (`itsm_agent`)**: Calls `create_ticket(category="Facilities", short_description="London office badge and building access")`.
 
 ---
 
 ## 7. Visually Aesthetic UI Wrapper Specifications
 
-The UI wrapper is designed to deliver an intuitive, delightful employee experience while remaining completely decoupled from the agent backend.
+The UI wrapper provides a seamless experience for everyday users while keeping frontend and backend decoupled.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -214,10 +261,9 @@ The UI wrapper is designed to deliver an intuitive, delightful employee experien
    - **Pulsing Status Ring**: Real-time heartbeat animation on the agent status indicator (`#48BB78`).
    - **Bouncy Thinking Dots**: Smooth 3-dot bounce animation displayed during multi-agent asynchronous processing.
    - **Slide-in Message Transitions**: Messages glide in with subtle vertical translation and opacity fade.
-3. **Decoupling & Dual Deployment**:
-   - Standalone deployment via lightweight web server (e.g. FastAPI / Nginx serving static assets).
-   - Seamless embedding as an extension tab or widget inside **Gemini Enterprise**.
-   - Pluggable API contract: Interacts strictly via standard JSON endpoints (`POST /api/chat`, `GET /api/health`).
+3. **Dual Deployment Capabilities**:
+   - **Standalone Web App**: Lightweight static client communicating via REST API (`/api/chat`).
+   - **Gemini Enterprise Deployment**: Direct integration into the Gemini Enterprise workspace as an interactive side-panel assistant.
 
 ---
 
@@ -227,21 +273,23 @@ The UI wrapper is designed to deliver an intuitive, delightful employee experien
 gantt
     title MVP 1 Phased Delivery Roadmap
     dateFormat  YYYY-MM-DD
-    section Phase 1: Foundations
-    Policy Ingestion & Tool Schema Design     :p1_1, 2026-08-18, 5d
-    WorkWeek & ServiceImmediately Mock MCPs   :p1_2, after p1_1, 4d
-    section Phase 2: Agent Core
-    Google ADK Sub-Agent Implementations      :p2_1, after p1_2, 6d
-    Orchestrator Routing & Safety Guardrails  :p2_2, after p2_1, 5d
-    section Phase 3: UI & Integration
-    Aesthetic UI Wrapper & Event Streaming    :p3_1, after p2_2, 4d
-    Cross-System Orchestration E2E Testing    :p3_2, after p3_1, 5d
-    section Phase 4: Hardening & Eval
-    Accuracy Benchmarking (>=95% Grounding)   :p4_1, after p3_2, 4d
-    Security, SPII Redaction & Gemini Deploy  :p4_2, after p4_1, 3d
+    section Phase 1: Security & MCP Connectivity
+    Token Generation & GFE X-MCP-Token Setup  :p1_1, 2026-08-18, 3d
+    WorkWeek & ServiceImmediately MCP Binding :p1_2, after p1_1, 4d
+    section Phase 2: Agent Core & RAG
+    Google ADK Sub-Agent Implementations      :p2_1, after p1_2, 5d
+    Policy Vector Ingestion & Citation Engine :p2_2, after p2_1, 4d
+    Orchestrator Routing & Safety Guardrails  :p2_3, after p2_2, 4d
+    section Phase 3: UI & End-to-End
+    Aesthetic UI Wrapper & Event Streaming    :p3_1, after p2_3, 4d
+    Cross-System Orchestration E2E Validation :p3_2, after p3_1, 4d
+    section Phase 4: Benchmarking & Deployment
+    Accuracy Benchmarking (>=95% Grounding)   :p4_1, after p3_2, 3d
+    Gemini Enterprise Deployment              :p4_2, after p4_1, 3d
 ```
 
 ### Verification & Testing Criteria:
-1. **Policy Benchmark Eval**: Run automated evaluation suite across 50+ policy test prompts to enforce $\ge 95\%$ grounding accuracy and $0\%$ hallucinations.
-2. **Transaction Integrity Tests**: Verify that attempting to request 25 vacation days when only 15 remain is rejected with a clear explanation.
-3. **Cross-System Chain Verification**: Execute end-to-end simulation of Use Cases 2.1, 2.2, and 2.3, verifying that state is preserved across all sub-agent steps.
+1. **MCP Connectivity Check**: Verify that `get_employee_balances` and `list_tickets` execute successfully over Streamable HTTP with `X-MCP-Token`.
+2. **Policy Benchmark Eval**: Run automated evaluation suite across 50+ policy test prompts to enforce $\ge 95\%$ grounding accuracy and $0\%$ hallucinations.
+3. **Transaction Integrity Tests**: Verify that requesting PTO beyond remaining balance or submitting direct `New -> Closed` status changes fails gracefully.
+4. **Cross-System Chain Verification**: Execute end-to-end simulation of Use Cases 2.1, 2.2, and 2.3, verifying that state is preserved across all sub-agent steps.
