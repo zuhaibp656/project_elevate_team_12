@@ -25,7 +25,7 @@ def create_orchestrator_agent() -> LlmAgent:
         model=config.GEMINI_MODEL,
         description="Central HR Orchestrator managing self-service inquiries and cross-system workflows.",
         instruction=prompts.ORCHESTRATOR_PROMPT,
-        tools=[policy_subagent, hcm_subagent, itsm_subagent],
+        sub_agents=[policy_subagent, hcm_subagent, itsm_subagent],
     )
 
 
@@ -105,7 +105,7 @@ def main(argv=None):
     elif argv:
         print(run_query(" ".join(argv)))
     else:
-        print('Usage: python -m agents.orchestrator "<question>"  |  --interactive')
+        print('Usage: ./deploy.sh --query "<question>"  |  --cli  |  --web')
 
 
 if __name__ == "__main__":

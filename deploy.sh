@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# HR Agentic Solution (Team 12) — Deployment & Execution Script
+# HR Agentic Solution (Team 12) — Deployment & Execution Script (venv-powered)
 # ==============================================================================
 
 set -e
@@ -18,45 +18,47 @@ if [ ! -f "$REPO_ROOT/.env" ]; then
         echo "[!] .env file not found. Creating from .env.example..."
         cp "$REPO_ROOT/.env.example" "$REPO_ROOT/.env"
         echo "[✓] Created .env. Please verify your MCP_TOKEN inside .env if needed."
-    else
-        echo "[!] Warning: No .env or .env.example found."
     fi
 fi
 
-# 2. Dependency Management
-install_deps() {
-    echo "[*] Checking Python dependencies..."
+# 2. Virtual Environment Setup (Python 3.11)
+if [ ! -d "$REPO_ROOT/.venv" ]; then
+    echo "[*] Creating virtual environment (.venv) using Python 3.11..."
     if command -v uv >/dev/null 2>&1; then
-        echo "[✓] Using uv for fast environment management."
-        uv pip install -q httpx python-dotenv pyyaml google-genai 2>/dev/null || true
+        uv venv --python /opt/homebrew/opt/python@3.11/bin/python3.11 .venv 2>/dev/null || uv venv .venv
+        uv sync
     else
-        echo "[*] Using pip..."
-        pip3 install -q httpx python-dotenv pyyaml google-genai 2>/dev/null || true
+        /opt/homebrew/opt/python@3.11/bin/python3.11 -m venv .venv || python3 -m venv .venv
+        .venv/bin/pip install -q httpx python-dotenv pyyaml google-adk
     fi
-}
+    echo "[✓] Virtual environment ready."
+fi
+
+PYTHON_EXEC="$REPO_ROOT/.venv/bin/python"
 
 # 3. Parse command arguments
 MODE="${1:-}"
 
 case "$MODE" in
     --web|-w)
-        echo "[*] Starting Google ADK Web View UI..."
+        echo "[*] Starting Google ADK Web View UI on http://localhost:8000 ..."
         if command -v uv >/dev/null 2>&1; then
             uv run adk web .
-        elif command -v adk >/dev/null 2>&1; then
-            adk web .
+        elif [ -f "$REPO_ROOT/.venv/bin/adk" ]; then
+            "$REPO_ROOT/.venv/bin/adk" web .
         else
-            echo "[!] 'adk' command not found. Please install google-adk or run with uv."
-            exit 1
+            echo "[!] adk command not found in .venv. Installing google-adk..."
+            "$REPO_ROOT/.venv/bin/pip" install google-adk
+            "$REPO_ROOT/.venv/bin/adk" web .
         fi
         ;;
     --cli|-c|--interactive|-i)
         echo "[*] Starting Interactive CLI Session..."
-        python3 -m agents.orchestrator --interactive
+        "$PYTHON_EXEC" -m agents.orchestrator --interactive
         ;;
     --test|-t)
         echo "[*] Running MCP Connectivity Test..."
-        python3 tests/test_mcp_connection.py
+        "$PYTHON_EXEC" tests/test_mcp_connection.py
         ;;
     --query|-q)
         shift
@@ -65,7 +67,7 @@ case "$MODE" in
             echo "Usage: ./deploy.sh --query \"Your question here\""
             exit 1
         fi
-        python3 -m agents.orchestrator "$QUERY"
+        "$PYTHON_EXEC" -m agents.orchestrator "$QUERY"
         ;;
     *)
         echo ""

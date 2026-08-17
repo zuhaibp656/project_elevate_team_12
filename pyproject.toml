@@ -1,0 +1,15 @@
+[project]
+name = "hr-agentic-solution-team-12"
+version = "0.1.0"
+description = "Centralized HR Agentic Solution (Team 12) — Multi-agent system integrating WorkWeek HCM, ServiceImmediately ITSM, and Policy Knowledge Base."
+requires-python = ">=3.11, <3.14"
+dependencies = [
+    "google-adk",
+    "python-dotenv>=1.0.0",
+    "pyyaml",
+    "httpx",
+    "pypdf",
+]
+
+[tool.uv]
+package = false
