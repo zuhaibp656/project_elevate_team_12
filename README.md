@@ -1,6 +1,10 @@
 # 🤖 HR Agentic Solution (Team 12) — Enterprise Virtual Assistant
 
-An enterprise-grade, multi-agent virtual assistant designed to provide employees with instantaneous, conversational self-service. Built on **Google ADK (Agent Development Kit)** with Gemini models, this solution orchestrates workflows across **WorkWeek (HCM)**, **ServiceImmediately (ITSM)**, and company **HR Policy Knowledge Bases** using the **Model Context Protocol (MCP)**.
+An enterprise-grade, multi-agent virtual assistant designed to provide employees with instantaneous, conversational self-service. Built on **Google ADK (Agent Development Kit)** with Gemini models following the **[BMAD Method (Breakthrough Method for Agile AI-Driven Development)](BMAD_METHODOLOGY.md)**, this solution orchestrates workflows across **WorkWeek (HCM)**, **ServiceImmediately (ITSM)**, and company **HR Policy Knowledge Bases** using the **Model Context Protocol (MCP)**.
+
+[![BMAD Method](https://img.shields.io/badge/Methodology-BMAD_Method-blueviolet)](https://github.com/bmad-code-org/BMAD-METHOD)
+[![ADK Powered](https://img.shields.io/badge/Framework-Google_ADK-4285F4)](https://github.com/google/adk)
+[![Model](https://img.shields.io/badge/Model-Gemini_Flash-FF6F00)](https://ai.google.dev/)
 
 ---
 
