@@ -1,210 +1,50 @@
-## Goal Description
-Based on the HR Agentic Solution (MVP 1) BRD, the goal is to build a secure, AI-driven centralized solution that provides employees with immediate, conversational access to HR services. The solution will:
-1. **Deflect Tier 1 HR/IT inquiries** by answering policy questions strictly derived from ingested HR policy documents.
-2. **Execute Employee Self-Service Transactions** via integration with **WorkWeek (HCM)** to read/write employee profiles and submit leave requests.
-3. **Manage Support Desk Tickets** via integration with **ServiceImmediately (ITSM)** to query, create, and update incident tickets.
+# HR Agentic Solution (MVP 1) — Implementation Plan & Architecture
 
-To align with your development practices:
-- We will build an **ADK-based multi-agent system** capable of running independently, through a dedicated UI, or deployed on Gemini Enterprise.
-- The system will consist of a **Main Agent (Orchestrator)** and specialized **Sub-Agents**.
-- We will leverage **Model Context Protocol (MCP)** or direct tool access for interacting with backend systems (WorkWeek, ServiceImmediately, Policy Repo).
-- We will build a **visually aesthetic, animated, and self-explanatory UI wrapper** that remains fully decoupled from the core agent layer to allow independent modifications.
+## 1. Executive Summary & Goal Description
+Based on the **HR Agentic Solution (MVP 1) BRD**, this solution is an enterprise, AI-driven virtual assistant designed to provide employees with instantaneous, conversational access to HR services and cross-system orchestration.
 
-## User Review Required
-> [!IMPORTANT]
-> **Sub-Agent Structure**: Do you prefer defining the sub-agents as distinct ADK classes/files (e.g. `policy_agent.py`, `hcm_agent.py`, `itsm_agent.py`) or defining them dynamically within the main `agent.py` file?
->
-> **UI Tech Stack**: Given the requirement for a "bright, simple, and animated" UI, we can use a modern frontend framework like React (with Framer Motion for animations) or a lightweight Vanilla JS/HTML/CSS approach using View Transitions. Do you have a preference?
-
-## Open Questions
-> [!CAUTION]
-> **Authentication & Authorization**: The BRD specifies using functional test credentials for MVP 1 rather than enterprise SSO. Will you be providing access to mock WorkWeek and ServiceImmediately endpoints, or should we build lightweight mock API servers to act as these backends?
-
-## Proposed Architecture
-
-```mermaid
-flowchart TD
-    subgraph UI ["Visually Aesthetic UI Wrapper"]
-        ChatInterface[Conversational Interface\n(Bright, Animated, Simple)]
-    end
-
-    subgraph ADK ["Google ADK Agent Layer"]
-        MainAgent{Main Agent\n(Orchestrator)}
-        
-        SubPolicy[Policy Sub-Agent\n(RAG / Q&A)]
-        SubHCM[WorkWeek HCM\nSub-Agent]
-        SubITSM[ServiceImmediately\nITSM Sub-Agent]
-        
-        MainAgent -->|Routes Intent| SubPolicy
-        MainAgent -->|Routes Intent| SubHCM
-        MainAgent -->|Routes Intent| SubITSM
-        
-        MainAgent <-->|Cross-System Orchestration\n(e.g., Leave + Ticket)| SubHCM & SubITSM & SubPolicy
-    end
-    
-    subgraph MCP ["MCP Servers / Integration Tools"]
-        PolicyTools[Policy Retrieval Tools\n(Chunking & Vector Search)]
-        HCMTools[WorkWeek MCP Server\n(Profiles, Leaves)]
-        ITSMTools[ServiceImmediately MCP Server\n(Tickets, Status, Comments)]
-    end
-    
-    subgraph Backend ["Enterprise Systems (MVP 1 Test Envs)"]
-        PolicyRepo[(HR Policy Documents)]
-        WorkWeek[(WorkWeek HCM)]
-        ServiceImmediately[(ServiceImmediately ITSM)]
-    end
-
-    %% Connections
-    ChatInterface <-->|API / WebSockets| MainAgent
-    SubPolicy <--> PolicyTools
-    SubHCM <--> HCMTools
-    SubITSM <--> ITSMTools
-    
-    PolicyTools <--> PolicyRepo
-    HCMTools <--> WorkWeek
-    ITSMTools <--> ServiceImmediately
-```
-
-## Proposed Changes
+### Core Objectives:
+1. **Deflect Tier 1 HR/IT Inquiries**: Automate policy-related inquiries strictly grounded in verified policy documentation.
+2. **Employee Self-Service Transactions (WorkWeek HCM)**: Real-time profile lookup, contact information updates, and leave balance checks/submissions.
+3. **IT Incident Management (ServiceImmediately ITSM)**: Ticket creation, comment appending, status tracking, and transition validation.
+4. **Cross-System Orchestration**: Chain multi-step actions across Policies, HCM, and ITSM (e.g. equipment procurement, medical leave coordination, employee relocation).
 
 ---
 
-### UI Wrapper
-We will create a decoupled static frontend that communicates with the ADK agent runtime.
-- A modern chat interface prioritizing ease-of-use.
-- Animated state transitions (loading indicators for backend fetches, success checkmarks for ticket creation).
-- Configurable theming to support bright and accessible colors.
-#### [NEW] `project_elevate/ui/static/index.html`
-#### [NEW] `project_elevate/ui/static/app.js`
-#### [NEW] `project_elevate/ui/static/styles.css`
+## 2. System Architecture
+
+![System Architecture](images/system_architecture.jpg)
+
+### Architecture Highlights:
+- **Visually Aesthetic UI Wrapper**: Decoupled, responsive web chat interface with animated states and bright modern gradients.
+- **Google ADK Multi-Agent Orchestration**:
+  - **Main Orchestrator Agent (`hr_orchestrator`)**: Performs intent detection, multi-turn state management, safety guardrails, and cross-system delegation.
+  - **HR Policy Specialist Agent (`policy_agent`)**: Dedicated RAG-powered agent grounded strictly in HR policy documents with citation metadata.
+  - **WorkWeek HCM Specialist Agent (`hcm_agent`)**: Dedicated agent managing profile and leave operations with balance validation and chronological guardrails.
+  - **ServiceImmediately ITSM Specialist Agent (`itsm_agent`)**: Dedicated agent handling support tickets, status lifecycles, and priority verification.
+- **Model Context Protocol (MCP) Integration Layer**: Standardized tool interface bridging ADK agents with enterprise backends.
+- **Enterprise Backend Systems**: WorkWeek HCM, ServiceImmediately ITSM, and HR Policy Knowledge Base.
 
 ---
 
-### ADK Core Agent Layer
-We will extend the existing `agent.py` to act as an orchestrator and define sub-agents.
-#### [MODIFY] `project_elevate/agent/agent.py`
-```python
-# Introduce sub-agents and router logic
-policy_agent = LlmAgent(prompt=POLICY_PROMPT, tools=[retrieve_policy])
-hcm_agent = LlmAgent(prompt=HCM_PROMPT, tools=[get_profile, submit_leave])
-itsm_agent = LlmAgent(prompt=ITSM_PROMPT, tools=[query_ticket, create_incident])
+## 3. End-to-End Flow Diagram (Cross-System Use Case)
 
-# Main agent prompt will instruct it to delegate tasks to sub-agents
-root_agent = LlmAgent(prompt=ROOT_PROMPT, tools=[policy_agent, hcm_agent, itsm_agent])
-```
+![Multi-Agent AI System Flow](images/flow_diagram.jpg)
 
-#### [NEW] `project_elevate/agent/subagents.py`
-Contains the specific prompts and instructions for the WorkWeek, ServiceImmediately, and Policy sub-agents, including validation constraints from the BRD (e.g., chronological validation of leave dates, preventing direct New -> Closed ticket transitions).
+### Flow Breakdown (Medical Leave Example):
+1. **Step 1 (User Request)**: Employee requests medical leave starting next Monday via the Chat UI.
+2. **Step 2 (Policy Verification)**: Orchestrator delegates to `policy_agent` to quote medical leave entitlements (e.g., 10 days) and identify prerequisites (manager email delegation).
+3. **Step 3 (Leave Submission)**: Orchestrator delegates to `hcm_agent` to query accrued balance and submit the leave request in WorkWeek.
+4. **Step 4 (IT Ticket Creation)**: Orchestrator delegates to `itsm_agent` to open an incident ticket in ServiceImmediately for IT to route incoming emails to the manager.
+5. **Step 5 (Consolidated Response)**: Orchestrator synthesizes output from all sub-agents into a single, cohesive, friendly response back to the user.
 
 ---
 
-### MCP / Integration Tools
-We will create integration scripts that abstract the WorkWeek and ServiceImmediately systems.
-#### [NEW] `project_elevate/agent/tools/mcp_workweek.py`
-Exposes core actions: `Retrieve Employee Profile`, `Update Contact Information`, `Query Time-Off Balances`, and `Submit Leave Request`.
-#### [NEW] `project_elevate/agent/tools/mcp_service_immediately.py`
-Exposes core actions: `Query Ticket Details`, `Create Incident Ticket`, `Post Ticket Comment`, and `Update Ticket Status`.
+## 4. Key Functional & Non-Functional Guardrails
 
-## Verification Plan
-
-### Automated Tests
-1. **Safety & Guardrail Efficacy**: We will run tests simulating prompt injections and out-of-bounds queries to ensure the Main Agent rejects them and maintains 100% domain containment.
-2. **Transaction Integrity**: We will execute functional unit tests on the MCP mock tools to ensure business logic constraints (e.g., negative balance checks) hold true.
-
-### Manual Verification
-1. **Cross-System Orchestration Check**: The user will issue a complex request (e.g., "I need medical leave, please set it up and ensure my manager has email access.")
-2. **UI Review**: The user will load the UI wrapper locally (`adk web` or custom static server) to verify animations, color palette, and component decoupling.
-# HR Agentic Solution (MVP 1) Diagrams
-
-## 1. System Architecture
-This diagram illustrates the structural setup of the system, showing how the UI communicates with the Main Agent, and how the Main Agent delegates tasks to specialized sub-agents.
-
-```mermaid
-flowchart TD
-    %% Styling
-    classDef ui fill:#3182CE,stroke:#2B6CB0,stroke-width:2px,color:#fff
-    classDef agent fill:#6B46C1,stroke:#553C9A,stroke-width:2px,color:#fff
-    classDef tool fill:#48BB78,stroke:#2F855A,stroke-width:2px,color:#fff
-    classDef backend fill:#ED8936,stroke:#C05621,stroke-width:2px,color:#fff
-
-    subgraph UI ["User Interface Layer"]
-        App[Web Chat Interface\n(app.js / styles.css)]:::ui
-    end
-
-    subgraph Orchestration ["ADK Orchestration Layer"]
-        Router{Main Agent\n(hr_orchestrator)}:::agent
-        SubPolicy[Policy Sub-Agent]:::agent
-        SubHCM[WorkWeek Sub-Agent]:::agent
-        SubITSM[ServiceImmediately Sub-Agent]:::agent
-    end
-
-    subgraph Integration ["MCP / Tools Layer"]
-        ToolPolicy[Policy Retrieval Mock]:::tool
-        ToolHCM[WorkWeek API Mock]:::tool
-        ToolITSM[ServiceImmediately API Mock]:::tool
-    end
-
-    subgraph Enterprise ["Enterprise Backend Systems"]
-        DBPolicy[(Policy Knowledge Base)]:::backend
-        DBHCM[(WorkWeek HCM System)]:::backend
-        DBITSM[(ServiceImmediately ITSM)]:::backend
-    end
-
-    %% Flow connections
-    App <-->|Natural Language| Router
-    
-    Router --->|Routing / Intent| SubPolicy
-    Router --->|Routing / Intent| SubHCM
-    Router --->|Routing / Intent| SubITSM
-    
-    SubPolicy <--> ToolPolicy
-    SubHCM <--> ToolHCM
-    SubITSM <--> ToolITSM
-    
-    ToolPolicy <--> DBPolicy
-    ToolHCM <--> DBHCM
-    ToolITSM <--> DBITSM
-```
-
-<br><br>
-
-## 2. Cross-System Interaction Flow (Sequence Diagram)
-This sequence diagram demonstrates a complex, multi-agent conversational flow (e.g., an employee requesting medical leave that requires both checking a policy, submitting leave to the HCM, and opening an IT ticket for manager email access).
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Employee
-    participant UI as Chat UI
-    participant Orchestrator as Main Agent
-    participant PolicyAgent as Policy Sub-Agent
-    participant HCMAgent as HCM Sub-Agent
-    participant ITSMAgent as ITSM Sub-Agent
-
-    User->>UI: "I need medical leave starting Monday. Can you set it up?"
-    UI->>Orchestrator: Send Prompt
-    
-    rect rgb(240, 248, 255)
-        note right of Orchestrator: Step 1: Check Policy
-        Orchestrator->>PolicyAgent: What is the medical leave process?
-        PolicyAgent-->>Orchestrator: "Provides 10 days, requires email routing to manager via IT ticket."
-    end
-    
-    rect rgb(240, 255, 240)
-        note right of Orchestrator: Step 2: Book Leave
-        Orchestrator->>HCMAgent: Check leave balance & submit leave starting Monday
-        HCMAgent->>HCMAgent: mcp_workweek.query_time_off_balances()
-        HCMAgent->>HCMAgent: mcp_workweek.submit_leave_request()
-        HCMAgent-->>Orchestrator: Leave submitted successfully.
-    end
-
-    rect rgb(255, 245, 240)
-        note right of Orchestrator: Step 3: Open IT Ticket
-        Orchestrator->>ITSMAgent: Create ticket to route email to manager
-        ITSMAgent->>ITSMAgent: mcp_service_immediately.create_incident_ticket()
-        ITSMAgent-->>Orchestrator: Ticket INC654321 created.
-    end
-
-    Orchestrator->>UI: Assemble final response combining Policy, Leave confirmation, and Ticket ID.
-    UI->>User: "Your leave is booked, and ticket INC654321 is open for your manager's email routing."
-```
+| Domain | Requirement | Guardrail Enforcement |
+| :--- | :--- | :--- |
+| **Policy Retrieval** | Strict Grounding & Containment | Rejects out-of-domain prompts; guarantees 0% policy hallucination with exact citations. |
+| **WorkWeek HCM** | Leave & Balance Constraints | Validates requested days <= remaining balance; enforces chronological validity ($Start \le End$). |
+| **ServiceImmediately** | Lifecycle Transitions | Blocks invalid transitions (e.g. directly `New` to `Closed`); mitigates duplicate submissions. |
+| **Security & Privacy** | AI Safety & SPII Redaction | Detects and blocks prompt injection/jailbreak attempts; masks sensitive personal data in logs. |
