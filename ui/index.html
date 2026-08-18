@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elevate HR Assistant — Team 12</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --g-blue: #1a73e8;
+      --g-blue-light: #e8f0fe;
+      --g-red: #ea4335;
+      --g-yellow: #fbbc04;
+      --g-green: #34a853;
+      --bg-color: #f8fafc;
+      --surface-color: #ffffff;
+      --text-main: #202124;
+      --text-muted: #5f6368;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 2px 6px rgba(60, 64, 67, 0.08);
+      --shadow-md: 0 10px 30px rgba(60, 64, 67, 0.12);
+      --shadow-glow: 0 0 40px rgba(66, 133, 244, 0.18);
+      --radius-full: 9999px;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Google Aura Ambient Background */
+    .aura-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .aura-circle {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.45;
+      animation: floatAura 18s infinite ease-in-out alternate;
+    }
+
+    .aura-blue {
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(66, 133, 244, 0.6), transparent 70%);
+      top: -100px;
+      left: -50px;
+    }
+
+    .aura-red {
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(234, 67, 53, 0.5), transparent 70%);
+      top: -50px;
+      right: -50px;
+      animation-delay: -4s;
+    }
+
+    .aura-yellow {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(251, 188, 4, 0.4), transparent 70%);
+      bottom: -100px;
+      left: 20%;
+      animation-delay: -8s;
+    }
+
+    .aura-green {
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(52, 168, 83, 0.45), transparent 70%);
+      bottom: -50px;
+      right: 10%;
+      animation-delay: -12s;
+    }
+
+    @keyframes floatAura {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(40px, 30px) scale(1.1); }
+      100% { transform: translate(-30px, 50px) scale(0.95); }
+    }
+
+    /* Header Nav */
+    header {
+      width: 100%;
+      max-width: 1100px;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .google-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+    .dot-blue { background: var(--g-blue); }
+    .dot-red { background: var(--g-red); }
+    .dot-yellow { background: var(--g-yellow); }
+    .dot-green { background: var(--g-green); }
+
+    .brand-text {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--g-blue-light);
+      color: var(--g-blue);
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #ffffff;
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-1px);
+    }
+
+    /* Main Container */
+    main {
+      width: 100%;
+      max-width: 860px;
+      padding: 20px 24px 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10;
+      flex: 1;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      margin-top: 40px;
+      margin-bottom: 32px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .hero.collapsed {
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #1a73e8 0%, #d93025 50%, #1e8e3e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero.collapsed .hero-title {
+      font-size: 28px;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .hero.collapsed .hero-subtitle {
+      display: none;
+    }
+
+    /* Central Search Container */
+    .search-wrapper {
+      width: 100%;
+      position: relative;
+      margin-bottom: 28px;
+    }
+
+    .search-box {
+      width: 100%;
+      background: var(--surface-color);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+
+    .search-box:focus-within {
+      box-shadow: 0 12px 40px rgba(66, 133, 244, 0.2), 0 0 0 2px var(--g-blue);
+      border-color: transparent;
+      transform: translateY(-2px);
+    }
+
+    .search-input-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .search-sparkle {
+      font-size: 22px;
+      color: var(--g-blue);
+      margin-top: 4px;
+      animation: pulseSparkle 2.5s infinite ease-in-out;
+    }
+
+    @keyframes pulseSparkle {
+      0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+      50% { transform: scale(1.15) rotate(10deg); opacity: 1; }
+    }
+
+    textarea.search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 16px;
+      color: var(--text-main);
+      background: transparent;
+      resize: none;
+      min-height: 48px;
+      max-height: 180px;
+      line-height: 1.5;
+    }
+
+    textarea.search-input::placeholder {
+      color: #9aa0a6;
+    }
+
+    .search-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    /* Mode Selector Dropdown */
+    .mode-selector {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-full);
+      padding: 4px 12px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-selector:hover {
+      background: #edf2f7;
+    }
+
+    .mode-selector select {
+      appearance: none;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+      cursor: pointer;
+      padding-right: 14px;
+    }
+
+    .mode-badge {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--g-blue);
+    }
+
+    .btn-submit {
+      background: var(--g-blue);
+      color: white;
+      border: none;
+      border-radius: var(--radius-full);
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.35);
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      background: #1557b0;
+      transform: scale(1.08);
+      box-shadow: 0 6px 16px rgba(26, 115, 232, 0.45);
+    }
+
+    .btn-submit:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    .btn-submit:disabled {
+      background: #dadce0;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Suggestion Chips */
+    .suggestions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+      transition: opacity 0.3s;
+    }
+
+    .suggestions-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-left: 6px;
+    }
+
+    .chips-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      border-radius: var(--radius-full);
+      padding: 9px 16px;
+      font-size: 13px;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chip:hover {
+      background: #ffffff;
+      border-color: var(--g-blue);
+      color: var(--g-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(66, 133, 244, 0.12);
+    }
+
+    .chip-icon {
+      font-size: 15px;
+    }
+
+    /* Response Expansion Container */
+    .response-container {
+      width: 100%;
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      animation: expandIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes expandIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .response-card {
+      background: var(--surface-color);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-md);
+      padding: 28px 32px;
+      position: relative;
+    }
+
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .response-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .agent-tag {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      background: var(--g-blue-light);
+      color: var(--g-blue);
+    }
+
+    .btn-copy {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+    }
+
+    .btn-copy:hover {
+      background: #f1f5f9;
+      color: var(--text-main);
+    }
+
+    /* Markdown Styling */
+    .markdown-body {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #334155;
+    }
+
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+      color: var(--text-main);
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+
+    .markdown-body ul, .markdown-body ol {
+      margin-left: 24px;
+      margin-bottom: 12px;
+    }
+
+    .markdown-body li {
+      margin-bottom: 6px;
+    }
+
+    .markdown-body p {
+      margin-bottom: 12px;
+    }
+
+    .markdown-body strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .markdown-body a {
+      color: var(--g-blue);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .markdown-body a:hover {
+      text-decoration: underline;
+    }
+
+    .markdown-body blockquote {
+      border-left: 4px solid var(--g-blue);
+      background: #f8fafc;
+      padding: 10px 16px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin: 12px 0;
+    }
+
+    /* Loading Shimmer & Dots */
+    .loading-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 40px 0;
+      width: 100%;
+    }
+
+    .google-loader {
+      display: flex;
+      gap: 8px;
+    }
+
+    .loader-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      animation: loaderBounce 1.4s infinite ease-in-out both;
+    }
+
+    .loader-blue { background: var(--g-blue); animation-delay: -0.32s; }
+    .loader-red { background: var(--g-red); animation-delay: -0.16s; }
+    .loader-yellow { background: var(--g-yellow); }
+    .loader-green { background: var(--g-green); animation-delay: 0.16s; }
+
+    @keyframes loaderBounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1.0); }
+    }
+
+    .loading-status {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+      animation: pulseOpacity 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseOpacity {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* Modal Styling */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal {
+      background: white;
+      border-radius: var(--radius-lg);
+      max-width: 600px;
+      width: 100%;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+      position: relative;
+      animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-main);
+    }
+
+    .modal-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .modal-content h4 {
+      color: var(--text-main);
+      margin: 14px 0 6px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      background: #202124;
+      color: white;
+      padding: 10px 20px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      z-index: 200;
+      display: none;
+      animation: toastIn 0.3s ease forwards;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Google Aura Background -->
+  <div class="aura-bg">
+    <div class="aura-circle aura-blue"></div>
+    <div class="aura-circle aura-red"></div>
+    <div class="aura-circle aura-yellow"></div>
+    <div class="aura-circle aura-green"></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <a href="#" class="brand">
+      <div class="google-dots">
+        <div class="dot dot-blue"></div>
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+      </div>
+      <span class="brand-text">Elevate HR</span>
+      <span class="brand-badge">Team 12</span>
+    </a>
+    <div class="header-actions">
+      <button class="btn-secondary" id="btnHowToUse">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        How to Use
+      </button>
+      <a href="https://mock-saas.aishprabhat.demo.altostrat.com/redoc" target="_blank" class="btn-secondary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        SaaS Portal
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Title -->
+    <section class="hero" id="heroSection">
+      <h1 class="hero-title">How can I assist you today?</h1>
+      <p class="hero-subtitle">Ask HR policies, check your leave balances, manage IT tickets, or execute multi-system workflows.</p>
+    </section>
+
+    <!-- Center Search Bar -->
+    <div class="search-wrapper">
+      <div class="search-box" id="searchBox">
+        <div class="search-input-row">
+          <div class="search-sparkle">✨</div>
+          <textarea id="queryInput" class="search-input" placeholder="Ask a policy, request time off, or open an IT incident..." rows="1"></textarea>
+        </div>
+        <div class="search-controls">
+          <div class="mode-selector" title="Select agent routing target">
+            <span class="mode-badge" id="modeBadge"></span>
+            <select id="modeSelect">
+              <option value="auto">🌟 Auto Orchestrator</option>
+              <option value="policy">📖 HR Policy Specialist</option>
+              <option value="hcm">📅 WorkWeek HCM (Leave)</option>
+              <option value="itsm">🎫 ServiceImmediately ITSM</option>
+            </select>
+          </div>
+          <button class="btn-submit" id="btnSubmit" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Prompt Suggestions -->
+    <div class="suggestions" id="suggestionsSection">
+      <div class="suggestions-label">Recommended Prompts</div>
+      <div class="chips-grid">
+        <button class="chip" data-prompt="How many days of paid outpatient sick leave do I get in Singapore?" data-mode="policy">
+          <span class="chip-icon">📖</span>
+          <span>Sick leave policy</span>
+        </button>
+        <button class="chip" data-prompt="How many days of vacation and sick leave do I currently have remaining for emp_001?" data-mode="hcm">
+          <span class="chip-icon">📅</span>
+          <span>Check PTO balances</span>
+        </button>
+        <button class="chip" data-prompt="I need to take 2 days of medical leave from 2026-09-01 to 2026-09-02 for emp_001. What is the policy, please book it, and open an IT ticket to route emails to my manager." data-mode="auto">
+          <span class="chip-icon">🔀</span>
+          <span>Medical leave & email delegation</span>
+        </button>
+        <button class="chip" data-prompt="List all my active support tickets." data-mode="itsm">
+          <span class="chip-icon">🎫</span>
+          <span>List active tickets</span>
+        </button>
+        <button class="chip" data-prompt="I saw the remote work policy allows a home monitor. Can you verify my address and order one for me?" data-mode="auto">
+          <span class="chip-icon">💻</span>
+          <span>Equipment procurement</span>
+        </button>
+        <button class="chip" data-prompt="What is the company's bereavement leave policy?" data-mode="policy">
+          <span class="chip-icon">🕊️</span>
+          <span>Bereavement policy</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" id="loadingState">
+      <div class="google-loader">
+        <div class="loader-dot loader-blue"></div>
+        <div class="loader-dot loader-red"></div>
+        <div class="loader-dot loader-yellow"></div>
+        <div class="loader-dot loader-green"></div>
+      </div>
+      <div class="loading-status" id="loadingStatus">Orchestrating agents and retrieving data...</div>
+    </div>
+
+    <!-- Response Container -->
+    <div class="response-container" id="responseContainer">
+      <div class="response-card">
+        <div class="response-header">
+          <div class="response-meta">
+            <div class="google-dots">
+              <div class="dot dot-blue"></div>
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <span class="agent-tag" id="responseAgentTag">Auto Orchestrator</span>
+          </div>
+          <button class="btn-copy" id="btnCopy">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy
+          </button>
+        </div>
+        <div class="markdown-body" id="responseBody"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- How to Use Modal -->
+  <div class="modal-backdrop" id="howToModal">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <h3 class="modal-title">How to Use Elevate HR</h3>
+      <div class="modal-content">
+        <p>This virtual assistant connects directly to your company's live systems using the <strong>Model Context Protocol (MCP)</strong>.</p>
+        
+        <h4>🌟 1. Auto Orchestrator (Recommended)</h4>
+        <p>Handles complex, multi-step requests across policies, WorkWeek, and ServiceImmediately in a single turn.</p>
+
+        <h4>📖 2. HR Policy Specialist</h4>
+        <p>Directly queries official Singapore HR policies, allowances, and rules with exact citations and zero hallucinations.</p>
+
+        <h4>📅 3. WorkWeek HCM</h4>
+        <p>Inspects your live PTO balances, submits time off, and checks/updates your profile contact details.</p>
+
+        <h4>🎫 4. ServiceImmediately ITSM</h4>
+        <p>Tracks open tickets, submits new hardware/software incidents, and manages ticket comments.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toastMsg">Copied to clipboard</div>
+
+  <script>
+    const queryInput = document.getElementById('queryInput');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const modeSelect = document.getElementById('modeSelect');
+    const modeBadge = document.getElementById('modeBadge');
+    const heroSection = document.getElementById('heroSection');
+    const loadingState = document.getElementById('loadingState');
+    const loadingStatus = document.getElementById('loadingStatus');
+    const responseContainer = document.getElementById('responseContainer');
+    const responseBody = document.getElementById('responseBody');
+    const responseAgentTag = document.getElementById('responseAgentTag');
+    const btnCopy = document.getElementById('btnCopy');
+    const btnHowToUse = document.getElementById('btnHowToUse');
+    const howToModal = document.getElementById('howToModal');
+    const modalClose = document.getElementById('modalClose');
+    const toastMsg = document.getElementById('toastMsg');
+
+    // Auto-grow textarea
+    queryInput.addEventListener('input', () => {
+      queryInput.style.height = 'auto';
+      queryInput.style.height = Math.min(queryInput.scrollHeight, 180) + 'px';
+      btnSubmit.disabled = !queryInput.value.trim();
+    });
+
+    // Mode badge colors
+    const modeColors = {
+      auto: '#1a73e8',
+      policy: '#ea4335',
+      hcm: '#fbbc04',
+      itsm: '#34a853'
+    };
+
+    modeSelect.addEventListener('change', () => {
+      modeBadge.style.background = modeColors[modeSelect.value] || '#1a73e8';
+    });
+
+    // Chip click handlers
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const prompt = chip.getAttribute('data-prompt');
+        const mode = chip.getAttribute('data-mode');
+        queryInput.value = prompt;
+        if (mode) {
+          modeSelect.value = mode;
+          modeBadge.style.background = modeColors[mode] || '#1a73e8';
+        }
+        btnSubmit.disabled = false;
+        queryInput.focus();
+        queryInput.dispatchEvent(new Event('input'));
+        submitQuery();
+      });
+    });
+
+    // Submit query
+    async function submitQuery() {
+      const text = queryInput.value.trim();
+      if (!text) return;
+
+      const mode = modeSelect.value;
+      btnSubmit.disabled = true;
+      heroSection.classList.add('collapsed');
+      responseContainer.style.display = 'none';
+      loadingState.style.display = 'flex';
+
+      const statusMessages = [
+        "Analyzing request and identifying domains...",
+        "Querying FastMCP servers & company policies...",
+        "Executing sub-agent workflow...",
+        "Synthesizing response with safety guardrails..."
+      ];
+      let msgIdx = 0;
+      loadingStatus.innerText = statusMessages[0];
+      const statusInterval = setInterval(() => {
+        msgIdx = (msgIdx + 1) % statusMessages.length;
+        loadingStatus.innerText = statusMessages[msgIdx];
+      }, 2500);
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, mode: mode })
+        });
+
+        clearInterval(statusInterval);
+        loadingState.style.display = 'none';
+
+        if (!res.ok) {
+          throw new Error(`HTTP Error ${res.status}`);
+        }
+
+        const data = await res.json();
+        const modeLabels = {
+          auto: "Auto Orchestrator (Multi-Agent)",
+          policy: "HR Policy Specialist",
+          hcm: "WorkWeek HCM Specialist",
+          itsm: "ServiceImmediately ITSM Specialist"
+        };
+        responseAgentTag.innerText = modeLabels[data.mode] || data.mode.toUpperCase();
+        responseBody.innerHTML = marked.parse(data.response || "No response generated.");
+        responseContainer.style.display = 'flex';
+        responseContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      } catch (err) {
+        clearInterval(statusInterval);
+        loadingState.style.display = 'none';
+        responseAgentTag.innerText = "System Error";
+        responseBody.innerHTML = `<p style="color: #d93025;"><strong>Error connecting to agent:</strong> ${err.message}. Please ensure the server is running.</p>`;
+        responseContainer.style.display = 'flex';
+      } finally {
+        btnSubmit.disabled = false;
+      }
+    }
+
+    btnSubmit.addEventListener('click', submitQuery);
+
+    queryInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitQuery();
+      }
+    });
+
+    // Copy to clipboard
+    btnCopy.addEventListener('click', () => {
+      const text = responseBody.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        toastMsg.style.display = 'block';
+        setTimeout(() => { toastMsg.style.display = 'none'; }, 2500);
+      });
+    });
+
+    // Modal controls
+    btnHowToUse.addEventListener('click', () => { howToModal.style.display = 'flex'; });
+    modalClose.addEventListener('click', () => { howToModal.style.display = 'none'; });
+    howToModal.addEventListener('click', (e) => {
+      if (e.target === howToModal) howToModal.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

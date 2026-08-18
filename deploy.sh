@@ -53,6 +53,11 @@ case "$MODE" in
             "$REPO_ROOT/.venv/bin/adk" web . --port "$PORT"
         fi
         ;;
+    --ui|-u)
+        PORT="${2:-8090}"
+        echo "[*] Starting Elevate HR Google Aura Web UI on http://localhost:$PORT ..."
+        "$PYTHON_EXEC" -m uvicorn ui.server:app --host 127.0.0.1 --port "$PORT"
+        ;;
     --cli|-c|--interactive|-i)
         echo "[*] Starting Interactive CLI Session..."
         "$PYTHON_EXEC" -m agents.orchestrator --interactive
@@ -75,12 +80,14 @@ case "$MODE" in
         echo "Usage: ./deploy.sh [OPTION]"
         echo ""
         echo "Options:"
-        echo "  -w, --web           Launch the ADK Web View UI (browser interface)"
+        echo "  -u, --ui            Launch the Elevate HR Google Aura Web UI (http://localhost:8090)"
+        echo "  -w, --web           Launch the Google ADK Web View UI (http://localhost:8088)"
         echo "  -i, --cli           Launch Interactive Terminal Chat session"
         echo "  -t, --test          Run MCP endpoints connectivity test"
         echo "  -q, --query <text>  Run a single query through the orchestrator"
         echo ""
         echo "Examples:"
+        echo "  ./deploy.sh --ui"
         echo "  ./deploy.sh --web"
         echo "  ./deploy.sh --cli"
         echo "  ./deploy.sh --query \"How many days of sick leave do I get?\""
