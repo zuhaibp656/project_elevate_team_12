@@ -209,8 +209,10 @@ async def get_index():
         return FileResponse(str(index_file))
     return {"message": "HR Agentic Solution UI Wrapper"}
 
-def start_server(host: str = "127.0.0.1", port: int = 8090):
-    uvicorn.run("ui.server:app", host=host, port=port, reload=False)
+def start_server(host: str = None, port: int = None):
+    h = host or os.getenv("HOST", "0.0.0.0")
+    p = port or int(os.getenv("PORT", 8090))
+    uvicorn.run("ui.server:app", host=h, port=p, reload=False)
 
 if __name__ == "__main__":
     start_server()

@@ -79,13 +79,18 @@ case "$MODE" in
         shift
         exec ./deploy_gemini_enterprise.sh "$@"
         ;;
+    --gcp|--cloud-run)
+        shift
+        exec ./deploy_full_gcp.sh "$@"
+        ;;
     *)
         echo ""
         echo "Usage: ./deploy.sh [OPTION]"
         echo ""
         echo "Options:"
-        echo "  -u, --ui            Launch the Elevate HR Google Aura Web UI (http://localhost:8090)"
-        echo "  --ge, --gemini-enterprise Deploy ONLY agent to Gemini Enterprise (Agent Engine / Cloud Run)"
+        echo "  -u, --ui            Launch the Elevate HR Google Aura Web UI locally (http://localhost:8090)"
+        echo "  --gcp, --cloud-run  Deploy FULL-STACK (Web UI + Agent) to Google Cloud Run with public URL"
+        echo "  --ge                Deploy ONLY raw agent to Gemini Enterprise (Agent Engine)"
         echo "  -w, --web           Launch the Google ADK Web View UI (http://localhost:8088)"
         echo "  -i, --cli           Launch Interactive Terminal Chat session"
         echo "  -t, --test          Run MCP endpoints connectivity test"
@@ -93,10 +98,10 @@ case "$MODE" in
         echo ""
         echo "Examples:"
         echo "  ./deploy.sh --ui"
+        echo "  ./deploy.sh --gcp --project <PROJECT_ID>"
         echo "  ./deploy.sh --ge --project <PROJECT_ID>"
         echo "  ./deploy.sh --web"
         echo "  ./deploy.sh --cli"
-        echo "  ./deploy.sh --query \"How many days of sick leave do I get?\""
         echo ""
         ;;
 esac

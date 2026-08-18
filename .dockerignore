@@ -1,0 +1,13 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.DS_Store
+*.log
+*.docx
+tests/
+.agent_engine*
