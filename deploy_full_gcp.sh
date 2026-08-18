@@ -34,7 +34,7 @@ fi
 # 2. Defaults & CLI Arguments
 # -----------------------------------------------------------------------------
 PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-${PROJECT_ID:-}}"
-REGION="${GOOGLE_CLOUD_LOCATION:-${REGION:-us-central1}}"
+REGION="${GOOGLE_CLOUD_LOCATION:-${REGION:-}}"
 SERVICE_NAME="elevate-hr-app"
 MCP_TOKEN_VAL="${MCP_TOKEN:-mcp_CsoiJPHj_FGICu8pf8aFJLIuPc4Kt4AXeOLWyUmwHxQ}"
 API_KEY_VAL="${GEMINI_API_KEY:-${GOOGLE_API_KEY:-}}"
@@ -100,16 +100,16 @@ while [[ $# -gt 0 ]]; do
 done
 
 # -----------------------------------------------------------------------------
-# 3. Google Cloud Authentication & Project Resolution
+# 3. Interactive Google Cloud Project & Region Resolution
 # -----------------------------------------------------------------------------
 echo "[*] Resolving Google Cloud credentials..."
 
-if [ -z "$PROJECT_ID" ]; then
-    if command -v gcloud >/dev/null 2>&1; then
-        PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
-    fi
+# Try gcloud active project
+if [ -z "$PROJECT_ID" ] && command -v gcloud >/dev/null 2>&1; then
+    PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
 fi
 
+# If still missing and interactive, prompt the user
 if [ -z "$PROJECT_ID" ] && [ "$DRY_RUN" = false ]; then
     echo ""
     if [ -t 0 ]; then
@@ -122,6 +122,14 @@ if [ -z "$PROJECT_ID" ] && [ "$DRY_RUN" = false ]; then
     echo "[!] Error: No Google Cloud Project ID provided."
     echo "    Please run with: ./deploy_full_gcp.sh --project <YOUR_PROJECT_ID>"
     exit 1
+fi
+
+# Region resolution
+if [ -z "$REGION" ] && command -v gcloud >/dev/null 2>&1; then
+    REGION=$(gcloud config get-value compute/region 2>/dev/null || true)
+fi
+if [ -z "$REGION" ]; then
+    REGION="us-central1"
 fi
 
 echo "  • Target Platform:     Google Cloud Run (Serverless Managed)"
@@ -139,7 +147,7 @@ fi
 echo "  • FastMCP Token:       ${MCP_TOKEN_VAL:0:12}... (active)"
 
 # -----------------------------------------------------------------------------
-# 4. FastMCP Backend Connectivity Check
+# 4. FastMCP Backend Connectivity Check & Interactive Prompt
 # -----------------------------------------------------------------------------
 echo ""
 echo "[*] Verifying Mock SaaS FastMCP connectivity..."

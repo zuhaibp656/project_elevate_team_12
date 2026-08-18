@@ -116,12 +116,34 @@ fi
 
 if [ -z "$PROJECT_ID" ] && [ -z "$API_KEY_VAL" ] && [ "$DRY_RUN" = false ]; then
     echo ""
-    echo "[!] Error: Neither Google Cloud Project ID nor GEMINI_API_KEY was found."
+    if [ -t 0 ]; then
+        read -r -p "🔑 Enter your Google Cloud Project ID (or press Enter to use API key): " USER_PROJECT
+        PROJECT_ID="$USER_PROJECT"
+    fi
+fi
+
+if [ -z "$PROJECT_ID" ] && [ -z "$API_KEY_VAL" ] && [ "$DRY_RUN" = false ]; then
+    if [ -t 0 ]; then
+        read -r -p "🔑 Enter your Gemini API Key: " USER_API_KEY
+        API_KEY_VAL="$USER_API_KEY"
+    fi
+fi
+
+if [ -z "$PROJECT_ID" ] && [ -z "$API_KEY_VAL" ] && [ "$DRY_RUN" = false ]; then
+    echo ""
+    echo "[!] Error: Neither Google Cloud Project ID nor GEMINI_API_KEY was provided."
     echo "    Please specify a project or API key:"
     echo "      ./deploy_gemini_enterprise.sh --project <YOUR_PROJECT_ID>"
-    echo "    or set GOOGLE_CLOUD_PROJECT in your .env file."
     echo ""
     exit 1
+fi
+
+# Region resolution
+if [ -z "$REGION" ] && command -v gcloud >/dev/null 2>&1; then
+    REGION=$(gcloud config get-value compute/region 2>/dev/null || true)
+fi
+if [ -z "$REGION" ]; then
+    REGION="us-central1"
 fi
 
 echo "  • Deployment Target:    $DEPLOY_TARGET"
