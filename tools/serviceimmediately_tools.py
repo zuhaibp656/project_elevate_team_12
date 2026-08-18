@@ -63,6 +63,28 @@ def list_tickets(employee_id: str = "EMP-380") -> str:
     return _call_mcp_tool("list_tickets", {"employee_id": employee_id or "EMP-380"})
 
 
+def get_ticket_details(ticket_id: str) -> str:
+    """Get complete details for a specific ServiceImmediately incident ticket.
+
+    Args:
+        ticket_id: The ticket ID (e.g., "INC0002551")
+
+    Returns:
+        JSON string with ticket attributes, comments, and current status.
+    """
+    # ServiceImmediately MCP list_tickets provides all details; we filter by ticket_id
+    raw = _call_mcp_tool("list_tickets", {"employee_id": "EMP-380"})
+    try:
+        tickets = json.loads(raw)
+        if isinstance(tickets, list):
+            for t in tickets:
+                if t.get("ticket_id") == ticket_id or t.get("id") == ticket_id:
+                    return json.dumps(t)
+    except Exception:
+        pass
+    return raw
+
+
 def create_ticket(
     requested_by: str,
     category: str,
