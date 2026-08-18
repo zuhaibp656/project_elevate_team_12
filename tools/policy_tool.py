@@ -1,15 +1,18 @@
-"""HR Policy Knowledge Retrieval Tools (OKF - Open Knowledge Format) with Dynamic Real-Time Indexing."""
+"""HR Policy Knowledge Retrieval Tools (OKF - Open Knowledge Format) with Thread-Safe Dynamic Real-Time Indexing."""
 import os
 import re
 import yaml
-from agents import config
+import threading
+import agents.config as config
 
 RESERVED_FILES = {"index.md", "log.md"}
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
 
-_FILE_CACHE = {}
-_CONCEPTS_CACHE = None
-_LAST_DIR_MTIME = 0
+# Thread-Safe Atomic Double-Buffered Cache
+_CACHE_LOCK = threading.Lock()
+_ACTIVE_FILE_CACHE = {}
+_ACTIVE_CONCEPTS_CACHE = None
+_LAST_DIR_MTIME = 0.0
 
 
 def _get_dir_mtime(directory: str) -> float:
@@ -30,31 +33,36 @@ def _get_dir_mtime(directory: str) -> float:
 
 
 def refresh_policy_index() -> dict:
-    """Force refresh the policy concept index and clear in-memory caches.
+    """Force refresh the policy concept index with atomic double-buffering and thread-safety.
     
     Used by event-driven GCS sync triggers or when policies are modified at runtime.
     """
-    global _FILE_CACHE, _CONCEPTS_CACHE, _LAST_DIR_MTIME
-    _FILE_CACHE.clear()
-    _CONCEPTS_CACHE = None
-    _LAST_DIR_MTIME = 0.0
+    global _ACTIVE_FILE_CACHE, _ACTIVE_CONCEPTS_CACHE, _LAST_DIR_MTIME
+    with _CACHE_LOCK:
+        _ACTIVE_FILE_CACHE = {}
+        _ACTIVE_CONCEPTS_CACHE = None
+        _LAST_DIR_MTIME = 0.0
     return list_concepts()
 
 
 def _parse_file(path: str):
-    """Read a markdown file and separate frontmatter dict from body text (with mtime auto-invalidation)."""
+    """Read a markdown file and separate frontmatter dict from body text (with thread-safe mtime auto-invalidation)."""
     current_mtime = os.path.getmtime(path) if os.path.exists(path) else 0.0
-    if path in _FILE_CACHE:
-        cached_mtime, data, body = _FILE_CACHE[path]
-        if cached_mtime == current_mtime:
-            return data, body
+    
+    with _CACHE_LOCK:
+        if path in _ACTIVE_FILE_CACHE:
+            cached_mtime, data, body = _ACTIVE_FILE_CACHE[path]
+            if cached_mtime == current_mtime:
+                return data, body
 
     with open(path, "r", encoding="utf-8") as f:
         text = f.read()
 
     match = FRONTMATTER_RE.match(text)
     if not match:
-        _FILE_CACHE[path] = (current_mtime, {}, text)
+        result = (current_mtime, {}, text)
+        with _CACHE_LOCK:
+            _ACTIVE_FILE_CACHE[path] = result
         return {}, text
 
     raw_frontmatter = match.group(1)
@@ -63,27 +71,34 @@ def _parse_file(path: str):
         data = yaml.safe_load(raw_frontmatter) or {}
     except yaml.YAMLError:
         data = {}
-    _FILE_CACHE[path] = (current_mtime, data, body)
+    
+    result = (current_mtime, data, body)
+    with _CACHE_LOCK:
+        _ACTIVE_FILE_CACHE[path] = result
     return data, body
 
 
 def list_concepts() -> dict:
-    """List the available policy concepts and domains in the Knowledge Base with dynamic hot-reload.
+    """List the available policy concepts and domains in the Knowledge Base with atomic double-buffering.
 
     Returns:
         {"concepts": [{"id": str, "title": str, "description": str, "version": str, "effective_date": str}, ...]}
     """
-    global _CONCEPTS_CACHE, _LAST_DIR_MTIME
+    global _ACTIVE_CONCEPTS_CACHE, _LAST_DIR_MTIME
     knowledge_dir = os.path.abspath(config.KNOWLEDGE_DIR)
 
     if not os.path.exists(knowledge_dir):
         return {"concepts": [], "error": f"Knowledge directory not found: {knowledge_dir}"}
 
     current_mtime = _get_dir_mtime(knowledge_dir)
-    if _CONCEPTS_CACHE is not None and current_mtime == _LAST_DIR_MTIME:
-        return _CONCEPTS_CACHE
+    
+    # Fast path under read lock
+    with _CACHE_LOCK:
+        if _ACTIVE_CONCEPTS_CACHE is not None and current_mtime == _LAST_DIR_MTIME:
+            return _ACTIVE_CONCEPTS_CACHE
 
-    concepts = []
+    # Staging buffer construction for atomic swap
+    staging_concepts = []
     for dirpath, _dirnames, filenames in os.walk(knowledge_dir):
         for fname in sorted(filenames):
             if not fname.endswith(".md") or fname in RESERVED_FILES:
@@ -98,7 +113,7 @@ def list_concepts() -> dict:
             version = meta.get("version", "2026.1")
             effective_date = meta.get("effective_date", "2026-01-01")
 
-            concepts.append({
+            staging_concepts.append({
                 "id": concept_id,
                 "title": title,
                 "description": description,
@@ -106,9 +121,18 @@ def list_concepts() -> dict:
                 "effective_date": effective_date
             })
 
-    _CONCEPTS_CACHE = {"concepts": concepts, "total_indexed": len(concepts), "last_synced_mtime": current_mtime}
-    _LAST_DIR_MTIME = current_mtime
-    return _CONCEPTS_CACHE
+    new_index = {
+        "concepts": staging_concepts,
+        "total_indexed": len(staging_concepts),
+        "last_synced_mtime": current_mtime
+    }
+
+    # Atomic swap protected by lock
+    with _CACHE_LOCK:
+        _ACTIVE_CONCEPTS_CACHE = new_index
+        _LAST_DIR_MTIME = current_mtime
+
+    return _ACTIVE_CONCEPTS_CACHE
 
 
 def read_concept(concept_id: str) -> dict:

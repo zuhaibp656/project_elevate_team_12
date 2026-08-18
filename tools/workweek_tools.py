@@ -3,7 +3,7 @@ import os
 import json
 import time
 import httpx
-from agents import config
+import agents.config as config
 
 # Circuit Breaker & Throttling Configuration
 _CONSECUTIVE_FAILURES = 0
