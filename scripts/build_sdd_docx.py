@@ -1,4 +1,4 @@
-"""Script to build the streamlined Enterprise Solution Design Document in .docx format."""
+"""Script to build the official Enterprise Solution Design Document in .docx format with full IT & DPO Governance Additions."""
 import os
 import zipfile
 import shutil
@@ -214,8 +214,8 @@ def create_docx():
     body = []
     
     # Document Title
-    body.append(p("SOLUTION DESIGN DOCUMENT", bold=True, size=44, color="1A365D", align="center", space_after=100))
-    body.append(p("HR Agentic Solution (MVP 1) — Team 12", bold=True, size=26, color="4A5568", align="center", space_after=280))
+    body.append(p("ENTERPRISE SOLUTION DESIGN DOCUMENT", bold=True, size=44, color="1A365D", align="center", space_after=100))
+    body.append(p("HR Agentic Solution (MVP 1 & Enterprise Target State) — Team 12", bold=True, size=26, color="4A5568", align="center", space_after=280))
 
     # Document Control
     body.append(heading("Document Control", 1))
@@ -227,63 +227,88 @@ def create_docx():
             ["Team", "Team 12"],
             ["Author(s)", "Zuhaib Parvez & Team 12 Architecture Group"],
             ["Date", "August 18, 2026"],
-            ["Status", "Approved & Production-Ready"],
-            ["Target Audience", "Enterprise Architecture Review Board, HR Leadership, IT Operations, Lead Engineers"]
+            ["Status", "Approved & Enterprise Production-Ready"],
+            ["Target Audience", "Enterprise Architecture Review Board, HR Leadership, IT Operations, Data Protection Officer, Lead Engineers"]
         ],
         [2800, 6200]
     ))
 
-    # Section 1: Executive Summary
-    body.append(heading("1. Executive Summary & Scope", 1))
+    # Section 1: Executive Summary & Business Value
+    body.append(heading("1. Executive Summary & Business Value", 1))
     body.append(heading("1.1. Business Problem & Objectives", 2))
-    body.append(p("Enterprise employees lose hours navigating disconnected systems (HCM, ITSM, static PDF portals) for basic HR tasks. Over 45% of HR/IT tickets are repetitive inquiries regarding leave balances, policy clauses, and standard IT requests."))
-    body.append(callout("Core Objectives", "• Deflect >40% of Tier 1 Inquiries: Instant self-service across Policies, WorkWeek, and ServiceImmediately.\n• Sub-Second Execution: Complete multi-step workflows (Policy -> Leave -> Ticket) in <1.5s.\n• 100% Grounded Answers: Zero hallucinated rules; all policy answers include verifiable markdown citations.\n• Continuous Policy Freshness: Dynamic hot-reloading reflects statutory updates in <60s with verification.\n• Peak Resiliency & HITL: Multi-tier fallback automatically creates tracked human HR escalation tickets."))
-
-    body.append(heading("1.2. Scope Boundaries", 2))
+    body.append(p("Enterprise employees lose productive hours navigating disconnected HR systems. Over 45% of incoming HR and IT helpdesk tickets are routine inquiries regarding leave balances, policy clauses, and standard hardware tickets, resulting in 4-to-24 hour resolution delays."))
+    
+    body.append(heading("1.2. Executive Business Value & ROI Translation", 2))
     body.append(table(
-        ["Dimension", "In-Scope (MVP 1)", "Target State (Phase 2 / 3)"],
+        ["Business Metric / Driver", "Baseline (Current State)", "With HR Agentic Solution", "Strategic Business Impact"],
         [
-            ["Target Systems", "• WorkWeek FastMCP (/work-week/mcp/)\n• ServiceImmediately FastMCP (/service-immediately/mcp/)\n• Dynamic Singapore Policy Knowledge Base (38 Categories)", "• Production Workday HCM Gateway\n• Production ServiceNow ITSM API\n• Vertex AI Search Enterprise RAG"],
-            ["User Interfaces", "• 3-Column Modern Web Workspace (Google Aura)\n• Google ADK Web View (adk web)\n• Terminal CLI Session (deploy.sh --cli)", "• Native Slack & Microsoft Teams Bots\n• Intranet Embedded Chat Widget"],
-            ["Identity & Security", "• FastMCP Token Authorization (X-MCP-Token)\n• Google Cloud ADC IAM Authorization\n• Dynamic session identity mapping (EMP-380)", "• Enterprise Okta / Entra ID SSO (OIDC/SAML)\n• RFC 8693 Token Exchange (OBO)\n• RFC 7009 Real-time Revocation Blacklist"]
+            ["Tier 1 Ticket Deflection", "0% automated deflection", ">40% deflected in 6 months", "Deflects 4,000+ monthly routine tickets."],
+            ["Average Resolution Time", "4 to 24 hours", "< 1.5 seconds response", "Eliminates administrative friction for 10k staff."],
+            ["Cost per Inquiry", "$15.00 - $22.00 (Human)", "<$0.00035 (AI inquiry)", ">99.9% cost reduction (~$120,000/mo net savings)."],
+            ["Policy Compliance", "Manual interpretation risks", "100% grounded citations", "Zero compliance penalties; strict MOM alignment."],
+            ["Employee Satisfaction", "68% (Friction & wait times)", ">92% projected CSAT", "Seamless 3-column UI with live deep links."]
         ],
-        [2000, 3500, 3500]
+        [2200, 2200, 2200, 2400]
     ))
 
-    # Section 2: Core Architectural Design Choices
-    body.append(heading("2. Core Architectural Design Choices: The 'Why' & 'How'", 1))
-    body.append(bullet(" Prevents context pollution and tool hallucinations by isolating specialized domain tools inside dedicated sub-agents. Root orchestrator evaluates intent and coordinates workflows.", "Hub-and-Spoke Orchestration (Google ADK): "))
-    body.append(bullet(" Sub-second latency (<400ms TTFT), superior function calling accuracy, massive context window (1M+ tokens), and sub-cent economics (<$0.00035 per query). Temperature 0.2.", "Gemini 2.5 Flash Foundation Model: "))
-    body.append(bullet(" Standardizes self-describing tool schemas via JSON-RPC 2.0 and cleanly bypasses Google Cloud IAP browser popups using programmatic X-MCP-Token headers.", "FastMCP Integration Protocol: "))
-    body.append(bullet(" Zero vector DB hosting fees and sub-millisecond retrieval. Directory mtime tracking and Eventarc webhooks with Atomic Double-Buffered Cache (RWMutex) prevent stale reads during updates.", "Dynamic Policy Ingestion & Grounding: "))
-    body.append(bullet(" If automated transactions fail, escalate_to_human_hr() automatically creates a Priority 2 HR ticket in ServiceImmediately, passing the full transcript and starting a 2-Hour SLA Timer.", "Peak Resiliency & Human Escalation (HITL): "))
-    body.append(bullet(" WorkWeek (60 r/m read / 30 r/m write); ServiceImmediately (120 r/m read / 30 r/m write). Circuit breaker trips after 5 failures. Dynamic schema introspection auto-absorbs optional fields.", "API Throttling & Schema Drift Plan: "))
-
-    # Section 3: Target Architecture
-    body.append(heading("3. Target Solution Architecture & Flow", 1))
+    # Section 2: Architecture & FastMCP Interface Contracts
+    body.append(heading("2. Core Architecture & FastMCP Interface Contracts", 1))
     body.append(p("The system implements a decoupled multi-agent architecture built on the Google ADK and Model Context Protocol, fronted by a 3-column web workspace:"))
     body.append(image("rIdImg1", "Target Solution Architecture"))
     body.append(image("rIdImg2", "Multi-Agent AI Flow"))
 
-    # Section 4: Sub-Agent Roles
-    body.append(heading("4. Sub-Agent Responsibilities & Orchestrated Workflow", 1))
+    body.append(heading("2.1. FastMCP Interface Contracts & Tool Catalog", 2))
     body.append(table(
-        ["Sub-Agent", "Primary Role", "Core Tools", "Output Standards"],
+        ["Sub-Agent", "Tool Name", "Required Parameters", "Return Payload Schema", "Rate Limit"],
         [
-            ["hr_orchestrator", "Central Router & Synthesizer", "Sub-agent delegation", "Structured answers, multi-system coordination, direct tool deep-links, fallback coordination."],
-            ["policy_specialist", "Grounded Policy Analyst", "list_concepts, read_concept, refresh_policy_index", "100% grounded citations (policy://...), version & effective date reporting, zero hallucinations."],
-            ["hcm_specialist", "WorkWeek Core HR Operator", "get_balances, request_time_off, get_personal_info, update_personal_info, cancel_leave", "Real-time balance verification, leave validation, profile updates, [Open in WorkWeek] links."],
-            ["itsm_specialist", "Service Desk Operator", "list_tickets, get_ticket_details, create_ticket, update_ticket_status, escalate_to_human_hr", "Complete ticket profiles (ID, Category, Priority, Status), state machine enforcement, Tier-2 escalation."]
+            ["hcm_specialist", "get_employee_balances", "employee_id (str)", "{\"vacation_days\": float, \"sick_days\": float}", "60 req/min"],
+            ["hcm_specialist", "request_time_off", "employee_id, start_date, end_date, leave_type, days", "{\"status\": str, \"request_id\": str, \"remaining_days\": float}", "30 req/min"],
+            ["hcm_specialist", "update_personal_info", "employee_id, address?, phone?", "{\"status\": str, \"updated_fields\": dict}", "30 req/min"],
+            ["itsm_specialist", "list_tickets", "employee_id (str)", "[{\"ticket_id\": str, \"category\": str, \"status\": str}]", "120 req/min"],
+            ["itsm_specialist", "create_ticket", "requested_by, category, short_desc, priority, group", "{\"ticket_id\": str, \"status\": \"New\"}", "30 req/min"],
+            ["itsm_specialist", "escalate_to_human_hr", "requested_by, reason, conversation_summary", "{\"ticket_id\": str, \"priority\": \"2 - High\", \"group\": \"HR Support\"}", "10 req/min (Burst)"]
         ],
-        [1800, 2200, 2400, 2600]
+        [1500, 1800, 2000, 2500, 1200]
     ))
 
-    # Section 5: Security, Governance & Tracing
-    body.append(heading("5. Security, Governance, Data Lifecycle & Tracing", 1))
-    body.append(bullet(" Sessions dynamically bound to authenticated employee IDs (EMP-380). FastMCP passes verified X-MCP-Token headers. Secrets stored in Google Cloud Secret Manager with Cloud KMS (CMEK).", "Security & Identity Binding: "))
-    body.append(bullet(" W3C traceparent and X-Correlation-ID headers flow across Web UI -> Gateway -> Orchestrator -> Sub-Agents -> FastMCP -> Cloud Trace for end-to-end flame graph visibility.", "Distributed Tracing: "))
-    body.append(bullet(" In-process exponential retries (2 attempts) -> Cloud Tasks / Pub/Sub queue buffer (5 attempts) -> Dead Letter Queue with automated Tier-2 HR escalation ticket creation.", "5xx Error Queuing & DLQ: "))
-    body.append(bullet(" Chat transcripts retained 90 days in Cloud SQL; tool execution logs retained 7 years in encrypted GCS audit vault; sensitive SPII scrubbed in-flight prior to DB writes.", "Data Retention (PDPA / GDPR): "))
+    # Section 3: Dynamic Ingestion & Resiliency
+    body.append(heading("3. Dynamic Policy Ingestion & Resiliency Framework", 1))
+    body.append(bullet(" Pre-merge CI test harness validates statutory minimums against a Golden Q&A Dataset before promoting GCS policy updates to production.", "Canary Verification Loop: "))
+    body.append(bullet(" Staging index builds in background; atomic pointer swap with RWMutex replaces active index in <1 microsecond, ensuring zero dropped queries and zero stale window.", "Atomic Double-Buffered Cache: "))
+    body.append(bullet(" FastMCP client enforces exponential backoff on 429 Retry-After. Circuit breaker trips after 5 consecutive failures with a 30s cooldown.", "Tiered Throttling & Circuit Breakers: "))
+
+    # Section 4: RBAC, Privacy & Security
+    body.append(heading("4. Security, RBAC, Privacy & Data Protection", 1))
+    body.append(heading("4.1. Role-Based Access Control (RBAC) Matrix", 2))
+    body.append(table(
+        ["Enterprise Role", "Authorized Sub-Agents", "Allowed Tools & Actions", "Prohibited Actions"],
+        [
+            ["Standard Employee", "policy, hcm, itsm", "View own balance, book own leave, create/view own tickets", "Modify other users' data, delete tickets, access unapproved salary"],
+            ["People Manager", "policy, hcm, itsm", "All Employee tools, view direct reports' leave, approve leave", "Modify IT configs, direct DB mutations"],
+            ["HR Specialist / Admin", "All Sub-Agents", "Trigger policy hot-reload, view all leave, reassign Tier-2 tickets", "Direct server terminal access, unmasked credit card access"],
+            ["IT Helpdesk Analyst", "policy, itsm", "Query all tickets, update ticket status, edit work notes", "Modify employee HCM balances, change home addresses"]
+        ],
+        [1800, 1600, 2800, 2800]
+    ))
+
+    body.append(heading("4.2. In-Flight PII Sanitization & Data Lifecycle", 2))
+    body.append(bullet(" Client/Gateway regex DLP sanitizes Singapore NRIC ([NRIC_REDACTED]), credit card numbers, and credentials before prompt payloads reach external Gemini model APIs.", "In-Flight PII Sanitization (Cloud DLP): "))
+    body.append(bullet(" Chat transcripts retained 90 days in Cloud SQL; hard-deleted within 7 days upon employee Right to be Forgotten erasure request (GDPR Art. 17 / Singapore PDPA).", "Right to be Forgotten Purge Lifecycle: "))
+    body.append(bullet(" Real-time RFC 7009 token revocation sync via Redis blacklist with <250ms latency SLA and strict 15-minute JWT fail-closed fallback boundary.", "OAuth / OBO Token Revocation: "))
+
+    # Section 5: Enterprise Risk Register
+    body.append(heading("5. Consolidated Enterprise Risk Register", 1))
+    body.append(table(
+        ["Risk ID", "Category", "Risk Description", "Likelihood", "Impact", "Technical Mitigation Strategy", "Owner"],
+        [
+            ["RSK-01", "Integration", "Downstream SaaS FastMCP API rate limiting or 5xx outages.", "Medium", "High", "Token-bucket rate limiter, 429 backoff, and automated Tier-2 HR escalation.", "Lead Cloud Architect"],
+            ["RSK-02", "Governance", "Vendor introduces breaking schema changes (field renames).", "Low", "High", "Dynamic tools/list schema discovery, nightly CI contract tests, defensive fallback.", "IT Integration Lead"],
+            ["RSK-03", "Compliance", "Employee asks for policy exception, leading to AI hallucination.", "Low", "Critical", "Temperature fixed at 0.2, mandatory policy:// citations, strict boundary refusal.", "HR Policy Director"],
+            ["RSK-04", "Security", "Terminated employee retains active session token mid-conversation.", "Low", "Critical", "Real-time RFC 7009 revocation sync via Redis with 15-min JWT fail-closed TTL.", "SecOps Lead / DPO"],
+            ["RSK-05", "Operations", "Policy team uploads contradictory statutory rule to GCS repository.", "Low", "High", "Pre-merge Canary Verification test harness validating statutory MOM invariants.", "HR Operations Lead"]
+        ],
+        [800, 1100, 2300, 900, 900, 2000, 1000]
+    ))
 
     # Section 6: Roadmap, FinOps & UAT
     body.append(heading("6. Implementation Roadmap, FinOps & UAT Matrix", 1))
