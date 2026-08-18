@@ -15,7 +15,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from agents import config
-from agents.orchestrator import run_query
+from agents.orchestrator import run_query, run_query_async
 from agents.subagents.policy_subagent import create_policy_subagent
 from agents.subagents.hcm_subagent import create_hcm_subagent
 from agents.subagents.itsm_subagent import create_itsm_subagent
@@ -82,7 +82,7 @@ async def chat_endpoint(req: ChatRequest):
             ans = await _run_single_agent(mode, req.message)
         else:
             # Auto multi-agent orchestrator
-            ans = await run_query(req.message)
+            ans = await run_query_async(req.message)
             mode = "auto"
         
         return ChatResponse(response=ans, mode=mode, status="success")

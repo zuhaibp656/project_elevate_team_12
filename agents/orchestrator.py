@@ -74,6 +74,12 @@ async def _run_query_traced_async(query: str, user_id: str = "learner", session_
     return "\n".join(final_texts), evidence
 
 
+async def run_query_async(query: str, user_id: str = "learner", session_id: str = "session-1") -> str:
+    """Run a query asynchronously and return the final text response."""
+    answer, _evidence = await _run_query_traced_async(query, user_id=user_id, session_id=session_id)
+    return answer
+
+
 def run_query(query: str, user_id: str = "learner", session_id: str = "session-1") -> str:
     """Run a query synchronously and return the final text response."""
     answer, _evidence = asyncio.run(_run_query_traced_async(query, user_id=user_id, session_id=session_id))
