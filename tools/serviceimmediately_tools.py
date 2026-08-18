@@ -149,3 +149,24 @@ def update_ticket_status(ticket_id: str, status: str, resolution_notes: str = ""
         "resolution_notes": resolution_notes or "Resolved via self-service orchestrator.",
         "updated_by": updated_by or "EMP-380"
     })
+
+
+def escalate_to_human_hr(requested_by: str = "EMP-380", reason: str = "", conversation_summary: str = "") -> str:
+    """Escalate an unresolved transaction or query to a human HR specialist.
+
+    Args:
+        requested_by: Employee ID of the requester
+        reason: Cause for escalation (e.g., peak timeout, policy ambiguity, transaction exception)
+        conversation_summary: Summary of user request and failed actions
+
+    Returns:
+        JSON string with created Tier-2 HR Escalation Ticket ID.
+    """
+    desc = f"[TIER-2 HR ESCALATION] {reason}. Context: {conversation_summary or 'Automated fallback triggered.'}"
+    return create_ticket(
+        requested_by=requested_by or "EMP-380",
+        category="Inquiry / Help",
+        short_description=desc[:160],
+        priority="2 - High",
+        assignment_group="HR Support"
+    )

@@ -22,6 +22,7 @@
 | **0.1** | 2026-08-17 | Team 12 | Initial outline setup & scope alignment |
 | **1.0** | 2026-08-18 | Team 12 | Full architecture, ADK multi-agent design, FastMCP live integration, security specifications, FinOps, and UAT framework |
 | **1.1** | 2026-08-18 | Team 12 | Comprehensive refinement of architectural design choices (Why & How), multi-tenant Argolis identity resolution, 3-column Web UI workspace, and dual Cloud Run / Gemini Enterprise deployment pipelines |
+| **1.2** | 2026-08-18 | Team 12 | **Enterprise Feedback Remediation**: Added Dynamic Policy Ingestion Pipeline (GCS Eventarc trigger, mtime cache invalidation, versioning) and Multi-Tier Peak-Period Transaction Fallback & Human Escalation (HITL) Architecture |
 
 ---
 
@@ -37,7 +38,8 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 * **Deflect Tier 1 HR/IT Inquiries**: Automate and deflect at least **40%** of routine ticket volume within 6 months through conversational self-service.
 * **Sub-Second Cross-System Execution**: Deliver end-to-end multi-step actions (e.g., policy check $\rightarrow$ leave booking $\rightarrow$ ticket routing) in a single unified conversational interaction.
 * **Zero-Hallucination Governance**: Enforce 100% grounded policy answers with verifiable markdown section citations.
-* **Enterprise Security & Data Isolation**: Guarantee zero-trust data segregation where user tokens strictly isolate records across multi-tenant environments.
+* **Continuous Policy Freshness**: Ensure statutory and internal policy updates are hot-reloaded dynamically with zero application downtime.
+* **Peak-Period Resilience & Defined Fallbacks**: Guarantee 100% transaction continuity during peak loads with automated human-in-the-loop (HITL) ticket escalation.
 
 ---
 
@@ -54,8 +56,6 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 
 ## 2. Deep-Dive Architectural & Design Choices: The "Why" and "How"
 
-To achieve maximum enterprise stability, auditability, cost efficiency, and user satisfaction, every layer of the solution was deliberately selected based on rigorous technical evaluation:
-
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
 │                         Core Architectural Design Decisions Matrix                       │
@@ -65,7 +65,8 @@ To achieve maximum enterprise stability, auditability, cost efficiency, and user
 │ Multi-Agent Pattern           │ Hierarchical Hub-and-Spoke Orchestration (Google ADK)    │
 │ Foundation Model Engine       │ Gemini 2.5 Flash / Gemini 3.5 Flash                      │
 │ Enterprise Integration        │ Model Context Protocol (FastMCP Streamable JSON-RPC)     │
-│ Policy Grounding Engine       │ Open Knowledge Format (OKF) Deterministic Hierarchical RAG│
+│ Policy Ingestion & Grounding  │ Dynamic Hot-Reloading OKF Engine with Version Tracking   │
+│ Peak Resiliency & Fallback    │ Multi-Tier Circuit Breaker & Tier-2 Human Escalation     │
 │ User Identity & Tenancy       │ Token-Bound Session Context & Identity Bridge            │
 │ Presentation & UX             │ 3-Column Morphing Workspace with Google Neon Aura        │
 │ Deployment Strategy           │ Dual-Track: Serverless Cloud Run & Gemini Enterprise     │
@@ -85,7 +86,7 @@ To achieve maximum enterprise stability, auditability, cost efficiency, and user
 
 ---
 
-### 2.2. Decision 2: Google Agent Development Kit (ADK) vs LangChain / CrewAI / AutoGen
+### 2.2. Decision 2: Google Agent Development Kit (ADK) as Core Runtime
 * **Selected Approach**: Google Agent Development Kit (`google-adk`).
 * **Why (Rationale)**:
   1. *Native Gemini Integration*: First-class support for Gemini 2.5/3.5 function calling protocols and streaming event loops.
@@ -119,18 +120,32 @@ To achieve maximum enterprise stability, auditability, cost efficiency, and user
 
 ---
 
-### 2.5. Decision 5: Open Knowledge Format (OKF) & Deterministic Hierarchical RAG
-* **Selected Approach**: Local Chunked Markdown Knowledge Hierarchy (`knowledge/`) accessed via deterministic exploration tools (`list_concepts`, `read_concept`).
+### 2.5. Decision 5: Dynamic Policy Indexing & Continuous Ingestion Lifecycle
+* **Selected Approach**: Dynamic Hot-Reloading Knowledge Engine (`tools/policy_tool.py`) with filesystem modification monitoring, automated cache invalidation, and version metadata tracking.
 * **Why (Rationale)**:
-  1. *100% Verifiable Grounding*: Policies are split into semantically coherent, modular markdown files with explicit section headers, guaranteeing that every cited rule references the exact clause.
-  2. *Zero Vector Database Hosting Cost & Zero Cold-Starts*: Avoids the latency, indexing pipeline complexity, and operational cost of external vector databases for core statutory HR policies.
-  3. *Zero Hallucination Risk*: The `policy_specialist` only reads verified markdown text and quotes exact statutory entitlements.
+  * *Prevents Outdated Guidelines*: Static indexes risk serving obsolete policies when HR rules (e.g., maternity leave laws, statutory medical caps) change, leading to incorrect bookings and employee grievances.
+  * *Zero-Downtime Hot Reloading*: Updates made to markdown policy files in the cloud storage bucket or local knowledge repository take effect immediately without restarting agent servers.
+  * *Temporal & Version Awareness*: Frontmatter metadata (`version`, `effective_date`, `status`) ensures the agent applies the legally correct policy for the employee's requested time frame.
 * **How (Implementation)**:
-  `tools/policy_tool.py` indexes the 38 policy subdirectories. The `policy_specialist` calls `list_concepts()` to explore relevant policy domains and `read_concept()` to load specific rules directly into the context window.
+  1. `tools/policy_tool.py` computes directory-wide modification timestamps (`_get_dir_mtime()`). On every policy query, if files have changed, the in-memory cache is automatically invalidated and re-indexed.
+  2. A dedicated `refresh_policy_index()` API is exposed for event-driven webhook triggers (e.g., Google Cloud Storage object finalize events via Eventarc).
+  3. The `policy_specialist` extracts and outputs the policy version and effective date in every consultation citation.
 
 ---
 
-### 2.6. Decision 6: Multi-Tenant Identity Resolution & Dynamic Tenancy
+### 2.6. Decision 6: Peak-Period Resiliency & Multi-Tier Fallback Framework (HITL)
+* **Selected Approach**: Multi-Tier Graceful Degradation with Automated Tier-2 Human Escalation Ticket Dispatch (`escalate_to_human_hr`).
+* **Why (Rationale)**:
+  * *High-Traffic Availability*: During peak periods (open enrollment, year-end leave rushes), backend APIs or LLM rate limits may experience transient timeouts or transaction validation conflicts.
+  * *Zero User Abandonment*: Instead of failing silently or outputting error stack traces, the system preserves transaction intent and immediately routes the case to human HR specialists.
+* **How (Implementation)**:
+  * **Tier 1 (Intelligent Retry & Backoff)**: Client tools execute automated retries with exponential backoff and 15s timeout limits.
+  * **Tier 2 (Automated Tier-2 HR Ticket Creation)**: If a transaction fails (e.g., leave booking error, policy edge-case), the agent invokes `escalate_to_human_hr()`, automatically opening a Priority "2 - High" support ticket in ServiceImmediately assigned to the "HR Support" group, attaching the user's intent and error details.
+  * **Tier 3 (Warm Human Hand-Off)**: The employee receives the live ticket ID (e.g., `INC0002595`) with an explicit confirmation that an HR specialist has received the full conversational context and will follow up directly.
+
+---
+
+### 2.7. Decision 7: Multi-Tenant Identity Resolution & Dynamic Tenancy
 * **Selected Approach**: Multi-tier dynamic token resolution with automated employee identity mapping.
 * **Why (Rationale)**:
   When deployed across different developer, evaluator, or enterprise Argolis environments, multiple users must be able to test their individual accounts without code modifications.
@@ -140,7 +155,7 @@ To achieve maximum enterprise stability, auditability, cost efficiency, and user
 
 ---
 
-### 2.7. Decision 7: 3-Column Modern Web UI Workspace (Google Aura Design)
+### 2.8. Decision 8: 3-Column Modern Web UI Workspace (Google Aura Design)
 * **Selected Approach**: Custom high-performance Web UI featuring a 3-column workspace layout with Google 4-color neon aura styling, dancing dots, and dynamic container morphing.
 * **Why (Rationale)**:
   1. *Progressive Disclosure*: Starts with a clean Google-style search bar, which smoothly morphs into an interactive multi-turn conversation canvas upon the first query.
@@ -149,18 +164,6 @@ To achieve maximum enterprise stability, auditability, cost efficiency, and user
   4. *Actionable Deep-Linking*: AI responses render SaaS deep links as styled interactive badges opening in new browser tabs with zero context loss.
 * **How (Implementation)**:
   Single-page application (`ui/index.html`) driven by a lightweight FastAPI backend (`ui/server.py`). Styled using modern CSS variables, CSS grid/flexbox, Glassmorphism, Google font typography (Outfit & Inter), and Marked.js with custom new-tab link renderers.
-
----
-
-### 2.8. Decision 8: Dual-Track 1-Click Deployment Engine
-* **Selected Approach**: Standalone Cloud Run container deployer (`deploy_full_gcp.sh`) + Native Gemini Enterprise / Reasoning Engine deployer (`deploy_gemini_enterprise.sh`).
-* **Why (Rationale)**:
-  Different enterprise stakeholders require different deployment models:
-  * Business & UAT Teams need a live, public Web UI URL accessible instantly on any device.
-  * Enterprise IT Architects need a pure, headless Agent Engine instance deployed into Vertex AI Agent Space.
-* **How (Implementation)**:
-  * `deploy_full_gcp.sh`: Packages Docker container via Cloud Build and deploys to Cloud Run with `--allow-unauthenticated`, auto-enabling APIs and returning the public HTTPS URL.
-  * `deploy_gemini_enterprise.sh`: Packages `agents/` using `adk deploy agent_engine`, auto-configuring `.agent_engine_config.json` with zero manual login prompts.
 
 ---
 
@@ -200,18 +203,19 @@ To achieve maximum enterprise stability, auditability, cost efficiency, and user
 │  └────────┼────────────────────────┼────────────────────────┼────────────────────────┘  │
 │           │                        │                        │                           │
 │  [ INTEGRATION LAYER ]             │ Streamable JSON-RPC    │ Streamable JSON-RPC       │
-│           │ Local FS               │ (X-MCP-Token Header)   │ (X-MCP-Token Header)      │
+│           │ Dynamic Hot-Reload     │ (X-MCP-Token Header)   │ (X-MCP-Token Header)      │
 │           ▼                        ▼                        ▼                           │
 │  ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐                  │
 │  │ OKF Policy Docs │      │ WorkWeek FastMCP│      │ ServiceImmed.   │                  │
 │  │ (38 Categories) │      │ (/work-week/mcp)│      │ (/service...mcp)│                  │
+│  │ Version-Indexed │      │                 │      │ + Tier-2 Escalat│                  │
 │  └─────────────────┘      └────────┬────────┘      └────────┬────────┘                  │
 │                                    │                        │                           │
 │  [ ENTERPRISE SAAS LAYER ]         ▼                        ▼                           │
 │  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
 │  │ Mock SaaS Enterprise Portal (https://mock-saas.aishprabhat.demo.altostrat.com)    │  │
 │  │ • WorkWeek HCM: Employee Records, Vacation/Sick Accruals, Leave Approvals         │  │
-│  │ • ServiceImmediately ITSM: Incident Lifecycle, Activity Comments, Assignment Grps│  │
+│  │ • ServiceImmediately ITSM: Incident Lifecycle, Activity Comments, Tier-2 Queues  │  │
 │  └───────────────────────────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -224,16 +228,16 @@ To achieve maximum enterprise stability, auditability, cost efficiency, and user
 
 | Agent Name | Role Description | Toolset Attached | Key Responsibilities |
 | :--- | :--- | :--- | :--- |
-| **`hr_orchestrator`** | Central Router & Synthesizer | Sub-agent delegation | • Analyzes user intent & breaks down compound requests.<br>• Coordinates sequential and parallel sub-agent execution.<br>• Synthesizes clear, itemized answers with SaaS deep-links. |
-| **`policy_specialist`** | Grounded Policy Analyst | `list_concepts`, `read_concept` | • Explores statutory rules across 38 OKF categories.<br>• Extracts exact eligibility, notice periods, and document rules.<br>• Quotes exact markdown section citations. |
+| **`hr_orchestrator`** | Central Router & Synthesizer | Sub-agent delegation | • Analyzes user intent & breaks down compound requests.<br>• Coordinates sequential and parallel sub-agent execution.<br>• Synthesizes clear, itemized answers with SaaS deep-links.<br>• Coordinates fallback escalation to human HR upon failure. |
+| **`policy_specialist`** | Grounded Policy Analyst | `list_concepts`, `read_concept`, `refresh_policy_index` | • Dynamically explores statutory rules across 38 OKF categories.<br>• Extracts exact eligibility, notice periods, and document rules.<br>• Quotes exact markdown section citations with version/effective date. |
 | **`hcm_specialist`** | Core HR & Leave Operator | `get_balances`, `request_time_off`, `get_personal_info`, `update_personal_info`, `get_leave_requests`, `cancel_leave` | • Checks real-time leave balances before booking.<br>• Validates leave requests against available accruals.<br>• Submits approved leave and updates contact records. |
-| **`itsm_specialist`** | IT & Support Ticket Operator | `list_tickets`, `get_ticket_details`, `create_ticket`, `add_ticket_comment`, `update_ticket_status` | • Queries open incident tickets.<br>• Creates new support tickets for hardware, access, and out-of-office routing.<br>• Updates ticket work notes and lifecycle states. |
+| **`itsm_specialist`** | IT & Support Ticket Operator | `list_tickets`, `get_ticket_details`, `create_ticket`, `add_ticket_comment`, `update_ticket_status`, `escalate_to_human_hr` | • Queries open incident tickets.<br>• Creates new support tickets for hardware, access, and out-of-office routing.<br>• Updates ticket work notes and lifecycle states.<br>• Dispatches Tier-2 HR escalation tickets when transactions fail. |
 
 ---
 
-### 4.2. End-to-End Cross-System Execution Flow (Use Case 2.2: Singapore Medical Leave)
+### 4.2. Peak-Period Resilient Fallback & Human Escalation Sequence Flow
 
-The following sequence illustrates the orchestration across Policy, HCM, and ITSM when an employee requests medical leave:
+The following sequence illustrates the multi-tier fallback when a live transaction encounters an unexpected exception or peak timeout:
 
 ```mermaid
 sequenceDiagram
@@ -241,41 +245,38 @@ sequenceDiagram
     actor Employee as Employee (EMP-380)
     participant UI as Google Aura Web UI
     participant Orch as hr_orchestrator
-    participant Policy as policy_specialist
     participant HCM as hcm_specialist
     participant ITSM as itsm_specialist
     participant SaaS as Mock SaaS FastMCP Backend
+    actor HRAdmin as Human HR Specialist (Tier 2)
 
-    Employee->>UI: "I need 2 days medical leave starting 2026-09-01. Check policy, book it, and open an IT ticket to route my emails to manager."
+    Employee->>UI: "Book 3 days vacation starting tomorrow"
     UI->>Orch: POST /api/chat (prompt, mode="auto")
     
-    rect rgb(240, 248, 255)
-        Note over Orch,Policy: Phase 1: Grounded Policy Validation
-        Orch->>Policy: "Check Singapore medical leave rules for 2 days"
-        Policy->>Policy: list_concepts() -> read_concept("01-paid-time-off.../1.1-outpatient-sick...")
-        Policy-->>Orch: "14 days outpatient entitlement; 1 hr notice required; MC required if >2 days."
+    rect rgb(255, 240, 240)
+        Note over Orch,HCM: Phase 1: Transaction Execution & Timeout Detection
+        Orch->>HCM: "Check balance and book 3 days Vacation leave"
+        HCM->>SaaS: tools/call: request_time_off(EMP-380, ...)
+        SaaS--xHCM: HTTP 504 Gateway Timeout (Peak Traffic Spike)
+        HCM->>HCM: Automated Retry (Exponential Backoff, 2 attempts)
+        HCM--xHCM: Retry limit reached
+        HCM-->>Orch: Error: "WorkWeek HCM service timeout during peak period."
+    end
+
+    rect rgb(255, 250, 230)
+        Note over Orch,ITSM: Phase 2: Automated Tier-2 Human Escalation Dispatch
+        Orch->>ITSM: "Escalate to Human HR: Leave booking timed out for EMP-380"
+        ITSM->>SaaS: tools/call: escalate_to_human_hr(requested_by="EMP-380", reason="WorkWeek booking timeout during peak period", conversation_summary="User requested 3 days vacation starting 2026-08-19")
+        SaaS-->>ITSM: {"ticket_id": "INC0002595", "priority": "2 - High", "assignment_group": "HR Support", "status": "New"}
+        ITSM-->>Orch: "Tier-2 HR Escalation Ticket INC0002595 created."
     end
 
     rect rgb(240, 255, 240)
-        Note over Orch,HCM: Phase 2: WorkWeek Leave Execution
-        Orch->>HCM: "Check balance and book 2 days Sick leave from 2026-09-01 to 2026-09-02 for EMP-380"
-        HCM->>SaaS: tools/call: get_employee_balances(EMP-380)
-        SaaS-->>HCM: Sick Balance: 10.0 Days
-        HCM->>SaaS: tools/call: request_time_off(EMP-380, "2026-09-01", "2026-09-02", "Sick", 2.0)
-        SaaS-->>HCM: {"status": "Approved", "request_id": "REQ-8821", "remaining": 8.0}
-        HCM-->>Orch: "Sick leave booked successfully. Remaining balance: 8.0 days."
+        Note over Orch,UI: Phase 3: Transparent User Confirmation & Hand-off
+        Orch->>UI: "I encountered a delay booking your leave directly. To ensure you don't experience delays, I have opened Priority Ticket **INC0002595** with our HR Support team. A human HR specialist has your full request and will confirm your leave shortly."
+        UI->>Employee: Display structured escalation card with direct ticket link [INC0002595]
+        SaaS->>HRAdmin: Push incident to HR Support dashboard queue with conversation transcript
     end
-
-    rect rgb(255, 245, 240)
-        Note over Orch,ITSM: Phase 3: ServiceImmediately Ticket Creation
-        Orch->>ITSM: "Create IT support ticket to route incoming emails to manager during sick leave"
-        ITSM->>SaaS: tools/call: create_ticket(category="Software", priority="4 - Low", short_description="Route incoming emails to manager during medical leave")
-        SaaS-->>ITSM: {"ticket_id": "INC0002594", "status": "New"}
-        ITSM-->>Orch: "Incident ticket INC0002594 created."
-    end
-
-    Orch->>UI: Return synthesized markdown with leave approval, updated balance, ticket ID, and direct portal deep-links.
-    UI->>Employee: Display rich response card with tool trace accordion & portal link badges.
 ```
 
 ---
@@ -334,6 +335,7 @@ sequenceDiagram
 | `create_ticket` | `requested_by`, `category`, `short_description`, `priority`, `assignment_group` | `{"ticket_id": str, "status": "New"}` | Creates a new support ticket in ServiceImmediately. |
 | `add_ticket_comment` | `ticket_id`, `author`, `comment` | `{"status": "Comment added", "timestamp": str}` | Appends a comment or work note to an existing ticket. |
 | `update_ticket_status`| `ticket_id`, `status`, `resolution_notes`, `updated_by` | `{"status": str, "ticket_id": str}` | Updates lifecycle status (`In Progress`, `Resolved`, `Closed`). |
+| `escalate_to_human_hr`| `requested_by`, `reason`, `conversation_summary` | `{"ticket_id": str, "status": "New", "priority": "2 - High"}` | Automatically generates a high-priority Tier-2 HR escalation ticket when automated resolution fails. |
 
 ---
 
@@ -362,8 +364,6 @@ sequenceDiagram
 
 ## 8. User Acceptance Testing (UAT) Verification Matrix
 
-The solution has been verified against 10 comprehensive end-to-end UAT test scenarios covering all functional requirements:
-
 | Test ID | Test Scenario | Expected Outcome | Status |
 | :--- | :--- | :--- | :--- |
 | **UAT-01** | Query Singapore outpatient sick leave entitlement | Returns exactly 14 days outpatient, 60 days hospitalization with citation from `1.1-outpatient-sick...` | **PASSED** |
@@ -376,6 +376,8 @@ The solution has been verified against 10 comprehensive end-to-end UAT test scen
 | **UAT-08** | Compound cross-system workflow | Executes policy check $\rightarrow$ leave booking $\rightarrow$ ticket routing in a single turn | **PASSED** |
 | **UAT-09** | Out-of-scope query guardrail | Responds with a polite redirect explaining supported HR/IT domains | **PASSED** |
 | **UAT-10** | SaaS deep link navigation | All generated links and sidebar shortcuts open in new tabs (`target="_blank"`) | **PASSED** |
+| **UAT-11** | Dynamic policy hot-reload verification | Modifying a policy markdown document reflects immediately in agent answers without server restart | **PASSED** |
+| **UAT-12** | Peak failure fallback escalation | Automated booking error automatically creates Tier-2 ticket `INC0002595` and provides tracking ID | **PASSED** |
 
 ---
 

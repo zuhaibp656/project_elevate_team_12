@@ -1,4 +1,4 @@
-"""Script to build the official Enterprise Solution Design Document in .docx format with full Design Choices deep-dive."""
+"""Script to build the official Enterprise Solution Design Document in .docx format with full Design Choices deep-dive and Feedback Remediation."""
 import os
 import zipfile
 import shutil
@@ -240,9 +240,10 @@ def create_docx():
         [
             ["0.1", "2026-08-17", "Team 12", "Initial outline setup & scope alignment"],
             ["1.0", "2026-08-18", "Team 12", "Full architecture, ADK multi-agent design, FastMCP live integration, security specifications, FinOps, and UAT framework"],
-            ["1.1", "2026-08-18", "Team 12", "Comprehensive refinement of architectural design choices (Why & How), multi-tenant Argolis identity resolution, 3-column Web UI workspace, and dual Cloud Run / Gemini Enterprise deployment pipelines"]
+            ["1.1", "2026-08-18", "Team 12", "Comprehensive refinement of architectural design choices (Why & How), multi-tenant Argolis identity resolution, 3-column Web UI workspace, and dual Cloud Run / Gemini Enterprise deployment pipelines"],
+            ["1.2", "2026-08-18", "Team 12", "Enterprise Feedback Remediation: Added Dynamic Policy Ingestion Pipeline (GCS Eventarc trigger, mtime cache invalidation, versioning) and Multi-Tier Peak-Period Transaction Fallback & Human Escalation (HITL) Architecture"]
         ],
-        [1200, 1600, 1800, 4400]
+        [1000, 1500, 1600, 4900]
     ))
 
     # Section 1
@@ -250,13 +251,13 @@ def create_docx():
     body.append(heading("1.1. Business Overview & Context", 2))
     body.append(p("Enterprise employees frequently navigate fragmented systems (Human Capital Management, IT Service Management, and static policy PDF portals) to resolve routine inquiries and submit simple transactional requests. This creates high operational friction, prolonged resolution times, and heavy Tier 1 ticket loads on HR/IT operational staff."))
     body.append(p("The HR Agentic Solution delivers an enterprise-grade, conversational self-service assistant powered by Google ADK and Gemini models. By unifying HR Policies, WorkWeek (HCM), and ServiceImmediately (ITSM) through the Model Context Protocol (MCP), employees can complete end-to-end inquiries and multi-system workflows in seconds."))
-    body.append(callout("Key Business Objectives", "• Deflect Tier 1 HR/IT ticket volume by at least 40% within 6 months.\n• Accelerate employee self-service transaction time from hours to seconds.\n• Guarantee 0% policy hallucinations via strictly grounded retrieval.\n• Ensure zero-trust security and tenant data isolation."))
+    body.append(callout("Key Business Objectives", "• Deflect Tier 1 HR/IT ticket volume by at least 40% within 6 months.\n• Accelerate employee self-service transaction time from hours to seconds.\n• Continuous Policy Freshness: Dynamic hot-reloading of statutory/internal policies without service restarts.\n• Peak Resiliency & HITL: Defined fallback paths with automatic Tier-2 human ticket dispatch.\n• Zero-Trust Data Isolation: Token-bound user segregation across multi-tenant accounts."))
 
     body.append(heading("1.2. Scope Boundaries", 2))
     body.append(table(
         ["Dimension", "In-Scope (MVP 1)", "Out-of-Scope (MVP 1 / Post-MVP)"],
         [
-            ["Target Systems", "• WorkWeek FastMCP (/work-week/mcp/)\n• ServiceImmediately FastMCP (/service-immediately/mcp/)\n• Singapore HR Policy Knowledge Base (OKF Bundle)", "• Payroll execution & compensation alterations\n• Performance review cycles\n• External ERPs (SAP SuccessFactors, Oracle Fusion)"],
+            ["Target Systems", "• WorkWeek FastMCP (/work-week/mcp/)\n• ServiceImmediately FastMCP (/service-immediately/mcp/)\n• Dynamic Singapore HR Policy Knowledge Base (OKF)", "• Payroll execution & compensation alterations\n• Performance review cycles\n• External ERPs (SAP SuccessFactors, Oracle Fusion)"],
             ["Interaction Modalities", "• 3-Column Modern Web UI Workspace (Google Aura)\n• Google ADK Web View UI (adk web)\n• Interactive Terminal CLI Session (deploy.sh --cli)", "• Telephony / Voice IVR integration\n• Third-party chat clients (Slack / MS Teams / WhatsApp)"],
             ["Language & Locale", "• English (Singapore statutory & Global policy context)", "• Multi-lingual localized interfaces"],
             ["Authentication", "• FastMCP Token Authorization (X-MCP-Token)\n• Google Cloud Application Default Credentials (ADC)\n• Dynamic session identity resolution (EMP-380)", "• Enterprise Okta / Entra SAML SSO federated gateway\n• Cross-organization tenant swapping"]
@@ -272,14 +273,12 @@ def create_docx():
     body.append(p("Selected Approach: Central Multi-Agent Orchestrator (hr_orchestrator) delegating to 3 specialized domain sub-agents (policy_specialist, hcm_specialist, itsm_specialist).", bold=True))
     body.append(bullet(" Prevents context pollution and tool-selection hallucinations by keeping individual agent system prompts focused on specific schemas.", "Why (Rationale):"))
     body.append(bullet(" Single point of enforcement for safety screening, intent validation, and composite multi-system workflows.", "Why (Rationale):"))
-    body.append(bullet(" New domain sub-agents (e.g. Payroll, Facilities) can be added independently without modifying existing code.", "Why (Rationale):"))
     body.append(bullet(" Implemented with Google ADK's LlmAgent. The root orchestrator evaluates user intent, delegates execution, and synthesizes a polished response with SaaS deep-links.", "How (Implementation):"))
 
     body.append(heading("2.2. Decision 2: Google Agent Development Kit (ADK) as Core Runtime", 2))
     body.append(p("Selected Approach: Google Agent Development Kit (google-adk).", bold=True))
     body.append(bullet(" Native first-class integration with Gemini function calling and streaming event loops.", "Why (Rationale):"))
     body.append(bullet(" Zero bloat, instant packaging, and native deployment commands for Vertex AI Reasoning Engines and Cloud Run.", "Why (Rationale):"))
-    body.append(bullet(" Built-in session state management without requiring external database dependencies for local execution.", "Why (Rationale):"))
     body.append(bullet(" Declared as LlmAgent instances executed via Runner.run_async(), streaming thoughts, tool events, and text outputs in real time.", "How (Implementation):"))
 
     body.append(heading("2.3. Decision 3: Foundation Model Selection (Gemini 2.5 Flash)", 2))
@@ -294,28 +293,30 @@ def create_docx():
     body.append(bullet(" Seamlessly bypasses Google Cloud IAP interactive browser login popups by passing X-MCP-Token programmatically.", "Why (Rationale):"))
     body.append(bullet(" Tools send JSON-RPC 2.0 payloads with X-MCP-Token headers and automatic employee identity fallback.", "How (Implementation):"))
 
-    body.append(heading("2.5. Decision 5: Open Knowledge Format (OKF) & Deterministic Hierarchical RAG", 2))
-    body.append(p("Selected Approach: Local Chunked Markdown Knowledge Hierarchy (knowledge/) with list_concepts and read_concept tools.", bold=True))
-    body.append(bullet(" Guarantees 100% exact section citations with zero hallucination risk.", "Why (Rationale):"))
-    body.append(bullet(" Zero external vector database infrastructure cost, zero cold-starts, and sub-millisecond retrieval.", "Why (Rationale):"))
-    body.append(bullet(" Tools index the 38 policy subdirectories; sub-agent dynamically searches concepts and inspects exact policy clauses.", "How (Implementation):"))
+    body.append(heading("2.5. Decision 5: Dynamic Policy Indexing & Continuous Ingestion Lifecycle", 2))
+    body.append(p("Selected Approach: Dynamic Hot-Reloading Knowledge Engine (tools/policy_tool.py) with filesystem mtime monitoring and automated cache invalidation.", bold=True))
+    body.append(bullet(" Prevents Outdated Guidelines: Static indexes risk serving obsolete policies when HR rules (e.g. statutory maternity caps) change, leading to incorrect bookings and employee escalations.", "Why (Rationale):"))
+    body.append(bullet(" Zero-Downtime Hot Reloading: Changes made to markdown policy files take effect immediately without restarting agent servers.", "Why (Rationale):"))
+    body.append(bullet(" Version & Temporal Awareness: Frontmatter metadata (version, effective_date, status) ensures the agent applies legally accurate rules for the requested dates.", "Why (Rationale):"))
+    body.append(bullet(" tools/policy_tool.py monitors directory mtime, auto-invalidates in-memory caches, and exposes refresh_policy_index() for GCS Eventarc webhooks.", "How (Implementation):"))
 
-    body.append(heading("2.6. Decision 6: Multi-Tenant Dynamic Tenancy & Identity Bridge", 2))
+    body.append(heading("2.6. Decision 6: Peak-Period Resiliency & Multi-Tier Fallback Framework (HITL)", 2))
+    body.append(p("Selected Approach: Multi-Tier Graceful Degradation with Automated Tier-2 Human Escalation Ticket Dispatch (escalate_to_human_hr).", bold=True))
+    body.append(bullet(" Zero User Abandonment: During peak traffic periods, API timeouts or policy edge-cases do not fail silently or throw raw stack traces.", "Why (Rationale):"))
+    body.append(bullet(" Preserves transaction intent and automatically dispatches Priority '2 - High' HR support tickets to the human HR team.", "Why (Rationale):"))
+    body.append(bullet(" Tier 1 (Intelligent Retry with exponential backoff) -> Tier 2 (Automated Tier-2 HR Ticket Creation with context) -> Tier 3 (Warm Human Hand-off with live ticket tracking ID).", "How (Implementation):"))
+
+    body.append(heading("2.7. Decision 7: Multi-Tenant Dynamic Tenancy & Identity Bridge", 2))
     body.append(p("Selected Approach: Multi-tier dynamic token resolution with automated employee identity mapping.", bold=True))
     body.append(bullet(" Enables seamless multi-user evaluation across different Argolis/Google Cloud developer accounts without code changes.", "Why (Rationale):"))
     body.append(bullet(" Tools extract tokens from session context, request headers, or .env, and call get_current_employee_id() to bind operations.", "How (Implementation):"))
 
-    body.append(heading("2.7. Decision 7: 3-Column Modern Web UI Workspace (Google Aura Design)", 2))
+    body.append(heading("2.8. Decision 8: 3-Column Modern Web UI Workspace (Google Aura Design)", 2))
     body.append(p("Selected Approach: Custom Web UI featuring 3-column workspace with Google neon border aura and dancing dots.", bold=True))
     body.append(bullet(" Progressive disclosure: single search input smoothly morphs into a full chat stream upon first prompt.", "Why (Rationale):"))
     body.append(bullet(" Real-time telemetry: persistent 'My Hub' panel displays live PTO meters and tickets without extra prompts.", "Why (Rationale):"))
     body.append(bullet(" Session continuity: persistent Left Panel saves multi-session chat history locally in localStorage.", "Why (Rationale):"))
     body.append(bullet(" Single-page app (HTML5/CSS3/Vanilla JS) served via FastAPI with custom new-tab (target='_blank') markdown link renderers.", "How (Implementation):"))
-
-    body.append(heading("2.8. Decision 8: Dual-Track 1-Click Deployment Engine", 2))
-    body.append(p("Selected Approach: Cloud Run full-stack deployer (deploy_full_gcp.sh) + Gemini Enterprise deployer (deploy_gemini_enterprise.sh).", bold=True))
-    body.append(bullet(" Provides complete deployment flexibility for both public Web UI testing and headless Vertex AI Agent Space integration.", "Why (Rationale):"))
-    body.append(bullet(" Shell scripts automate API enablement, interactive parameter prompts, Docker packaging, and live URL retrieval.", "How (Implementation):"))
 
     # Section 3: Target Architecture
     body.append(heading("3. Target Architecture & Layered Breakdown", 1))
@@ -370,9 +371,11 @@ def create_docx():
             ["UAT-07", "Update ticket lifecycle status", "Transitions ticket to Resolved with mandatory resolution notes", "PASSED"],
             ["UAT-08", "Compound cross-system workflow", "Executes policy check -> leave booking -> ticket routing in single turn", "PASSED"],
             ["UAT-09", "Out-of-scope query guardrail", "Responds with polite redirect explaining supported HR/IT domains", "PASSED"],
-            ["UAT-10", "SaaS deep link navigation", "All generated links and sidebar shortcuts open in new tabs (target='_blank')", "PASSED"]
+            ["UAT-10", "SaaS deep link navigation", "All generated links and sidebar shortcuts open in new tabs (target='_blank')", "PASSED"],
+            ["UAT-11", "Dynamic policy hot-reload", "Modifying policy markdown reflects immediately in answers without restart", "PASSED"],
+            ["UAT-12", "Peak failure fallback escalation", "Transaction errors automatically create Tier-2 ticket INC0002595 with tracking ID", "PASSED"]
         ],
-        [1200, 2800, 4000, 1000]
+        [1000, 2800, 4200, 1000]
     ))
 
     # Section 8: Deployment Verification

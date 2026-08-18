@@ -1,5 +1,5 @@
 """Tools package exports."""
-from .policy_tool import list_concepts, read_concept
+from .policy_tool import list_concepts, read_concept, refresh_policy_index
 from .mcp_toolsets import create_workweek_mcp_toolset, create_serviceimmediately_mcp_toolset
 from .workweek_tools import (
     get_current_employee_id,
@@ -16,11 +16,13 @@ from .serviceimmediately_tools import (
     create_ticket,
     add_ticket_comment,
     update_ticket_status,
+    escalate_to_human_hr,
 )
 
 __all__ = [
     "list_concepts",
     "read_concept",
+    "refresh_policy_index",
     "create_workweek_mcp_toolset",
     "create_serviceimmediately_mcp_toolset",
     "get_current_employee_id",
@@ -35,4 +37,5 @@ __all__ = [
     "create_ticket",
     "add_ticket_comment",
     "update_ticket_status",
+    "escalate_to_human_hr",
 ]
