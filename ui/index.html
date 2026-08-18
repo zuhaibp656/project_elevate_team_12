@@ -24,7 +24,7 @@
       --shadow-sm: 0 2px 8px rgba(60, 64, 67, 0.06);
       --shadow-md: 0 10px 30px rgba(60, 64, 67, 0.08);
       --radius-full: 9999px;
-      --radius-lg: 26px;
+      --radius-lg: 24px;
       --radius-md: 16px;
       --radius-sm: 8px;
     }
@@ -114,8 +114,8 @@
     /* Header Nav */
     header {
       width: 100%;
-      max-width: 960px;
-      padding: 22px 20px 16px;
+      max-width: 1220px;
+      padding: 20px 24px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -192,23 +192,34 @@
       transform: translateY(-1px);
     }
 
-    .btn-hub-active {
-      background: var(--g-blue-light) !important;
-      color: var(--g-blue) !important;
-      border-color: rgba(66, 133, 244, 0.3) !important;
+    .btn-action.active {
+      background: var(--g-blue-light);
+      color: var(--g-blue);
+      border-color: rgba(66, 133, 244, 0.35);
     }
 
-    /* Main Container */
-    main {
+    /* App 2-Column Layout */
+    .app-layout {
       width: 100%;
-      max-width: 820px;
-      padding: 0 20px 140px;
+      max-width: 1220px;
+      display: flex;
+      gap: 24px;
+      padding: 0 24px 140px;
+      z-index: 10;
+      flex: 1;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    /* Main Chat Canvas */
+    .chat-canvas {
+      flex: 1;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      z-index: 10;
-      flex: 1;
       position: relative;
+      transition: max-width 0.35s ease;
     }
 
     /* Initial Hero & Center Box Container */
@@ -218,7 +229,7 @@
       flex-direction: column;
       align-items: center;
       transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-      margin-top: 55px;
+      margin-top: 45px;
     }
 
     .initial-view.collapsed {
@@ -232,24 +243,24 @@
 
     .hero {
       text-align: center;
-      margin-bottom: 34px;
+      margin-bottom: 30px;
     }
 
     .hero-title {
-      font-size: 42px;
+      font-size: 40px;
       font-weight: 700;
       letter-spacing: -1px;
       color: var(--text-main);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       background: linear-gradient(135deg, #1a73e8 0%, #ea4335 38%, #fbbc04 68%, #34a853 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .hero-subtitle {
-      font-size: 15.5px;
+      font-size: 15px;
       color: var(--text-muted);
-      max-width: 540px;
+      max-width: 520px;
       margin: 0 auto;
       line-height: 1.6;
     }
@@ -315,7 +326,7 @@
       border: none;
       outline: none;
       font-family: inherit;
-      font-size: 16px;
+      font-size: 15.5px;
       color: var(--text-main);
       background: transparent;
       resize: none;
@@ -441,7 +452,7 @@
     /* Suggestion Chips */
     .suggestions-container {
       width: 100%;
-      margin-top: 26px;
+      margin-top: 24px;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -467,7 +478,7 @@
       background: var(--surface-color);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-full);
-      padding: 8px 16px;
+      padding: 8px 15px;
       font-size: 13px;
       font-weight: 500;
       color: var(--text-main);
@@ -492,7 +503,7 @@
       width: 100%;
       display: none;
       flex-direction: column;
-      gap: 24px;
+      gap: 22px;
       margin-top: 8px;
       animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
@@ -547,7 +558,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border-color);
     }
@@ -590,13 +601,13 @@
     .trace-wrapper {
       margin-top: 18px;
       border-top: 1px solid var(--border-color);
-      padding-top: 14px;
+      padding-top: 12px;
     }
 
     .trace-toggle {
       background: transparent;
       border: none;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--g-blue);
       cursor: pointer;
@@ -607,12 +618,12 @@
 
     .trace-content {
       display: none;
-      margin-top: 10px;
-      padding: 12px 16px;
+      margin-top: 8px;
+      padding: 10px 14px;
       background: var(--surface-subtle);
       border-radius: var(--radius-md);
       font-family: monospace;
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--text-main);
       overflow-x: auto;
       line-height: 1.6;
@@ -737,7 +748,7 @@
       40% { transform: scale(1.15); opacity: 1; }
     }
 
-    /* Fixed Sticky Follow-up Input Bar */
+    /* Sticky Bottom Follow-up Input Bar */
     .bottom-bar {
       position: fixed;
       bottom: 0;
@@ -779,45 +790,43 @@
       gap: 8px;
     }
 
-    /* Slide-out "My Hub" Drawer */
-    .drawer-backdrop {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(3px);
-      z-index: 90;
-      display: none;
-      animation: fadeIn 0.25s forwards;
-    }
-
-    .hub-drawer {
-      position: fixed;
-      top: 0; right: 0; bottom: 0;
-      width: 400px;
-      max-width: 90vw;
+    /* Dedicated "My Hub" Side Panel */
+    .hub-side-panel {
+      width: 320px;
+      flex-shrink: 0;
       background: var(--surface-color);
-      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.18);
-      z-index: 100;
-      transform: translateX(100%);
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 20px;
       display: flex;
       flex-direction: column;
+      gap: 18px;
+      position: sticky;
+      top: 20px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .hub-drawer.open {
-      transform: translateX(0);
+    .hub-side-panel.collapsed {
+      width: 0;
+      padding: 0;
+      margin: 0;
+      opacity: 0;
+      border: none;
+      overflow: hidden;
+      pointer-events: none;
     }
 
-    .drawer-header {
-      padding: 22px 24px;
+    .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--border-color);
     }
 
-    .drawer-title {
-      font-size: 18px;
+    .panel-title {
+      font-size: 15px;
       font-weight: 700;
       color: var(--text-main);
       display: flex;
@@ -825,36 +834,26 @@
       gap: 8px;
     }
 
-    .drawer-close {
+    .btn-panel-toggle {
       background: none;
       border: none;
-      font-size: 22px;
       color: var(--text-muted);
       cursor: pointer;
+      font-size: 18px;
     }
 
-    .drawer-body {
-      padding: 20px 24px;
-      overflow-y: auto;
+    .hub-section {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 10px;
     }
 
-    .hub-card {
-      background: var(--surface-subtle);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 16px;
-    }
-
-    .hub-card-title {
-      font-size: 13px;
+    .hub-section-title {
+      font-size: 11.5px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-muted);
-      margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -862,19 +861,19 @@
 
     /* Balance Progress Bars */
     .balance-row {
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .balance-info {
       display: flex;
       justify-content: space-between;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 600;
       margin-bottom: 5px;
     }
 
     .progress-bar-bg {
-      height: 8px;
+      height: 7px;
       background: rgba(0, 0, 0, 0.08);
       border-radius: 4px;
       overflow: hidden;
@@ -891,11 +890,17 @@
 
     /* Ticket Mini Card */
     .ticket-mini-card {
-      background: var(--surface-color);
+      background: var(--surface-subtle);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
       padding: 10px 12px;
-      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ticket-mini-card:hover {
+      border-color: var(--g-blue);
+      transform: translateY(-1px);
     }
 
     .ticket-mini-header {
@@ -906,13 +911,13 @@
     }
 
     .ticket-id {
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--g-blue);
     }
 
     .ticket-status-badge {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
       padding: 2px 7px;
       border-radius: var(--radius-full);
@@ -920,13 +925,16 @@
       color: #1a73e8;
     }
 
-    .status-closed { background: #f1f5f9; color: #64748b; }
+    .status-closed { background: #e2e8f0; color: #64748b; }
     .status-in-progress { background: #fef3c7; color: #d97706; }
 
     .ticket-desc {
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--text-muted);
       line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Modal */
@@ -1031,7 +1039,7 @@
       <span class="brand-badge">Team 12</span>
     </div>
     <div class="header-actions">
-      <button class="btn-action" id="btnMyHub" title="View PTO balances & active tickets">
+      <button class="btn-action active" id="btnToggleHub" title="Toggle My Hub Side Panel">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         My Hub
       </button>
@@ -1053,89 +1061,143 @@
     </div>
   </header>
 
-  <!-- Main View -->
-  <main>
-    <!-- Initial Center Search & Hero View -->
-    <div class="initial-view" id="initialView">
-      <div class="hero">
-        <h1 class="hero-title">How can I assist you today?</h1>
-        <p class="hero-subtitle">Ask HR policies, check your leave balances, manage IT tickets, or execute multi-system workflows.</p>
-      </div>
+  <!-- 2-Column App Layout -->
+  <div class="app-layout">
+    <!-- Main Chat Canvas -->
+    <main class="chat-canvas">
+      <!-- Initial Center Search & Hero View -->
+      <div class="initial-view" id="initialView">
+        <div class="hero">
+          <h1 class="hero-title">How can I assist you today?</h1>
+          <p class="hero-subtitle">Ask HR policies, check your leave balances, manage IT tickets, or execute multi-system workflows.</p>
+        </div>
 
-      <!-- Animated Google Colors Neon Ring Box -->
-      <div class="search-card-glow-wrapper" id="searchWrapper">
-        <div class="search-card">
-          <div class="search-input-row">
-            <div class="sparkle-icon">✨</div>
-            <textarea id="initialInput" class="search-input" placeholder="Ask a policy, request time off, or open an IT incident..." rows="1"></textarea>
+        <!-- Animated Google Colors Neon Ring Box -->
+        <div class="search-card-glow-wrapper" id="searchWrapper">
+          <div class="search-card">
+            <div class="search-input-row">
+              <div class="sparkle-icon">✨</div>
+              <textarea id="initialInput" class="search-input" placeholder="Ask a policy, request time off, or open an IT incident..." rows="1"></textarea>
+            </div>
+            <div class="search-controls">
+              <div class="mode-selector">
+                <span class="mode-badge" id="initialModeBadge"></span>
+                <select id="initialModeSelect">
+                  <option value="auto">🌟 Auto</option>
+                  <option value="policy">📖 Policy Specialist</option>
+                  <option value="hcm">📅 WorkWeek HCM</option>
+                  <option value="itsm">🎫 ServiceImmediately ITSM</option>
+                </select>
+              </div>
+              <div class="search-actions-right">
+                <button class="btn-mic" id="btnInitialMic" title="Voice Input (Speech-to-Text)">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                </button>
+                <button class="btn-submit" id="btnInitialSubmit" disabled>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="search-controls">
-            <div class="mode-selector">
-              <span class="mode-badge" id="initialModeBadge"></span>
-              <select id="initialModeSelect">
-                <option value="auto">🌟 Auto</option>
-                <option value="policy">📖 Policy Specialist</option>
-                <option value="hcm">📅 WorkWeek HCM</option>
-                <option value="itsm">🎫 ServiceImmediately ITSM</option>
-              </select>
-            </div>
-            <div class="search-actions-right">
-              <button class="btn-mic" id="btnInitialMic" title="Voice Input (Speech-to-Text)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-              </button>
-              <button class="btn-submit" id="btnInitialSubmit" disabled>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-              </button>
-            </div>
+        </div>
+
+        <!-- Initial Suggestions -->
+        <div class="suggestions-container" id="suggestionsContainer">
+          <div class="suggestions-label">Recommended Prompts</div>
+          <div class="chips-grid">
+            <button class="chip" data-prompt="How many days of paid outpatient sick leave do I get in Singapore?" data-mode="policy">
+              <span>📖</span>
+              <span>Sick leave policy</span>
+            </button>
+            <button class="chip" data-prompt="How many days of vacation and sick leave do I currently have remaining for emp_001?" data-mode="hcm">
+              <span>📅</span>
+              <span>Check PTO balances</span>
+            </button>
+            <button class="chip" data-prompt="I need to take 2 days of medical leave from 2026-09-01 to 2026-09-02 for emp_001. What is the policy, please book it, and open an IT ticket to route emails to my manager." data-mode="auto">
+              <span>🔀</span>
+              <span>Medical leave & email routing</span>
+            </button>
+            <button class="chip" data-prompt="List all my active support tickets with their current status and priority." data-mode="itsm">
+              <span>🎫</span>
+              <span>List active tickets</span>
+            </button>
+            <button class="chip" data-prompt="I saw the remote work policy allows a home monitor. Can you verify my address and order one for me?" data-mode="auto">
+              <span>💻</span>
+              <span>Equipment procurement</span>
+            </button>
+            <button class="chip" data-prompt="What is the company's bereavement leave policy?" data-mode="policy">
+              <span>🕊️</span>
+              <span>Bereavement policy</span>
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Initial Suggestions -->
-      <div class="suggestions-container" id="suggestionsContainer">
-        <div class="suggestions-label">Recommended Prompts</div>
-        <div class="chips-grid">
-          <button class="chip" data-prompt="How many days of paid outpatient sick leave do I get in Singapore?" data-mode="policy">
-            <span>📖</span>
-            <span>Sick leave policy</span>
-          </button>
-          <button class="chip" data-prompt="How many days of vacation and sick leave do I currently have remaining for emp_001?" data-mode="hcm">
-            <span>📅</span>
-            <span>Check PTO balances</span>
-          </button>
-          <button class="chip" data-prompt="I need to take 2 days of medical leave from 2026-09-01 to 2026-09-02 for emp_001. What is the policy, please book it, and open an IT ticket to route emails to my manager." data-mode="auto">
-            <span>🔀</span>
-            <span>Medical leave & email routing</span>
-          </button>
-          <button class="chip" data-prompt="List all my active support tickets with their current status and priority." data-mode="itsm">
-            <span>🎫</span>
-            <span>List active tickets</span>
-          </button>
-          <button class="chip" data-prompt="I saw the remote work policy allows a home monitor. Can you verify my address and order one for me?" data-mode="auto">
-            <span>💻</span>
-            <span>Equipment procurement</span>
-          </button>
-          <button class="chip" data-prompt="What is the company's bereavement leave policy?" data-mode="policy">
-            <span>🕊️</span>
-            <span>Bereavement policy</span>
-          </button>
+      <!-- Active Chat Stream -->
+      <div class="chat-stream" id="chatStream"></div>
+
+      <!-- Minimal Dancing Dots Loading Indicator (No Text) -->
+      <div class="loading-card" id="loadingCard" style="display: none;">
+        <div class="google-loader">
+          <div class="loader-dot loader-blue"></div>
+          <div class="loader-dot loader-red"></div>
+          <div class="loader-dot loader-yellow"></div>
+          <div class="loader-dot loader-green"></div>
         </div>
       </div>
-    </div>
+    </main>
 
-    <!-- Active Chat Stream -->
-    <div class="chat-stream" id="chatStream"></div>
-
-    <!-- Minimal Dancing Dots Loading Indicator (No Text) -->
-    <div class="loading-card" id="loadingCard" style="display: none;">
-      <div class="google-loader">
-        <div class="loader-dot loader-blue"></div>
-        <div class="loader-dot loader-red"></div>
-        <div class="loader-dot loader-yellow"></div>
-        <div class="loader-dot loader-green"></div>
+    <!-- Dedicated "My Hub" Side Panel -->
+    <aside class="hub-side-panel" id="hubSidePanel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>📊</span> My Hub
+        </div>
+        <button class="btn-panel-toggle" id="btnClosePanel" title="Hide Side Panel">&times;</button>
       </div>
-    </div>
-  </main>
+
+      <!-- Employee Info -->
+      <div class="hub-section">
+        <div style="font-size: 14.5px; font-weight: 700;">Zuhaibp Employee</div>
+        <div style="font-size: 12px; color: var(--g-blue); font-weight: 600;">EMP-380 • Senior Cloud Engineer</div>
+        <div style="font-size: 11.5px; color: var(--text-muted);">📍 Singapore Office, Pasir Panjang</div>
+      </div>
+
+      <!-- Leave Balances -->
+      <div class="hub-section">
+        <div class="hub-section-title">Leave Balances (2026)</div>
+        <div class="balance-row">
+          <div class="balance-info">
+            <span>🌴 Vacation</span>
+            <span style="color: var(--g-blue);">15.0 / 20.0 Days</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-blue" style="width: 75%;"></div>
+          </div>
+        </div>
+        <div class="balance-row">
+          <div class="balance-info">
+            <span>🏥 Sick Leave</span>
+            <span style="color: var(--g-green);">10.0 / 10.0 Days</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill fill-green" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Tickets -->
+      <div class="hub-section">
+        <div class="hub-section-title">
+          <span>Recent Tickets</span>
+          <button style="background: none; border: none; color: var(--g-blue); font-size: 11px; cursor: pointer;" id="btnRefreshSideHub">🔄 Refresh</button>
+        </div>
+        <div id="sideHubTickets">
+          <div style="font-size: 12px; color: var(--text-muted);">Loading tickets...</div>
+        </div>
+      </div>
+    </aside>
+  </div>
 
   <!-- Sticky Bottom Follow-up Input Bar -->
   <div class="bottom-bar" id="bottomBar">
@@ -1163,61 +1225,6 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </button>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Slide-out "My Hub" Drawer -->
-  <div class="drawer-backdrop" id="hubBackdrop"></div>
-  <div class="hub-drawer" id="hubDrawer">
-    <div class="drawer-header">
-      <div class="drawer-title">
-        <span>📊</span> My Employee Hub
-      </div>
-      <button class="drawer-close" id="hubClose">&times;</button>
-    </div>
-    <div class="drawer-body">
-      <!-- Profile Card -->
-      <div class="hub-card">
-        <div class="hub-card-title">Employee Profile</div>
-        <div style="font-size: 15px; font-weight: 700; margin-bottom: 2px;" id="hubEmpName">Zuhaibp Employee</div>
-        <div style="font-size: 12.5px; color: var(--g-blue); font-weight: 600; margin-bottom: 8px;">EMP-380 • Senior Cloud Engineer</div>
-        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">📍 Singapore Office, 80 Pasir Panjang Rd</div>
-        <div style="font-size: 12px; color: var(--text-muted);">📞 +65-6521-0000</div>
-      </div>
-
-      <!-- PTO Balances Card -->
-      <div class="hub-card">
-        <div class="hub-card-title">Leave Balances (2026)</div>
-        <div class="balance-row">
-          <div class="balance-info">
-            <span>🌴 Vacation Leave</span>
-            <span style="color: var(--g-blue);">15.0 / 20.0 Days</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill fill-blue" style="width: 75%;"></div>
-          </div>
-        </div>
-        <div class="balance-row">
-          <div class="balance-info">
-            <span>🏥 Sick Leave</span>
-            <span style="color: var(--g-green);">10.0 / 10.0 Days</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill fill-green" style="width: 100%;"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Active Tickets Feed -->
-      <div class="hub-card">
-        <div class="hub-card-title">
-          <span>Active Tickets</span>
-          <button style="background: none; border: none; color: var(--g-blue); font-size: 11px; cursor: pointer;" id="btnRefreshHub">🔄 Refresh</button>
-        </div>
-        <div id="hubTicketsContainer">
-          <div style="font-size: 12px; color: var(--text-muted);">Loading tickets...</div>
         </div>
       </div>
     </div>
@@ -1273,12 +1280,11 @@
     const modalClose = document.getElementById('modalClose');
     const toastMsg = document.getElementById('toastMsg');
 
-    const btnMyHub = document.getElementById('btnMyHub');
-    const hubDrawer = document.getElementById('hubDrawer');
-    const hubBackdrop = document.getElementById('hubBackdrop');
-    const hubClose = document.getElementById('hubClose');
-    const btnRefreshHub = document.getElementById('btnRefreshHub');
-    const hubTicketsContainer = document.getElementById('hubTicketsContainer');
+    const btnToggleHub = document.getElementById('btnToggleHub');
+    const hubSidePanel = document.getElementById('hubSidePanel');
+    const btnClosePanel = document.getElementById('btnClosePanel');
+    const btnRefreshSideHub = document.getElementById('btnRefreshSideHub');
+    const sideHubTickets = document.getElementById('sideHubTickets');
 
     const btnInitialMic = document.getElementById('btnInitialMic');
     const btnBottomMic = document.getElementById('btnBottomMic');
@@ -1317,6 +1323,15 @@
       document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
       btnThemeToggle.innerText = isDark ? '🌙' : '☀️';
     });
+
+    // Side Panel Toggle
+    function toggleSidePanel() {
+      const isCollapsed = hubSidePanel.classList.toggle('collapsed');
+      btnToggleHub.classList.toggle('active', !isCollapsed);
+    }
+
+    btnToggleHub.addEventListener('click', toggleSidePanel);
+    btnClosePanel.addEventListener('click', toggleSidePanel);
 
     // Voice Input (Web Speech API)
     function setupVoice(btn, inputEl) {
@@ -1550,6 +1565,9 @@
 
         msgGroup.appendChild(assistantCard);
 
+        // Refresh side panel after transaction
+        loadSideHubData();
+
       } catch (err) {
         loadingCard.style.display = 'none';
         const errorCard = document.createElement('div');
@@ -1571,19 +1589,18 @@
       }, 80);
     }
 
-    // My Hub Drawer logic
-    async function loadHubData() {
-      hubTicketsContainer.innerHTML = '<div style="font-size: 12px; color: var(--text-muted);">Refreshing live data...</div>';
+    // Side Hub Data Fetching
+    async function loadSideHubData() {
       try {
         const res = await fetch('/api/hub');
-        if (!res.ok) throw new Error();
+        if (!res.ok) return;
         const data = await res.json();
         
         if (data.tickets && data.tickets.length > 0) {
-          hubTicketsContainer.innerHTML = data.tickets.map(t => {
+          sideHubTickets.innerHTML = data.tickets.slice(0, 5).map(t => {
             const statusClass = (t.status || '').toLowerCase() === 'closed' ? 'status-closed' : 'status-in-progress';
             return `
-              <div class="ticket-mini-card">
+              <div class="ticket-mini-card" onclick="handleSendMessage('Check details of ticket ${t.ticket_id}')">
                 <div class="ticket-mini-header">
                   <span class="ticket-id">${t.ticket_id}</span>
                   <span class="ticket-status-badge ${statusClass}">${t.status}</span>
@@ -1593,29 +1610,17 @@
             `;
           }).join('');
         } else {
-          hubTicketsContainer.innerHTML = '<div style="font-size: 12px; color: var(--text-muted);">No tickets found.</div>';
+          sideHubTickets.innerHTML = '<div style="font-size: 12px; color: var(--text-muted);">No active tickets.</div>';
         }
       } catch(e) {
-        hubTicketsContainer.innerHTML = '<div style="font-size: 12px; color: #d93025;">Failed to load hub data.</div>';
+        sideHubTickets.innerHTML = '<div style="font-size: 12px; color: #d93025;">Failed to load hub data.</div>';
       }
     }
 
-    btnMyHub.addEventListener('click', () => {
-      hubDrawer.classList.add('open');
-      hubBackdrop.style.display = 'block';
-      btnMyHub.classList.add('btn-hub-active');
-      loadHubData();
-    });
+    btnRefreshSideHub.addEventListener('click', loadSideHubData);
 
-    function closeHub() {
-      hubDrawer.classList.remove('open');
-      hubBackdrop.style.display = 'none';
-      btnMyHub.classList.remove('btn-hub-active');
-    }
-
-    hubClose.addEventListener('click', closeHub);
-    hubBackdrop.addEventListener('click', closeHub);
-    btnRefreshHub.addEventListener('click', loadHubData);
+    // Initial Side Hub Load
+    loadSideHubData();
 
     // Modal
     btnHowToUse.addEventListener('click', () => { howToModal.style.display = 'flex'; });
