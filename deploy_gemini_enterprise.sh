@@ -20,7 +20,6 @@ echo "================================================================="
 # -----------------------------------------------------------------------------
 if [ -f "$REPO_ROOT/.env" ]; then
     echo "[*] Loading configuration from .env..."
-    # Export non-commented lines from .env
     set -a
     # shellcheck disable=SC1091
     source <(grep -v '^\s*#' "$REPO_ROOT/.env" | grep -v '^\s*$')
@@ -125,18 +124,17 @@ if [ -z "$PROJECT_ID" ] && [ -z "$API_KEY_VAL" ] && [ "$DRY_RUN" = false ]; then
     exit 1
 fi
 
-echo "  • Deployment Target:   $DEPLOY_TARGET"
+echo "  • Deployment Target:    $DEPLOY_TARGET"
 if [ -n "$PROJECT_ID" ]; then
     echo "  • Google Cloud Project: $PROJECT_ID"
-    echo "  • Region:              $REGION"
+    echo "  • Region:               $REGION"
 fi
 if [ -n "$API_KEY_VAL" ]; then
-    echo "  • Auth Mode:           Gemini API Key (configured)"
+    echo "  • Auth Mode:            Gemini API Key (configured)"
 else
-    echo "  • Auth Mode:           Google Application Default Credentials (ADC)"
+    echo "  • Auth Mode:            Google Application Default Credentials (ADC)"
 fi
-echo "  • Agent Display Name:  $DISPLAY_NAME"
-echo "  • FastMCP Token:       ${MCP_TOKEN_VAL:0:12}... (active)"
+echo "  • Agent Display Name:   $DISPLAY_NAME"
 
 # -----------------------------------------------------------------------------
 # 4. Virtual Environment & ADK Tools Check
@@ -160,28 +158,90 @@ if [ ! -f "$ADK_BIN" ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# 5. FastMCP SaaS Backend Pre-Flight Connectivity Check
+# 5. FastMCP SaaS Backend Connectivity & Interactive Fallback
 # -----------------------------------------------------------------------------
 echo ""
 echo "[*] Testing Mock SaaS FastMCP connectivity (Identity & Token validation)..."
 
-export MCP_TOKEN="$MCP_TOKEN_VAL"
-
-"$PYTHON_BIN" -c "
+check_mcp_token() {
+    local token="$1"
+    "$PYTHON_BIN" -c "
 import sys, json, httpx
 url = 'https://mock-saas.aishprabhat.demo.altostrat.com/work-week/mcp/'
-headers = {'X-MCP-Token': '$MCP_TOKEN_VAL', 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'}
+headers = {'X-MCP-Token': '$token', 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'}
 payload = {'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call', 'params': {'name': 'get_employee_balances', 'arguments': {'employee_id': 'EMP-380'}}}
 try:
-    with httpx.Client(timeout=10.0) as client:
+    with httpx.Client(timeout=8.0) as client:
         r = client.post(url, headers=headers, json=payload)
         if r.status_code == 200:
-            print('  [✓] FastMCP SaaS authentication verified! (Status 200 OK)')
+            sys.exit(0)
         else:
-            print(f'  [!] FastMCP responded with HTTP {r.status_code}')
-except Exception as e:
-    print(f'  [!] Warning: MCP pre-flight check error: {e}')
+            sys.exit(1)
+except Exception:
+    sys.exit(1)
 "
+}
+
+update_mcp_config() {
+    local token="$1"
+    export MCP_TOKEN="$token"
+    
+    # Update .env
+    if [ -f "$REPO_ROOT/.env" ]; then
+        if grep -q "^MCP_TOKEN=" "$REPO_ROOT/.env"; then
+            sed -i.bak "s|^MCP_TOKEN=.*|MCP_TOKEN=$token|" "$REPO_ROOT/.env" && rm -f "$REPO_ROOT/.env.bak"
+        else
+            echo "MCP_TOKEN=$token" >> "$REPO_ROOT/.env"
+        fi
+    fi
+
+    # Update agents/.agent_engine_config.json
+    "$PYTHON_BIN" -c "
+import json
+cfg_path = '$REPO_ROOT/agents/.agent_engine_config.json'
+try:
+    with open(cfg_path, 'r') as f:
+        cfg = json.load(f)
+    if 'env' not in cfg:
+        cfg['env'] = {}
+    cfg['env']['MCP_TOKEN'] = '$token'
+    with open(cfg_path, 'w') as f:
+        json.dump(cfg, f, indent=2)
+except Exception as e:
+    pass
+"
+}
+
+if check_mcp_token "$MCP_TOKEN_VAL"; then
+    echo "  [✓] FastMCP SaaS authentication verified! (Status 200 OK)"
+    update_mcp_config "$MCP_TOKEN_VAL"
+else
+    echo "  [!] Warning: FastMCP connection test failed with current token."
+    echo "      The mock SaaS portal requires a valid token from: https://mock-saas.aishprabhat.demo.altostrat.com/"
+    echo ""
+    
+    # If interactive shell is available, prompt for token
+    if [ -t 0 ]; then
+        while true; do
+            read -r -p "🔑 Enter your FastMCP Token (or press Enter to proceed with default): " USER_TOKEN
+            if [ -z "$USER_TOKEN" ]; then
+                echo "  [!] Continuing with default token..."
+                break
+            fi
+            echo "  [*] Validating entered token..."
+            if check_mcp_token "$USER_TOKEN"; then
+                echo "  [✓] Success! Token verified (Status 200 OK)."
+                MCP_TOKEN_VAL="$USER_TOKEN"
+                update_mcp_config "$USER_TOKEN"
+                break
+            else
+                echo "  [!] Token validation failed (non-200 response). Please check the token."
+            fi
+        done
+    else
+        echo "  [!] Non-interactive shell detected. Proceeding with existing configuration..."
+    fi
+fi
 
 # -----------------------------------------------------------------------------
 # 6. Dry Run / Agent Import Validation
