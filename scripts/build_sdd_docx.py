@@ -1,4 +1,4 @@
-"""Script to build the official Enterprise Solution Design Document in .docx format with all 5 Critical Gaps addressed."""
+"""Script to build the official Enterprise Solution Design Document in .docx format with all critical stakeholder remediations."""
 import os
 import zipfile
 import shutil
@@ -180,36 +180,6 @@ def create_docx():
             </w:r>
         </w:p>'''
 
-    def callout(title, text):
-        escaped_title = title.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        escaped_text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        return f'''<w:tbl>
-            <w:tblPr>
-                <w:tblW w:w="9000" w:type="dxa"/>
-                <w:tblBorders>
-                    <w:left w:val="single" w:sz="24" w:space="0" w:color="3182CE"/>
-                    <w:top w:val="none"/>
-                    <w:bottom w:val="none"/>
-                    <w:right w:val="none"/>
-                </w:tblBorders>
-                <w:tblCellMar><w:top w:w="100" w:type="dxa"/><w:left w:w="160" w:type="dxa"/><w:bottom w:w="100" w:type="dxa"/><w:right w:w="160" w:type="dxa"/></w:tblCellMar>
-            </w:tblPr>
-            <w:tblGrid><w:gridCol w:w="9000"/></w:tblGrid>
-            <w:tr>
-                <w:tc>
-                    <w:tcPr><w:tcW w:w="9000" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="EBF8FF"/></w:tcPr>
-                    <w:p>
-                        <w:pPr><w:spacing w:after="30"/></w:pPr>
-                        <w:r><w:rPr><w:b/><w:color w:val="2B6CB0"/><w:sz w:val="19"/></w:rPr><w:t>{escaped_title}</w:t></w:r>
-                    </w:p>
-                    <w:p>
-                        <w:pPr><w:spacing w:after="30"/></w:pPr>
-                        <w:r><w:rPr><w:sz w:val="18"/><w:color w:val="2D3748"/></w:rPr><w:t>{escaped_text}</w:t></w:r>
-                    </w:p>
-                </w:tc>
-            </w:tr>
-        </w:tbl><w:p><w:pPr><w:spacing w:after="120"/></w:pPr></w:p>'''
-
     # Build the document XML content
     body = []
     
@@ -233,12 +203,26 @@ def create_docx():
         [2800, 6200]
     ))
 
-    # Section 1: Executive Summary & Business Value
-    body.append(heading("1. Executive Summary & Business Value", 1))
-    body.append(heading("1.1. Business Problem Statement", 2))
-    body.append(p("Enterprise employees lose productive hours navigating disconnected HR systems. Over 45% of incoming HR and IT helpdesk tickets are routine inquiries regarding leave balances, policy clauses, and standard hardware tickets, resulting in 4-to-24 hour resolution delays."))
+    # Section 1: Executive Summary & Non-Technical Translation
+    body.append(heading("1. Executive Summary & Plain-English Glossary", 1))
+    body.append(heading("1.1. Executive Business Problem & Strategic Impact", 2))
+    body.append(p("Enterprise employees lose productive hours navigating disconnected HR software. Over 45% of incoming support tickets are routine inquiries regarding leave balances, policy clauses, and standard hardware tickets, resulting in 4-to-24 hour resolution delays."))
     
-    body.append(heading("1.2. Executive Business Value & ROI Translation", 2))
+    body.append(heading("1.2. Plain-English Architecture Translation for Executives", 2))
+    body.append(table(
+        ["Technical AI / Cloud Term", "Plain-English Analogy", "Real-World Business Function"],
+        [
+            ["Multi-Agent Architecture", "Specialized Department Team", "Lead coordinator routes inquiries to specialist sub-assistants (Policy, Leave, IT)."],
+            ["Google ADK & Gemini 2.5", "Ultra-Fast Reasoning Brain", "AI cognitive engine that understands natural language in milliseconds."],
+            ["Model Context Protocol (FastMCP)", "Universal System Plug (USB-C)", "Standardized plug connecting AI securely to Workday and ServiceNow."],
+            ["RAG (Open Knowledge Format)", "Verified Digital Employee Handbook", "AI reads verified company handbook before answering (100% grounded)."],
+            ["Serverless Cloud Run", "On-Demand Power Grid", "Auto-scales instantly during peak leave seasons and drops to $0 when idle."],
+            ["Circuit Breaker & Throttling", "Safety Fuse Box", "Automatic fuse box preventing system crashes if downstream SaaS slows down."]
+        ],
+        [2500, 2500, 4000]
+    ))
+
+    body.append(heading("1.3. Executive Business Value & ROI Translation", 2))
     body.append(table(
         ["Business Metric / Driver", "Baseline (Current State)", "With HR Agentic Solution", "Strategic Business Impact"],
         [
@@ -251,42 +235,39 @@ def create_docx():
         [2200, 2200, 2200, 2400]
     ))
 
-    # Section 2: Structured Alternatives Considered
-    body.append(heading("2. Structured 'Alternatives Considered' & Trade-off Analysis", 1))
-    body.append(p("All architectural layers were evaluated against leading alternatives across standardized enterprise criteria:"))
-    
-    body.append(heading("2.1. Agent Orchestration Framework Matrix", 2))
-    body.append(table(
-        ["Evaluation Criteria (Weight)", "Google ADK [Selected]", "LangChain / LangGraph", "CrewAI / AutoGen"],
-        [
-            ["Gemini Native Optimization (25%)", "5/5 (Native function calling)", "3/5 (Generic wrapper overhead)", "3/5 (Prompt-based tool wrapping)"],
-            ["Runtime Portability (20%)", "5/5 (Vertex Agent Engine & Cloud Run)", "3/5 (Custom containerization)", "2/5 (Complex dependency tree)"],
-            ["Latency & Event Streaming (20%)", "5/5 (Sub-second async generator)", "3/5 (Heavy middleware chain)", "2/5 (Chatty inter-agent loops)"],
-            ["Session Management (20%)", "5/5 (Native Memory/Agent Engine)", "4/5 (LangGraph checkpointing)", "3/5 (Custom memory implementation)"],
-            ["Weighted Total Score (100%)", "5.00 / 5.00", "3.05 / 5.00", "2.65 / 5.00"]
-        ],
-        [2800, 2400, 2000, 1800]
-    ))
+    # Section 2: Cross-System Orchestration Sequence
+    body.append(heading("2. Cross-System Orchestration & Step-by-Step Chaining", 1))
+    body.append(p("Compound multi-domain inquiries follow a strict deterministic sequence across sub-agents:"))
+    body.append(bullet(" Step 1: Policy Retrieval -> Orchestrator routes query to policy_specialist, retrieving statutory entitlements (14d outpatient, 60d hospitalization).", "Policy Validation: "))
+    body.append(bullet(" Step 2: HCM Leave Booking -> Orchestrator routes verified parameters to hcm_specialist, checking live PTO balance (10.0d available) and executing booking.", "Transactional Execution: "))
+    body.append(bullet(" Step 3: IT Ticket Creation -> Orchestrator routes to itsm_specialist, opening access routing incident ticket INC0002608 with priority.", "Cross-System IT Routing: "))
+    body.append(bullet(" Step 4: Unified Synthesis -> Orchestrator combines confirmations into a single cohesive response streamed to the Web UI.", "Response Synthesis: "))
 
-    body.append(heading("2.2. Policy Ingestion & Knowledge Retrieval Engine Matrix", 2))
-    body.append(table(
-        ["Evaluation Criteria (Weight)", "Dynamic Chunked OKF [Selected]", "External Vector DB (Pinecone)", "Vertex AI Search RAG"],
-        [
-            ["Grounding Precision (30%)", "5/5 (100% deterministic section mapping)", "3/5 (Cosine distance similarity noise)", "4/5 (High semantic search accuracy)"],
-            ["Update Latency & Freshness (25%)", "5/5 (<60s hot-reload via mtime/Eventarc)", "2/5 (Embedding pipeline lag 5-30m)", "4/5 (GCS sync cycle <15 mins)"],
-            ["Infrastructure & TCO Cost (25%)", "5/5 ($0.00 hosting / indexing cost)", "1/5 ($70-$300/mo cluster cost)", "3/5 ($0.005 per search query)"],
-            ["Weighted Total Score (100%)", "5.00 / 5.00", "2.15 / 5.00", "3.85 / 5.00"]
-        ],
-        [2800, 2400, 2000, 1800]
-    ))
+    # Section 3: Identity Bridging Architecture
+    body.append(heading("3. Secure Identity Bridging Architecture (Email to Employee ID)", 1))
+    body.append(bullet(" Corporate SSO (Google Workspace/Okta/Azure AD) passes verified email claims (e.g. emp380@enterprise.demo) upon OIDC authentication.", "SSO Claim Ingress: "))
+    body.append(bullet(" Gateway performs high-speed directory lookup (Redis SCIM cache / users table) to resolve email -> normalized employee_id (EMP-380).", "Directory Resolution: "))
+    body.append(bullet(" The resolved employee_id is immutably bound to the session context, strictly preventing cross-user profile mutations.", "Session Security Binding: "))
 
-    # Section 3: Architecture & FastMCP Interface Contracts
-    body.append(heading("3. Core Architecture & FastMCP Interface Contracts", 1))
+    # Section 4: Infrastructure as Code & CI/CD
+    body.append(heading("4. Infrastructure as Code (Terraform) & Automated CI/CD", 1))
+    body.append(heading("4.1. Terraform Infrastructure Provisioning", 2))
+    body.append(bullet(" Fully automated Google Cloud Run service with 1-to-10 instance auto-scaling, CPU/Memory limits, and public HTTPS ingress.", "Serverless Cloud Run: "))
+    body.append(bullet(" Google Cloud Secret Manager manages MCP_TOKEN with automated rotation and zero plaintext code storage.", "Secrets Management: "))
+    body.append(bullet(" PostgreSQL 15 database instance for persistent session transcripts and GDPR Right-to-be-Forgotten purge audit trail.", "Relational Persistence: "))
+
+    body.append(heading("4.2. Cloud Build & Automated Testing Pipeline", 2))
+    body.append(bullet(" Automated execution of 12 unit/integration tests (tests/run_tests.py) enforcing 100% pass before build promotion.", "Pre-Merge Test Gate: "))
+    body.append(bullet(" Multi-stage Docker container build tagged with $COMMIT_SHA and latest pushed to Google Artifact Registry.", "Container Registry Push: "))
+    body.append(bullet(" Zero-downtime serverless deployment to Cloud Run with automatic traffic migration.", "Production Deployment: "))
+
+    # Section 5: Architecture & FastMCP Interface Contracts
+    body.append(heading("5. Core Architecture & FastMCP Interface Contracts", 1))
     body.append(p("The system implements a decoupled multi-agent architecture built on the Google ADK and Model Context Protocol, fronted by a 3-column web workspace:"))
     body.append(image("rIdImg1", "Target Solution Architecture"))
     body.append(image("rIdImg2", "Multi-Agent AI Flow"))
 
-    body.append(heading("3.1. FastMCP Interface Contracts & Tool Catalog", 2))
+    body.append(heading("5.1. FastMCP Interface Contracts & Tool Catalog", 2))
     body.append(table(
         ["Sub-Agent", "Tool Name", "Required Parameters", "Return Payload Schema", "Rate Limit"],
         [
@@ -300,13 +281,8 @@ def create_docx():
         [1500, 1800, 2000, 2500, 1200]
     ))
 
-    # Section 4: Stateless Backend State Persistence
-    body.append(heading("4. Backend State Persistence Across Stateless Containers", 1))
-    body.append(bullet(" In Cloud Run deployments, requests route dynamically to any stateless container instance. Every client turn includes session_id (via X-Session-ID header), which hydrates history from Cloud SQL / Redis before agent execution.", "Centralized Session Hydration: "))
-    body.append(bullet(" Demo/evaluation mode uses in-memory session tracking with browser localStorage mirroring for instant zero-dependency execution. Production mode binds to Cloud SQL (PostgreSQL).", "Demo vs Production Mode: "))
-
-    # Section 5: Downstream Error Handling Matrix
-    body.append(heading("5. Consolidated Downstream API Error-Handling Matrix", 1))
+    # Section 6: Downstream Error Handling
+    body.append(heading("6. Consolidated Downstream API Error-Handling Matrix", 1))
     body.append(table(
         ["HTTP Status", "Trigger Condition", "User-Facing Conversational Message", "System / Recovery Action"],
         [
@@ -319,38 +295,9 @@ def create_docx():
         [1400, 2200, 3200, 2200]
     ))
 
-    # Section 6: Dynamic Ingestion & Canary Metrics
-    body.append(heading("6. Dynamic Policy Ingestion, Quantitative Metrics & Canary Loop", 1))
-    body.append(heading("6.1. Canary Verification Loop & RAG Evaluation Metrics", 2))
-    body.append(table(
-        ["Quantitative Metric", "Target Threshold", "Framework", "Purpose & Measurement"],
-        [
-            ["Faithfulness / Groundedness", ">= 0.98", "Ragas / DeepEval", "Answers strictly derived from policy text (0% hallucination)."],
-            ["Answer Relevance", ">= 0.95", "Ragas / DeepEval", "Direct satisfaction of user query intent."],
-            ["Context Recall & Precision", ">= 0.96", "DeepEval Context Test", "Retrieved markdown contains all necessary statutory facts."],
-            ["Tool Parameter Accuracy", ">= 0.99", "Pytest Schema Validator", "100% extraction accuracy for dates, days, and categories."],
-            ["Hallucination Rate", "< 0.01", "Vertex AI Eval API", "Zero ungrounded assertions or fabricated rules."]
-        ],
-        [2400, 1400, 2200, 3000]
-    ))
-
-    # Section 7: Database DDL & ERD
-    body.append(heading("7. Database Schemas, Entity-Relationship Diagram (ERD) & DDL", 1))
-    body.append(table(
-        ["Table Name", "Primary Key", "Foreign Keys", "Core Responsibilities & Compliance Scope"],
-        [
-            ["users", "user_id", "None", "Stores employee identity (EMP-380), email, full name, department, country code."],
-            ["chat_sessions", "session_id", "user_id -> users", "Maintains conversational sessions, channel origin, and active state."],
-            ["session_messages", "message_id", "session_id -> chat_sessions", "Stores input/output transcripts, W3C correlation ID, and token usage metrics."],
-            ["tool_executions", "execution_id", "session_id -> chat_sessions", "Immutable audit trail of all sub-agent tool calls, parameters, and latencies."],
-            ["escalation_tickets", "ticket_id", "session_id, user_id", "Tracks Tier-2 human HR escalation lifecycle, SLA timers, and acknowledgement status."]
-        ],
-        [1500, 1300, 1800, 4400]
-    ))
-
-    # Section 8: Security, RBAC & Risk Register
-    body.append(heading("8. Security, RBAC, Privacy & Consolidated Risk Register", 1))
-    body.append(heading("8.1. Role-Based Access Control (RBAC) Matrix", 2))
+    # Section 7: Security, RBAC & Risk Register
+    body.append(heading("7. Security, RBAC, Privacy & Consolidated Risk Register", 1))
+    body.append(heading("7.1. Role-Based Access Control (RBAC) Matrix", 2))
     body.append(table(
         ["Enterprise Role", "Authorized Sub-Agents", "Allowed Tools & Actions", "Prohibited Actions"],
         [
@@ -362,7 +309,7 @@ def create_docx():
         [1800, 1600, 2800, 2800]
     ))
 
-    body.append(heading("8.2. Consolidated Enterprise Risk Register", 2))
+    body.append(heading("7.2. Consolidated Enterprise Risk Register", 2))
     body.append(table(
         ["Risk ID", "Category", "Risk Description", "Likelihood", "Impact", "Technical Mitigation Strategy", "Owner"],
         [
@@ -375,9 +322,8 @@ def create_docx():
         [800, 1100, 2300, 900, 900, 2000, 1000]
     ))
 
-    # Section 9: Roadmap, FinOps & UAT
-    body.append(heading("9. Implementation Roadmap, FinOps & UAT Matrix", 1))
-    body.append(heading("9.1. 4-Phase Delivery Roadmap", 2))
+    # Section 8: Roadmap & UAT Matrix
+    body.append(heading("8. Implementation Roadmap & UAT Matrix", 1))
     body.append(table(
         ["Phase", "Milestone Name", "Key Deliverables", "Timeline"],
         [
@@ -389,18 +335,7 @@ def create_docx():
         [1200, 2600, 3600, 1600]
     ))
 
-    body.append(heading("9.2. FinOps & Operational Cost Analysis", 2))
-    body.append(table(
-        ["Cost Metric", "Value / Unit Cost", "Impact"],
-        [
-            ["Total LLM Cost per Inquiry", "$0.000265 (~0.026 cents)", "Sub-cent token economics (~1,850 in / 420 out tokens)"],
-            ["All-Inclusive Cost per Self-Service Query", "<$0.00035 (~0.035 cents)", ">99.9% cost reduction vs human tier-1 ($15.00)"],
-            ["Projected Monthly Savings (10k queries/mo)", "~$120,000 / Month", "Immediate positive ROI in Month 1"]
-        ],
-        [3200, 3200, 2600]
-    ))
-
-    body.append(heading("9.3. User Acceptance Testing (UAT) Verification Matrix", 2))
+    body.append(heading("8.1. User Acceptance Testing (UAT) Verification Matrix", 2))
     body.append(table(
         ["Test ID", "Test Scenario", "Expected Outcome", "Status"],
         [
@@ -422,8 +357,8 @@ def create_docx():
         [1000, 2800, 4200, 1000]
     ))
 
-    # Section 10: Deployment Verification
-    body.append(heading("10. Conclusion & 1-Click Deployment", 1))
+    # Section 9: Deployment Verification
+    body.append(heading("9. Conclusion & 1-Click Deployment", 1))
     body.append(p("The HR Agentic Solution (MVP 1) is fully implemented, verified, and ready for immediate deployment via:"))
     body.append(bullet(" 1-Click build and deploy to Google Cloud Run with public HTTPS URL.", "Full-Stack Web App: ./deploy_full_gcp.sh —"))
     body.append(bullet(" Direct ADK Reasoning Engine deployment to Vertex AI Agent Space.", "Gemini Enterprise Runtime: ./deploy_gemini_enterprise.sh —"))

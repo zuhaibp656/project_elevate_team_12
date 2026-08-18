@@ -19,21 +19,36 @@
 | Version | Date | Description |
 | :--- | :--- | :--- |
 | **1.0** | 2026-08-18 | Initial Complete Architecture, ADK Multi-Agent, FastMCP Integration, Security & UAT |
-| **1.1** | 2026-08-18 | Added Architectural Design Choices (Why & How), Argolis Identity Bridge & 3-Column UI |
+| **1.1** | 2026-08-18 | Added Architectural Design Choices (Why & How), Identity Bridge & 3-Column UI |
 | **1.2** | 2026-08-18 | Added Dynamic Policy Ingestion Pipeline, Peak Resiliency & Tier-2 Human Escalation (HITL) |
-| **2.0** | 2026-08-18 | Full Stakeholder Review Remediation (Canary Verification, Tracing, DLQ, DDL/ERD, Risk Register) |
-| **2.2** | 2026-08-18 | **Critical Gaps Resolution**: Added Structured Alternatives Matrix, Stateless State Persistence Architecture, Consolidated Error Handling Matrix, and Quantitative Ragas/DeepEval Metrics |
+| **2.0** | 2026-08-18 | Stakeholder Remediation (Canary Verification, Tracing, DLQ, DDL/ERD, Risk Register) |
+| **2.3** | 2026-08-18 | **Final Enterprise Polish**: Added Cross-System Sequence Diagram, Email-to-EmployeeID Identity Bridge, Terraform IaC, Cloud Build CI/CD, and Non-Technical AI Glossary |
 
 ---
 
-## 1. Executive Summary & Business Value
+## 1. Executive Summary & Non-Technical Guide
 
-### 1.1. Business Problem Statement
-Enterprise employees lose productive hours navigating fragmented HR systems (Human Capital Management, IT Service Management, and static PDF repositories). Over 45% of incoming HR and IT helpdesk tickets are routine inquiries regarding leave balances, policy clauses, and standard hardware tickets, resulting in 4-to-24 hour resolution delays and high operational support costs.
+### 1.1. Executive Business Problem & Strategic Impact
+Enterprise employees lose productive hours navigating disconnected HR software (Human Capital Management, IT Helpdesks, and static PDF repositories). Over 45% of incoming support tickets are routine inquiries regarding leave entitlements, policy rules, and standard IT requests, resulting in 4-to-24 hour resolution delays and substantial support costs.
 
 ---
 
-### 1.2. Executive Business Value & ROI Translation
+### 1.2. Plain-English Architecture Translation for Non-Technical Stakeholders
+
+To bridge technical AI concepts with executive leadership, the core technologies are translated into standard corporate business analogies below:
+
+| Technical AI / Cloud Term | Plain-English Analogy | Real-World Business Function |
+| :--- | :--- | :--- |
+| **Multi-Agent Architecture** | **Specialized Department Team** | A lead coordinator routes employee requests to specialized assistants (Policy, Leave, IT) so each domain is handled by a subject matter expert. |
+| **Google ADK & Gemini 2.5 Flash** | **Ultra-Fast Reasoning Brain** | The underlying AI cognitive engine that understands natural employee language in milliseconds and generates human-like responses. |
+| **Model Context Protocol (FastMCP)** | **Universal System Plug (USB-C)** | A standardized software plug that allows the AI to securely read leave balances and open IT tickets without custom code. |
+| **RAG (Open Knowledge Format)** | **Verified Digital Employee Handbook** | The AI looks up verified company policies before answering, ensuring answers are 100% accurate and never made up. |
+| **Serverless Cloud Run** | **On-Demand Power Grid** | Cloud infrastructure that automatically scales up when thousands of employees ask questions during peak hours and scales down to $0 when idle. |
+| **Circuit Breakers & Rate Limits** | **Safety Fuse Box** | Automatic safeguards that prevent system crashes by gracefully slowing down or queueing requests if downstream SaaS systems slow down. |
+
+---
+
+### 1.3. Executive Business Value & ROI Translation
 
 | Business Metric / Driver | Baseline (Current State) | With HR Agentic Solution | Strategic Business Impact |
 | :--- | :--- | :--- | :--- |
@@ -45,58 +60,221 @@ Enterprise employees lose productive hours navigating fragmented HR systems (Hum
 
 ---
 
-### 1.3. Scope Boundaries Matrix
+## 2. Cross-System Orchestration & Step-by-Step Sequence Execution
 
-| Dimension | In-Scope (MVP 1 / Demo State) | Target State (Phase 2 / 3 Production) |
-| :--- | :--- | :--- |
-| **Target Systems** | • WorkWeek FastMCP (`/work-week/mcp/`)<br>• ServiceImmediately FastMCP (`/service-immediately/mcp/`)<br>• Dynamic Singapore Policy Knowledge Base (38 Categories) | • Production Workday Core HCM Gateway<br>• Production ServiceNow ITSM API<br>• Vertex AI Search Enterprise RAG |
-| **User Interfaces** | • 3-Column Modern Web Workspace (Google Aura)<br>• Google ADK Web View (`adk web`)<br>• Terminal CLI Session (`deploy.sh --cli`) | • Native Slack & Microsoft Teams Apps<br>• Intranet Embedded Web Chat Widget |
-| **Identity & Security** | • FastMCP Token Authorization (`X-MCP-Token`)<br>• Google Cloud ADC IAM Authorization<br>• Dynamic session identity mapping (`EMP-380`) | • Enterprise Okta / Entra ID SSO (OIDC/SAML)<br>• RFC 8693 Token Exchange (OBO)<br>• RFC 7009 Real-time Revocation Blacklist |
+The following sequence diagram illustrates the exact step-by-step chaining when an employee submits a compound, multi-system intent:
+*"I need 2 days of sick leave starting 2026-09-01. Check policy, book my leave in WorkWeek, and create an IT ticket to route my emails."*
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Employee as Employee (EMP-380)
+    participant UI as Google Aura Web UI
+    participant Gateway as FastAPI Gateway & Tracing
+    participant Orch as Central Orchestrator
+    participant Policy as Policy Specialist
+    participant HCM as WorkWeek HCM Specialist
+    participant ITSM as ServiceImmediately ITSM
+    participant MockSaaS as Mock SaaS Backend
+
+    Employee->>UI: Submit Compound Request
+    UI->>Gateway: POST /api/chat (X-Correlation-ID, traceparent, X-MCP-Token)
+    Note over Gateway: In-Flight DLP Sanitizer masks NRIC/SPII
+    Gateway->>Orch: Dispatch Sanitized Query & Session History
+
+    rect rgb(240, 248, 255)
+        Note over Orch,Policy: Step 1: Policy Retrieval & Statutory Validation
+        Orch->>Policy: Delegate Policy Lookup ("sick leave Singapore")
+        Policy->>Policy: read_concept("19-sick-time-hospitalization-leave")
+        Policy-->>Orch: Return MOM Rules (14d outpatient, MC required if >2d)
+    end
+
+    rect rgb(255, 250, 240)
+        Note over Orch,HCM: Step 2: Live Balance Check & Transaction Execution
+        Orch->>HCM: Delegate Leave Booking (EMP-380, Sick, 2d)
+        HCM->>MockSaaS: get_employee_balances("EMP-380")
+        MockSaaS-->>HCM: Balances (Sick: 10.0d available)
+        HCM->>MockSaaS: request_time_off("EMP-380", "2026-09-01", "2026-09-02", "Sick", 2)
+        MockSaaS-->>HCM: Confirmation (Request ID: REQ-8812, Remaining: 8.0d)
+        HCM-->>Orch: Return Success Confirmation
+    end
+
+    rect rgb(245, 255, 245)
+        Note over Orch,ITSM: Step 3: IT Ticket Creation & Email Routing
+        Orch->>ITSM: Delegate Ticket Creation (Access/Routing)
+        ITSM->>MockSaaS: create_ticket(requested_by="EMP-380", category="Access", priority="3 - Moderate")
+        MockSaaS-->>ITSM: Ticket Created (INC0002608, Status: "New")
+        ITSM-->>Orch: Return Ticket Confirmation
+    end
+
+    Orch->>Gateway: Synthesize Unified Conversational Response & Tool Traces
+    Gateway->>UI: Stream Response + Correlation Header + Live Hub Signals
+    UI-->>Employee: Display Answer with Policy Citations, Booking Confirmation & IT Ticket ID
+```
 
 ---
 
-## 2. Structured "Alternatives Considered" & Trade-off Analysis
+## 3. Secure Identity Bridging Architecture (Email to Employee ID)
 
-To satisfy rigorous enterprise architecture evaluation, all technology and architectural topology choices were evaluated against leading industry alternatives across standardized technical criteria:
+To guarantee that employees can only view and mutate their own enterprise records, the system implements an **Identity Bridging Resolution Gateway**:
 
-### 2.1. Agent Orchestration Framework Matrix
-| Evaluation Criteria (Weight) | Google ADK (`LlmAgent`) [Selected] | LangChain / LangGraph | CrewAI / AutoGen |
-| :--- | :--- | :--- | :--- |
-| **Gemini Native Optimization (25%)** | **5/5** (Native SDK, first-class function calling) | 3/5 (Generic abstraction overhead) | 3/5 (Prompt-based tool wrapping) |
-| **Runtime Portability (20%)** | **5/5** (Native Vertex Agent Engine & Cloud Run) | 3/5 (Custom containerization required) | 2/5 (Complex dependency trees) |
-| **Latency & Event Streaming (20%)** | **5/5** (Sub-second async generator streaming) | 3/5 (Heavy middleware chain delays) | 2/5 (Chatty inter-agent token loops) |
-| **Session State Management (20%)** | **5/5** (Native Memory/Agent Engine services) | 4/5 (LangGraph checkpointing) | 3/5 (Custom memory implementation) |
-| **Architectural Simplicity (15%)** | **5/5** (Zero bloat, transparent control flow) | 2/5 (Excessive nested abstractions) | 3/5 (Complex role-playing overhead) |
-| **Weighted Total Score (100%)** | **5.00 / 5.00** | **3.05 / 5.00** | **2.65 / 5.00** |
-* **Why Our Choice Won**: Google ADK eliminates brittle wrapper layers, provides native event streaming loops for Gemini 2.5 Flash, and enables direct 1-click deployment to both Vertex AI Reasoning Engines and Cloud Run.
+```
+┌─────────────────────────┐       ┌─────────────────────────┐       ┌─────────────────────────┐
+│ Enterprise IdP (OIDC)   │       │ Identity Bridge Gateway │       │ Downstream FastMCP      │
+│ • Okta / Google SSO     │──────►│ • SCIM Directory Sync   │──────►│ • X-MCP-Token Header    │
+│ • Claims: email, sub    │       │ • Redis Cache (15m TTL) │       │ • Bound to EMP-380      │
+└─────────────────────────┘       └─────────────────────────┘       └─────────────────────────┘
+```
 
----
-
-### 2.2. Policy Ingestion & Knowledge Retrieval Engine Matrix
-| Evaluation Criteria (Weight) | Dynamic Chunked OKF [Selected] | External Vector DB (Pinecone) | Vertex AI Search RAG |
-| :--- | :--- | :--- | :--- |
-| **Grounding Precision (30%)** | **5/5** (100% deterministic section mapping) | 3/5 (Cosine distance similarity noise) | 4/5 (High semantic search accuracy) |
-| **Update Latency & Freshness (25%)** | **5/5** (<60s hot-reload via mtime / Eventarc) | 2/5 (Embedding pipeline lag 5-30 mins) | 4/5 (GCS sync cycle <15 mins) |
-| **Infrastructure & TCO Cost (25%)** | **5/5** ($0.00 hosting / indexing cost) | 1/5 ($70–$300/mo cluster cost) | 3/5 ($0.005 per search query) |
-| **Operational Simplicity (20%)** | **5/5** (Pure filesystem/GCS markdown bundle) | 2/5 (API key rotation, index tuning) | 4/5 (Managed Google Cloud service) |
-| **Weighted Total Score (100%)** | **5.00 / 5.00** | **2.15 / 5.00** | **3.85 / 5.00** |
-* **Why Our Choice Won**: Local Open Knowledge Format (OKF) with dynamic `mtime` hot-reloading delivers 100% verifiable citations, zero vector database hosting fees, sub-millisecond retrieval, and instant policy updates. (Vertex AI Search is planned for Phase 2 global scale).
+### 3.1. Identity Resolution Flow & Logic
+1. **SSO Ingress**: The employee authenticates via corporate SSO (Google Workspace, Okta, or Azure AD). The frontend receives a verified JWT containing the employee's corporate email (`email: emp380@enterprise.demo`).
+2. **Directory Lookup**: The Gateway queries the local `users` directory store (or Redis SCIM cache) with the verified email address:
+   ```sql
+   SELECT user_id, full_name, department, country_code FROM users WHERE email = 'emp380@enterprise.demo';
+   ```
+3. **Session & Security Binding**: The normalized `user_id` (`EMP-380`) is locked into the session context. Sub-agents are restricted to operating on this specific `employee_id`. Any attempt by the LLM to mutate another user's profile is intercepted and blocked at the tool execution gateway.
+4. **Target State (Phase 2 OBO Flow)**: In production state, the gateway performs an **RFC 8693 On-Behalf-Of (OBO)** token exchange to mint a scoped, short-lived (15-minute) FastMCP bearer token passed via `X-MCP-Token`.
 
 ---
 
-### 2.3. Enterprise Backend Integration Protocol Matrix
-| Evaluation Criteria (Weight) | FastMCP Streamable JSON-RPC [Selected] | Custom REST API Client Wrappers | GraphQL Federation |
-| :--- | :--- | :--- | :--- |
-| **Schema Self-Discovery (30%)** | **5/5** (Native `tools/list` JSON Schema) | 1/5 (Manual client code per endpoint) | 4/5 (GraphQL schema introspection) |
-| **Identity & IAP Bypassing (25%)** | **5/5** (`X-MCP-Token` header transport) | 2/5 (Complex OAuth cookie/session relay) | 3/5 (Bearer header pass-through) |
-| **Standardization & Future-Proofing (25%)**| **5/5** (Universal Model Context Protocol) | 2/5 (Proprietary bespoke wrappers) | 3/5 (Complex sub-graph gateways) |
-| **Maintenance Burden (20%)** | **5/5** (Zero manual endpoint boilerplate) | 1/5 (High maintenance upon API diffs) | 2/5 (Schema stitching overhead) |
-| **Weighted Total Score (100%)** | **5.00 / 5.00** | **1.55 / 5.00** | **3.15 / 5.00** |
-* **Why Our Choice Won**: FastMCP auto-discovers tool contracts at runtime, standardizes JSON-RPC tool invocations, and cleanly bypasses Google Cloud IAP browser redirects across multiple GCP tenants via `X-MCP-Token`.
+## 4. Infrastructure as Code (IaC) & CI/CD Pipelines
+
+### 4.1. Terraform Infrastructure as Code (`main.tf`)
+
+```hcl
+terraform {
+  required_version = ">= 1.5.0"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "google" {
+  project = var.project_id
+  region  = var.region
+}
+
+# 1. Cloud Run Service (Web UI & Multi-Agent Gateway)
+resource "google_cloud_run_v2_service" "hr_agent_service" {
+  name     = "hr-agentic-solution"
+  location = var.region
+  ingress  = "INGRESS_TRAFFIC_ALL"
+
+  template {
+    containers {
+      image = "gcr.io/${var.project_id}/hr-agentic-solution:latest"
+      resources {
+        limits = {
+          cpu    = "2"
+          memory = "2Gi"
+        }
+      }
+      env {
+        name  = "GEMINI_MODEL"
+        value = "gemini-2.5-flash"
+      }
+      env {
+        name  = "MOCK_SAAS_BASE_URL"
+        value = "https://mock-saas.aishprabhat.demo.altostrat.com"
+      }
+      env {
+        name = "MCP_TOKEN"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.mcp_token.secret_id
+            version = "latest"
+          }
+        }
+      }
+    }
+    scaling {
+      min_instance_count = 1
+      max_instance_count = 10
+    }
+  }
+}
+
+# 2. Google Cloud Secret Manager for FastMCP Token
+resource "google_secret_manager_secret" "mcp_token" {
+  secret_id = "hr-agent-mcp-token"
+  replication {
+    auto {}
+  }
+}
+
+# 3. Cloud SQL PostgreSQL Instance (Session Storage)
+resource "google_sql_database_instance" "postgres_instance" {
+  name             = "hr-agent-postgres"
+  database_version = "POSTGRES_15"
+  region           = var.region
+
+  settings {
+    tier = "db-f1-micro"
+    ip_configuration {
+      ipv4_enabled = true
+    }
+  }
+}
+```
 
 ---
 
-## 3. Core Architecture & FastMCP Interface Contracts
+### 4.2. Automated CI/CD Pipeline (`cloudbuild.yaml`)
+
+```yaml
+steps:
+  # Step 1: Automated Unit, Integration & Tracing Tests
+  - name: 'python:3.11-slim'
+    id: 'run-automated-tests'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install -r requirements.txt
+        python tests/run_tests.py
+
+  # Step 2: Build Multi-Stage Docker Container
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-container'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/hr-agentic-solution:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/hr-agentic-solution:latest'
+      - '.'
+
+  # Step 3: Push Image to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
+    args: ['push', 'gcr.io/$PROJECT_ID/hr-agentic-solution:latest']
+
+  # Step 4: Deploy to Serverless Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-cloud-run'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'hr-agentic-solution'
+      - '--image=gcr.io/$PROJECT_ID/hr-agentic-solution:latest'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+
+images:
+  - 'gcr.io/$PROJECT_ID/hr-agentic-solution:latest'
+  - 'gcr.io/$PROJECT_ID/hr-agentic-solution:$COMMIT_SHA'
+
+timeout: '900s'
+```
+
+---
+
+## 5. Core Architecture & FastMCP Interface Contracts
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
@@ -154,77 +332,22 @@ To satisfy rigorous enterprise architecture evaluation, all technology and archi
 
 ---
 
-### 3.1. FastMCP JSON Interface Schemas & Tool Contracts
+### 5.1. FastMCP Interface Contracts & Tool Catalog
 
-All tool interactions adhere to the standardized **JSON-RPC 2.0** Model Context Protocol specification:
-
-#### 1. WorkWeek HCM: `request_time_off`
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "request_time_off",
-  "description": "Submits an employee time-off booking in WorkWeek HCM.",
-  "type": "object",
-  "properties": {
-    "employee_id": { "type": "string", "description": "Employee ID (e.g. EMP-380)" },
-    "start_date": { "type": "string", "format": "date", "description": "Start date in YYYY-MM-DD format" },
-    "end_date": { "type": "string", "format": "date", "description": "End date in YYYY-MM-DD format" },
-    "leave_type": { "type": "string", "enum": ["Vacation", "Sick"], "description": "Category of leave requested" },
-    "days": { "type": "number", "minimum": 0.5, "description": "Total business days of leave requested" }
-  },
-  "required": ["employee_id", "start_date", "end_date", "leave_type", "days"]
-}
-```
-
-#### 2. ServiceImmediately ITSM: `create_ticket`
-```json
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "create_ticket",
-  "description": "Creates a new support incident ticket in ServiceImmediately.",
-  "type": "object",
-  "properties": {
-    "requested_by": { "type": "string", "description": "Employee ID of requester" },
-    "category": { "type": "string", "enum": ["Hardware", "Software", "Access", "Facilities", "Inquiry / Help"] },
-    "short_description": { "type": "string", "maxLength": 160, "description": "Summary description of issue" },
-    "priority": { "type": "string", "enum": ["1 - Critical", "2 - High", "3 - Moderate", "4 - Low"], "default": "3 - Moderate" },
-    "assignment_group": { "type": "string", "enum": ["Service Desk", "HR Support", "Facilities"], "default": "Service Desk" }
-  },
-  "required": ["requested_by", "category", "short_description"]
-}
-```
+| Sub-Agent | Tool Name | Required Parameters | Return Payload Schema | Rate Limit |
+| :--- | :--- | :--- | :--- | :--- |
+| **`hcm_specialist`** | `get_employee_balances` | `employee_id (str)` | `{"vacation_days": float, "sick_days": float}` | 60 req/min |
+| **`hcm_specialist`** | `request_time_off` | `employee_id, start_date, end_date, leave_type, days` | `{"status": str, "request_id": str, "remaining_days": float}` | 30 req/min |
+| **`hcm_specialist`** | `update_personal_info` | `employee_id, address?, phone?` | `{"status": str, "updated_fields": dict}` | 30 req/min |
+| **`itsm_specialist`** | `list_tickets` | `employee_id (str)` | `[{"ticket_id": str, "category": str, "status": str}]` | 120 req/min |
+| **`itsm_specialist`** | `create_ticket` | `requested_by, category, short_desc, priority, group` | `{"ticket_id": str, "status": "New"}` | 30 req/min |
+| **`itsm_specialist`** | `escalate_to_human_hr` | `requested_by, reason, conversation_summary` | `{"ticket_id": str, "priority": "2 - High", "group": "HR Support"}` | 10 req/min (Burst) |
 
 ---
 
-## 4. Backend State Persistence Across Stateless Containers
+## 6. Downstream Error Handling, State Persistence & Dynamic Ingestion
 
-In enterprise Cloud Run deployments, container instances scale from 0 to $N$ dynamically. To preserve conversational session context across stateless instances without requiring sticky sessions, the architecture implements a **Shared Centralized Session Architecture**:
-
-```
-[ User Request (Turn 3) ] ──► [ Cloud Armor / Load Balancer ]
-                                          │  Round-Robin Routing
-                                          ▼
-                         [ Cloud Run Instance #4 (Stateless) ]
-                                          │
-                   1. Fetch Session Turn 1-2 by `session_id`
-                                          ▼
-                         [ Cloud SQL (PostgreSQL) / Redis ]
-                                          │
-                   2. Append Turn 3 Prompt & Model Response
-                                          ▼
-                         [ Commit State & Return Response ]
-```
-
-* **Session Context Hydration**: Every client turn includes the `session_id` (via `X-Session-ID` header or request body). The handling Cloud Run container hydrates conversation history from Cloud SQL / Redis before invoking `Runner.run_async()`.
-* **Demo / Mock Environment vs Production**:
-  - *Demo/Evaluation Mode*: Utilizes in-memory session tracking with browser `localStorage` mirroring for instant 0-dependency setup.
-  - *Enterprise Production Mode*: Automatically binds to Cloud SQL (PostgreSQL) managed persistence with automated session TTL cleanup.
-
----
-
-## 5. Consolidated Downstream API Error-Handling Matrix
-
-The following matrix defines how downstream API error codes from WorkWeek and ServiceImmediately are mapped to user-friendly messages and automated recovery actions:
+### 6.1. Consolidated Downstream API Error-Handling Matrix
 
 | HTTP Status / Error | Downstream Trigger Condition | User-Facing Conversational Message | System / Recovery Action |
 | :--- | :--- | :--- | :--- |
@@ -237,10 +360,7 @@ The following matrix defines how downstream API error codes from WorkWeek and Se
 
 ---
 
-## 6. Dynamic Policy Ingestion, Quantitative Metrics & Canary Loop
-
-### 6.1. Canary Verification Loop & RAG Evaluation Metrics
-To guarantee that policy modifications never introduce hallucinations or illegal statutory guidance, policy updates must pass an automated **Ragas & DeepEval** test suite before live promotion:
+### 6.2. Canary Verification Loop & Quantitative Evaluation Metrics
 
 | Quantitative Metric | Target Threshold | Measurement Framework | Definition & Purpose |
 | :--- | :---: | :--- | :--- |
@@ -250,144 +370,43 @@ To guarantee that policy modifications never introduce hallucinations or illegal
 | **Tool Parameter Accuracy** | $\mathbf{\ge 0.99}$ | Pytest Schema Validator | Validates 100% extraction accuracy for dates, leave types, and ticket categories. |
 | **Hallucination Rate** | $\mathbf{< 0.01}$ | Vertex AI Evaluation API| Zero-tolerance threshold for ungrounded assertions or fabricated policy rules. |
 
-* **Canary Test Dataset**: `tests/eval_set.json` containing 50 curated regression test cases across all 38 policy categories.
-
 ---
 
-### 6.2. Atomic Double-Buffered Cache Invalidation (`RWMutex`)
-* **The Mechanism**: Staging index builds in the background while in-flight queries finish on the existing buffer.
-* **The Atomic Swap**: An atomic pointer swap with read-write mutex lock (`RWMutex`) replaces the active index in $<1\ \mu\text{s}$, guaranteeing **0ms downtime, 0 dropped requests, and zero window of stale data**.
-
----
-
-## 7. Database Schemas, Entity-Relationship Diagram (ERD) & DDL
-
-### 7.1. Relational Database DDL (PostgreSQL / Cloud SQL)
+## 7. Database Schemas, DDL & Entity-Relationship Diagram (ERD)
 
 ```sql
--- 1. Users Table (Employee Entity)
+-- PostgreSQL Cloud SQL DDL
 CREATE TABLE users (
-    user_id VARCHAR(64) PRIMARY KEY,              -- e.g. EMP-380
-    email VARCHAR(255) UNIQUE NOT NULL,
-    full_name VARCHAR(255) NOT NULL,
-    department VARCHAR(128) NOT NULL,
-    country_code VARCHAR(8) DEFAULT 'SG',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    user_id VARCHAR(64) PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL,
+    full_name VARCHAR(255) NOT NULL, department VARCHAR(128) NOT NULL,
+    country_code VARCHAR(8) DEFAULT 'SG', created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Chat Sessions Table (Conversational Context)
 CREATE TABLE chat_sessions (
-    session_id VARCHAR(64) PRIMARY KEY,           -- e.g. sess-uuid-001
-    user_id VARCHAR(64) REFERENCES users(user_id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    channel VARCHAR(32) DEFAULT 'web_aura',
-    is_active BOOLEAN DEFAULT TRUE,
+    session_id VARCHAR(64) PRIMARY KEY, user_id VARCHAR(64) REFERENCES users(user_id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL, channel VARCHAR(32) DEFAULT 'web_aura', is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Messages Table (Turn History)
 CREATE TABLE session_messages (
-    message_id BIGSERIAL PRIMARY KEY,
-    session_id VARCHAR(64) REFERENCES chat_sessions(session_id) ON DELETE CASCADE,
-    correlation_id VARCHAR(64) NOT NULL,          -- W3C / GCP Correlation ID
-    sender_role VARCHAR(16) NOT NULL,             -- 'user', 'assistant', 'system'
-    content TEXT NOT NULL,
-    input_tokens INTEGER DEFAULT 0,
-    output_tokens INTEGER DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    message_id BIGSERIAL PRIMARY KEY, session_id VARCHAR(64) REFERENCES chat_sessions(session_id) ON DELETE CASCADE,
+    correlation_id VARCHAR(64) NOT NULL, sender_role VARCHAR(16) NOT NULL, content TEXT NOT NULL,
+    input_tokens INTEGER DEFAULT 0, output_tokens INTEGER DEFAULT 0, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. Tool Execution Audit Log Table
 CREATE TABLE tool_executions (
-    execution_id BIGSERIAL PRIMARY KEY,
-    session_id VARCHAR(64) REFERENCES chat_sessions(session_id) ON DELETE CASCADE,
-    correlation_id VARCHAR(64) NOT NULL,
-    agent_name VARCHAR(64) NOT NULL,              -- 'hcm_specialist', 'itsm_specialist'
-    tool_name VARCHAR(64) NOT NULL,               -- 'request_time_off', 'create_ticket'
-    parameters JSONB NOT NULL,
-    response_payload JSONB,
-    status VARCHAR(32) NOT NULL,                  -- 'SUCCESS', 'FAILED', 'THROTTLED'
-    execution_latency_ms INTEGER NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    execution_id BIGSERIAL PRIMARY KEY, session_id VARCHAR(64) REFERENCES chat_sessions(session_id) ON DELETE CASCADE,
+    correlation_id VARCHAR(64) NOT NULL, agent_name VARCHAR(64) NOT NULL, tool_name VARCHAR(64) NOT NULL,
+    parameters JSONB NOT NULL, response_payload JSONB, status VARCHAR(32) NOT NULL,
+    execution_latency_ms INTEGER NOT NULL, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. Human Escalation & Fallback Tickets Table
 CREATE TABLE escalation_tickets (
-    ticket_id VARCHAR(64) PRIMARY KEY,            -- e.g. INC0002595
-    session_id VARCHAR(64) REFERENCES chat_sessions(session_id),
-    user_id VARCHAR(64) REFERENCES users(user_id),
-    correlation_id VARCHAR(64) NOT NULL,
-    reason VARCHAR(255) NOT NULL,
-    priority VARCHAR(32) DEFAULT '2 - High',
-    assignment_group VARCHAR(64) DEFAULT 'HR Support',
-    status VARCHAR(32) DEFAULT 'New',             -- 'New', 'Acknowledged', 'Resolved'
+    ticket_id VARCHAR(64) PRIMARY KEY, session_id VARCHAR(64) REFERENCES chat_sessions(session_id),
+    user_id VARCHAR(64) REFERENCES users(user_id), correlation_id VARCHAR(64) NOT NULL,
+    reason VARCHAR(255) NOT NULL, priority VARCHAR(32) DEFAULT '2 - High', status VARCHAR(32) DEFAULT 'New',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
--- Indexes for Sub-Millisecond Retrieval
-CREATE INDEX idx_sessions_user ON chat_sessions(user_id);
-CREATE INDEX idx_messages_session ON session_messages(session_id);
-CREATE INDEX idx_tool_exec_correlation ON tool_executions(correlation_id);
-```
-
----
-
-### 7.2. Entity-Relationship Diagram (ERD)
-
-```mermaid
-erDiagram
-    USERS ||--o{ CHAT_SESSIONS : "initiates"
-    USERS ||--o{ ESCALATION_TICKETS : "escalates"
-    CHAT_SESSIONS ||--o{ SESSION_MESSAGES : "contains"
-    CHAT_SESSIONS ||--o{ TOOL_EXECUTIONS : "executes"
-    CHAT_SESSIONS ||--o{ ESCALATION_TICKETS : "generates"
-    
-    USERS {
-        string user_id PK
-        string email
-        string full_name
-        string department
-        string country_code
-    }
-
-    CHAT_SESSIONS {
-        string session_id PK
-        string user_id FK
-        string title
-        string channel
-        boolean is_active
-    }
-
-    SESSION_MESSAGES {
-        bigint message_id PK
-        string session_id FK
-        string correlation_id
-        string sender_role
-        text content
-        int input_tokens
-        int output_tokens
-    }
-
-    TOOL_EXECUTIONS {
-        bigint execution_id PK
-        string session_id FK
-        string correlation_id
-        string agent_name
-        string tool_name
-        jsonb parameters
-        jsonb response_payload
-        string status
-    }
-
-    ESCALATION_TICKETS {
-        string ticket_id PK
-        string session_id FK
-        string user_id FK
-        string correlation_id
-        string reason
-        string priority
-        string status
-    }
 ```
 
 ---
@@ -427,14 +446,7 @@ erDiagram
 
 ---
 
-### 9.2. FinOps & Operational Cost Analysis
-* **Total LLM Cost per Inquiry**: $\sim 1,850\text{ in} + 420\text{ out tokens} = \mathbf{\$0.000265\ (\sim 0.026\text{ cents})}$.
-* **All-Inclusive Cost per Self-Service Query**: $\mathbf{<\$0.00035\ (\sim 0.035\text{ cents})}$ (including Cloud Run compute).
-* **Net ROI**: **$>99.9\%$ cost reduction** compared to traditional human support tickets ($\$15.00$).
-
----
-
-### 9.3. User Acceptance Testing (UAT) Verification Matrix (14/14 Passed)
+### 9.2. User Acceptance Testing (UAT) Verification Matrix (14/14 Passed)
 * **UAT-01 to 04 (Policy & HCM)**: Singapore sick leave citations, live PTO balance retrieval, 2-day leave booking, and excessive leave rejection guardrail.
 * **UAT-05 to 07 (ITSM)**: Active ticket querying, ticket creation with priority, and status lifecycle transitions with mandatory resolution notes.
 * **UAT-08 to 10 (Orchestration & UX)**: Compound cross-system workflows, out-of-scope redirection, and new-tab deep link navigation (`target="_blank"`).
