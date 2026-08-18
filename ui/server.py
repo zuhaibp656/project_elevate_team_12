@@ -170,7 +170,7 @@ async def get_hub_data():
 
     return {
         "employee_id": emp_id,
-        "name": "Zuhaibp Employee",
+        "name": "Team 12 Member",
         "role": "Senior Cloud Engineer",
         "department": "Engineering & Innovation",
         "balances": {

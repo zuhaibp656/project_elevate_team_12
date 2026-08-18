@@ -225,7 +225,7 @@ def create_docx():
             ["Document Title", "Enterprise Solution Design Document — HR Agentic Solution (MVP 1)"],
             ["Project Name", "Project Elevate — HR Agentic Solution"],
             ["Team", "Team 12"],
-            ["Author(s)", "Zuhaib Parvez & Team 12 Architecture Group"],
+            ["Author(s)", "Team 12"],
             ["Date", "August 18, 2026"],
             ["Status", "Approved & Enterprise Production-Ready"],
             ["Target Audience", "Enterprise Architecture Review Board, HR Leadership, IT Operations, Data Protection Officer, Lead Engineers"]
