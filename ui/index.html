@@ -20,9 +20,9 @@
       --text-main: #202124;
       --text-muted: #5f6368;
       --border-color: #e2e8f0;
-      --shadow-sm: 0 2px 6px rgba(60, 64, 67, 0.08);
+      --shadow-sm: 0 2px 8px rgba(60, 64, 67, 0.08);
       --shadow-md: 0 10px 30px rgba(60, 64, 67, 0.12);
-      --shadow-glow: 0 0 40px rgba(66, 133, 244, 0.18);
+      --shadow-glow: 0 0 35px rgba(66, 133, 244, 0.2);
       --radius-full: 9999px;
       --radius-lg: 24px;
       --radius-md: 16px;
@@ -62,61 +62,61 @@
     .aura-circle {
       position: absolute;
       border-radius: 50%;
-      filter: blur(80px);
+      filter: blur(90px);
       opacity: 0.45;
-      animation: floatAura 18s infinite ease-in-out alternate;
+      animation: floatAura 20s infinite ease-in-out alternate;
     }
 
     .aura-blue {
-      width: 450px;
-      height: 450px;
-      background: radial-gradient(circle, rgba(66, 133, 244, 0.6), transparent 70%);
-      top: -100px;
-      left: -50px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(66, 133, 244, 0.65), transparent 70%);
+      top: -120px;
+      left: -80px;
     }
 
     .aura-red {
-      width: 380px;
-      height: 380px;
+      width: 420px;
+      height: 420px;
       background: radial-gradient(circle, rgba(234, 67, 53, 0.5), transparent 70%);
-      top: -50px;
-      right: -50px;
-      animation-delay: -4s;
+      top: -60px;
+      right: -60px;
+      animation-delay: -5s;
     }
 
     .aura-yellow {
-      width: 400px;
-      height: 400px;
+      width: 450px;
+      height: 450px;
       background: radial-gradient(circle, rgba(251, 188, 4, 0.4), transparent 70%);
-      bottom: -100px;
+      bottom: -120px;
       left: 20%;
-      animation-delay: -8s;
+      animation-delay: -10s;
     }
 
     .aura-green {
-      width: 420px;
-      height: 420px;
+      width: 460px;
+      height: 460px;
       background: radial-gradient(circle, rgba(52, 168, 83, 0.45), transparent 70%);
-      bottom: -50px;
+      bottom: -60px;
       right: 10%;
-      animation-delay: -12s;
+      animation-delay: -15s;
     }
 
     @keyframes floatAura {
       0% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(40px, 30px) scale(1.1); }
+      50% { transform: translate(40px, 30px) scale(1.08); }
       100% { transform: translate(-30px, 50px) scale(0.95); }
     }
 
     /* Header Nav */
     header {
       width: 100%;
-      max-width: 1100px;
-      padding: 24px 32px;
+      max-width: 1000px;
+      padding: 20px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      z-index: 10;
+      z-index: 20;
     }
 
     .brand {
@@ -125,6 +125,7 @@
       gap: 12px;
       text-decoration: none;
       color: var(--text-main);
+      cursor: pointer;
     }
 
     .google-dots {
@@ -161,16 +162,16 @@
 
     .header-actions {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: center;
     }
 
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(10px);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: var(--radius-full);
       font-size: 13px;
       font-weight: 500;
@@ -178,7 +179,8 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s ease;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .btn-secondary:hover {
@@ -192,40 +194,48 @@
     main {
       width: 100%;
       max-width: 860px;
-      padding: 20px 24px 60px;
+      padding: 0 20px 140px;
       display: flex;
       flex-direction: column;
       align-items: center;
       z-index: 10;
       flex: 1;
+      position: relative;
     }
 
-    /* Hero Section */
+    /* Initial Hero & Center Box Container */
+    .initial-view {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      margin-top: 50px;
+    }
+
+    .initial-view.collapsed {
+      opacity: 0;
+      transform: translateY(-30px) scale(0.95);
+      pointer-events: none;
+      height: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
     .hero {
       text-align: center;
-      margin-top: 40px;
-      margin-bottom: 32px;
-      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .hero.collapsed {
-      margin-top: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 36px;
     }
 
     .hero-title {
-      font-size: 42px;
+      font-size: 44px;
       font-weight: 700;
       letter-spacing: -1px;
       color: var(--text-main);
       margin-bottom: 12px;
-      background: linear-gradient(135deg, #1a73e8 0%, #d93025 50%, #1e8e3e 100%);
+      background: linear-gradient(135deg, #1a73e8 0%, #ea4335 40%, #fbbc04 70%, #34a853 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-    }
-
-    .hero.collapsed .hero-title {
-      font-size: 28px;
     }
 
     .hero-subtitle {
@@ -233,36 +243,25 @@
       color: var(--text-muted);
       max-width: 580px;
       margin: 0 auto;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
-    .hero.collapsed .hero-subtitle {
-      display: none;
-    }
-
-    /* Central Search Container */
-    .search-wrapper {
-      width: 100%;
-      position: relative;
-      margin-bottom: 28px;
-    }
-
-    .search-box {
+    /* Search Box */
+    .search-card {
       width: 100%;
       background: var(--surface-color);
       border-radius: var(--radius-lg);
-      border: 1px solid rgba(226, 232, 240, 0.8);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-      padding: 16px 20px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.07);
+      padding: 18px 22px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
+      gap: 14px;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .search-box:focus-within {
-      box-shadow: 0 12px 40px rgba(66, 133, 244, 0.2), 0 0 0 2px var(--g-blue);
+    .search-card:focus-within {
+      box-shadow: 0 14px 45px rgba(66, 133, 244, 0.22), 0 0 0 2px var(--g-blue);
       border-color: transparent;
       transform: translateY(-2px);
     }
@@ -270,13 +269,14 @@
     .search-input-row {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
+      gap: 14px;
     }
 
-    .search-sparkle {
-      font-size: 22px;
+    .sparkle-icon {
+      font-size: 24px;
       color: var(--g-blue);
-      margin-top: 4px;
+      margin-top: 2px;
+      user-select: none;
       animation: pulseSparkle 2.5s infinite ease-in-out;
     }
 
@@ -294,8 +294,8 @@
       color: var(--text-main);
       background: transparent;
       resize: none;
-      min-height: 48px;
-      max-height: 180px;
+      min-height: 52px;
+      max-height: 160px;
       line-height: 1.5;
     }
 
@@ -307,7 +307,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-top: 8px;
+      padding-top: 10px;
       border-top: 1px solid #f1f5f9;
     }
 
@@ -315,11 +315,11 @@
     .mode-selector {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       background: #f8fafc;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-full);
-      padding: 4px 12px;
+      padding: 5px 14px;
       position: relative;
       cursor: pointer;
       transition: all 0.2s;
@@ -343,10 +343,11 @@
     }
 
     .mode-badge {
-      width: 8px;
-      height: 8px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: var(--g-blue);
+      transition: background 0.3s;
     }
 
     .btn-submit {
@@ -354,20 +355,20 @@
       color: white;
       border: none;
       border-radius: var(--radius-full);
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: 0 4px 12px rgba(26, 115, 232, 0.35);
     }
 
     .btn-submit:hover:not(:disabled) {
       background: #1557b0;
       transform: scale(1.08);
-      box-shadow: 0 6px 16px rgba(26, 115, 232, 0.45);
+      box-shadow: 0 6px 18px rgba(26, 115, 232, 0.45);
     }
 
     .btn-submit:active:not(:disabled) {
@@ -381,20 +382,20 @@
     }
 
     /* Suggestion Chips */
-    .suggestions {
+    .suggestions-container {
       width: 100%;
+      margin-top: 28px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-bottom: 24px;
-      transition: opacity 0.3s;
+      gap: 12px;
+      transition: all 0.4s ease;
     }
 
     .suggestions-label {
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
       color: var(--text-muted);
       margin-left: 6px;
     }
@@ -412,9 +413,10 @@
       border-radius: var(--radius-full);
       padding: 9px 16px;
       font-size: 13px;
+      font-weight: 500;
       color: var(--text-main);
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -429,25 +431,54 @@
       box-shadow: 0 6px 16px rgba(66, 133, 244, 0.12);
     }
 
-    .chip-icon {
-      font-size: 15px;
-    }
-
-    /* Response Expansion Container */
-    .response-container {
+    /* Chat Conversation Stream */
+    .chat-stream {
       width: 100%;
       display: none;
       flex-direction: column;
-      gap: 16px;
-      animation: expandIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      gap: 24px;
+      margin-top: 10px;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    @keyframes expandIn {
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Message Item */
+    .msg-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      animation: msgPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes msgPop {
       from { opacity: 0; transform: translateY(16px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .response-card {
+    /* User Message Bubble */
+    .user-msg {
+      align-self: flex-end;
+      max-width: 80%;
+      background: #e8f0fe;
+      color: #1a73e8;
+      font-weight: 500;
+      font-size: 15px;
+      line-height: 1.5;
+      padding: 14px 20px;
+      border-radius: 20px 20px 4px 20px;
+      box-shadow: 0 2px 8px rgba(26, 115, 232, 0.1);
+      border: 1px solid rgba(66, 133, 244, 0.15);
+    }
+
+    /* Assistant Response Card */
+    .assistant-card {
+      align-self: flex-start;
+      width: 100%;
       background: var(--surface-color);
       border-radius: var(--radius-lg);
       border: 1px solid var(--border-color);
@@ -456,7 +487,7 @@
       position: relative;
     }
 
-    .response-header {
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -465,13 +496,13 @@
       border-bottom: 1px solid #f1f5f9;
     }
 
-    .response-meta {
+    .card-meta {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    .agent-tag {
+    .agent-pill {
       font-size: 12px;
       font-weight: 600;
       padding: 4px 10px;
@@ -499,30 +530,32 @@
       color: var(--text-main);
     }
 
-    /* Markdown Styling */
+    /* Markdown Body Styling */
     .markdown-body {
       font-size: 15px;
-      line-height: 1.7;
+      line-height: 1.75;
       color: #334155;
     }
 
     .markdown-body h1, .markdown-body h2, .markdown-body h3 {
       color: var(--text-main);
       margin-top: 18px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
     }
 
     .markdown-body ul, .markdown-body ol {
       margin-left: 24px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .markdown-body li {
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .markdown-body p {
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
     .markdown-body strong {
@@ -534,6 +567,9 @@
       color: var(--g-blue);
       text-decoration: none;
       font-weight: 500;
+      background: var(--g-blue-light);
+      padding: 2px 6px;
+      border-radius: 4px;
     }
 
     .markdown-body a:hover {
@@ -543,19 +579,31 @@
     .markdown-body blockquote {
       border-left: 4px solid var(--g-blue);
       background: #f8fafc;
-      padding: 10px 16px;
+      padding: 12px 18px;
       border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      margin: 12px 0;
+      margin: 14px 0;
     }
 
-    /* Loading Shimmer & Dots */
-    .loading-container {
-      display: none;
+    .markdown-body hr {
+      border: 0;
+      height: 1px;
+      background: #e2e8f0;
+      margin: 20px 0;
+    }
+
+    /* Loading Thinking State */
+    .loading-card {
+      width: 100%;
+      background: var(--surface-color);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      padding: 28px;
+      display: flex;
       flex-direction: column;
       align-items: center;
       gap: 16px;
-      padding: 40px 0;
-      width: 100%;
+      animation: fadeIn 0.3s forwards;
     }
 
     .google-loader {
@@ -564,8 +612,8 @@
     }
 
     .loader-dot {
-      width: 14px;
-      height: 14px;
+      width: 13px;
+      height: 13px;
       border-radius: 50%;
       animation: loaderBounce 1.4s infinite ease-in-out both;
     }
@@ -592,7 +640,45 @@
       50% { opacity: 1; }
     }
 
-    /* Modal Styling */
+    /* Fixed Sticky Follow-up Input Bar */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px 24px;
+      background: linear-gradient(to top, rgba(248, 250, 252, 0.95) 70%, rgba(248, 250, 252, 0) 100%);
+      backdrop-filter: blur(12px);
+      z-index: 50;
+      display: flex;
+      justify-content: center;
+      transform: translateY(120%);
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .bottom-bar.visible {
+      transform: translateY(0);
+    }
+
+    .bottom-search-card {
+      width: 100%;
+      max-width: 860px;
+      background: var(--surface-color);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bottom-search-card:focus-within {
+      box-shadow: 0 10px 40px rgba(66, 133, 244, 0.25), 0 0 0 2px var(--g-blue);
+      border-color: transparent;
+    }
+
+    /* How To Use Modal */
     .modal-backdrop {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -613,11 +699,11 @@
       padding: 32px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
       position: relative;
-      animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes modalPop {
-      from { transform: scale(0.9); opacity: 0; }
+      from { transform: scale(0.92); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
 
@@ -627,7 +713,7 @@
       right: 20px;
       background: none;
       border: none;
-      font-size: 20px;
+      font-size: 22px;
       color: var(--text-muted);
       cursor: pointer;
     }
@@ -650,17 +736,17 @@
       margin: 14px 0 6px;
     }
 
-    /* Toast Notification */
+    /* Toast */
     .toast {
       position: fixed;
-      bottom: 24px;
+      bottom: 30px;
       background: #202124;
       color: white;
-      padding: 10px 20px;
+      padding: 10px 22px;
       border-radius: var(--radius-full);
       font-size: 13px;
       font-weight: 500;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
       z-index: 200;
       display: none;
       animation: toastIn 0.3s ease forwards;
@@ -683,7 +769,7 @@
 
   <!-- Header -->
   <header>
-    <a href="#" class="brand">
+    <div class="brand" id="btnBrandHome" title="Start New Conversation">
       <div class="google-dots">
         <div class="dot dot-blue"></div>
         <div class="dot dot-red"></div>
@@ -692,8 +778,12 @@
       </div>
       <span class="brand-text">Elevate HR</span>
       <span class="brand-badge">Team 12</span>
-    </a>
+    </div>
     <div class="header-actions">
+      <button class="btn-secondary" id="btnNewChat" style="display: none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        New Chat
+      </button>
       <button class="btn-secondary" id="btnHowToUse">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         How to Use
@@ -702,109 +792,109 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
         SaaS Portal
       </a>
-      <a href="https://mock-saas.aishprabhat.demo.altostrat.com/redoc" target="_blank" class="btn-secondary" title="View ReDoc API Specifications">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-        API Docs
-      </a>
     </div>
   </header>
 
-  <!-- Main Content -->
+  <!-- Main View -->
   <main>
-    <!-- Hero Title -->
-    <section class="hero" id="heroSection">
-      <h1 class="hero-title">How can I assist you today?</h1>
-      <p class="hero-subtitle">Ask HR policies, check your leave balances, manage IT tickets, or execute multi-system workflows.</p>
-    </section>
+    <!-- Initial Center Search & Hero View -->
+    <div class="initial-view" id="initialView">
+      <div class="hero">
+        <h1 class="hero-title">How can I assist you today?</h1>
+        <p class="hero-subtitle">Ask HR policies, check your leave balances, manage IT tickets, or execute multi-system workflows.</p>
+      </div>
 
-    <!-- Center Search Bar -->
-    <div class="search-wrapper">
-      <div class="search-box" id="searchBox">
+      <div class="search-card">
         <div class="search-input-row">
-          <div class="search-sparkle">✨</div>
-          <textarea id="queryInput" class="search-input" placeholder="Ask a policy, request time off, or open an IT incident..." rows="1"></textarea>
+          <div class="sparkle-icon">✨</div>
+          <textarea id="initialInput" class="search-input" placeholder="Ask a policy, request time off, or open an IT incident..." rows="1"></textarea>
         </div>
         <div class="search-controls">
-          <div class="mode-selector" title="Select agent routing target">
-            <span class="mode-badge" id="modeBadge"></span>
-            <select id="modeSelect">
+          <div class="mode-selector">
+            <span class="mode-badge" id="initialModeBadge"></span>
+            <select id="initialModeSelect">
               <option value="auto">🌟 Auto Orchestrator</option>
               <option value="policy">📖 HR Policy Specialist</option>
               <option value="hcm">📅 WorkWeek HCM (Leave)</option>
               <option value="itsm">🎫 ServiceImmediately ITSM</option>
             </select>
           </div>
-          <button class="btn-submit" id="btnSubmit" disabled>
+          <button class="btn-submit" id="btnInitialSubmit" disabled>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Initial Suggestions -->
+      <div class="suggestions-container" id="suggestionsContainer">
+        <div class="suggestions-label">Recommended Prompts</div>
+        <div class="chips-grid">
+          <button class="chip" data-prompt="How many days of paid outpatient sick leave do I get in Singapore?" data-mode="policy">
+            <span>📖</span>
+            <span>Sick leave policy</span>
+          </button>
+          <button class="chip" data-prompt="How many days of vacation and sick leave do I currently have remaining for emp_001?" data-mode="hcm">
+            <span>📅</span>
+            <span>Check PTO balances</span>
+          </button>
+          <button class="chip" data-prompt="I need to take 2 days of medical leave from 2026-09-01 to 2026-09-02 for emp_001. What is the policy, please book it, and open an IT ticket to route emails to my manager." data-mode="auto">
+            <span>🔀</span>
+            <span>Medical leave & email routing</span>
+          </button>
+          <button class="chip" data-prompt="List all my active support tickets with their current status and priority." data-mode="itsm">
+            <span>🎫</span>
+            <span>List active tickets</span>
+          </button>
+          <button class="chip" data-prompt="I saw the remote work policy allows a home monitor. Can you verify my address and order one for me?" data-mode="auto">
+            <span>💻</span>
+            <span>Equipment procurement</span>
+          </button>
+          <button class="chip" data-prompt="What is the company's bereavement leave policy?" data-mode="policy">
+            <span>🕊️</span>
+            <span>Bereavement policy</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Quick Prompt Suggestions -->
-    <div class="suggestions" id="suggestionsSection">
-      <div class="suggestions-label">Recommended Prompts</div>
-      <div class="chips-grid">
-        <button class="chip" data-prompt="How many days of paid outpatient sick leave do I get in Singapore?" data-mode="policy">
-          <span class="chip-icon">📖</span>
-          <span>Sick leave policy</span>
-        </button>
-        <button class="chip" data-prompt="How many days of vacation and sick leave do I currently have remaining for emp_001?" data-mode="hcm">
-          <span class="chip-icon">📅</span>
-          <span>Check PTO balances</span>
-        </button>
-        <button class="chip" data-prompt="I need to take 2 days of medical leave from 2026-09-01 to 2026-09-02 for emp_001. What is the policy, please book it, and open an IT ticket to route emails to my manager." data-mode="auto">
-          <span class="chip-icon">🔀</span>
-          <span>Medical leave & email delegation</span>
-        </button>
-        <button class="chip" data-prompt="List all my active support tickets." data-mode="itsm">
-          <span class="chip-icon">🎫</span>
-          <span>List active tickets</span>
-        </button>
-        <button class="chip" data-prompt="I saw the remote work policy allows a home monitor. Can you verify my address and order one for me?" data-mode="auto">
-          <span class="chip-icon">💻</span>
-          <span>Equipment procurement</span>
-        </button>
-        <button class="chip" data-prompt="What is the company's bereavement leave policy?" data-mode="policy">
-          <span class="chip-icon">🕊️</span>
-          <span>Bereavement policy</span>
-        </button>
-      </div>
-    </div>
+    <!-- Active Chat Stream -->
+    <div class="chat-stream" id="chatStream"></div>
 
-    <!-- Loading State -->
-    <div class="loading-container" id="loadingState">
+    <!-- Active Loading Indicator -->
+    <div class="loading-card" id="loadingCard" style="display: none;">
       <div class="google-loader">
         <div class="loader-dot loader-blue"></div>
         <div class="loader-dot loader-red"></div>
         <div class="loader-dot loader-yellow"></div>
         <div class="loader-dot loader-green"></div>
       </div>
-      <div class="loading-status" id="loadingStatus">Orchestrating agents and retrieving data...</div>
-    </div>
-
-    <!-- Response Container -->
-    <div class="response-container" id="responseContainer">
-      <div class="response-card">
-        <div class="response-header">
-          <div class="response-meta">
-            <div class="google-dots">
-              <div class="dot dot-blue"></div>
-              <div class="dot dot-red"></div>
-              <div class="dot dot-yellow"></div>
-              <div class="dot dot-green"></div>
-            </div>
-            <span class="agent-tag" id="responseAgentTag">Auto Orchestrator</span>
-          </div>
-          <button class="btn-copy" id="btnCopy">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            Copy
-          </button>
-        </div>
-        <div class="markdown-body" id="responseBody"></div>
-      </div>
+      <div class="loading-status" id="loadingStatus">Analyzing request and orchestrating sub-agents...</div>
     </div>
   </main>
+
+  <!-- Sticky Bottom Follow-up Input Bar -->
+  <div class="bottom-bar" id="bottomBar">
+    <div class="bottom-search-card">
+      <div class="search-input-row">
+        <div class="sparkle-icon">✨</div>
+        <textarea id="bottomInput" class="search-input" placeholder="Ask a follow-up question or make another request..." rows="1"></textarea>
+      </div>
+      <div class="search-controls">
+        <div class="mode-selector">
+          <span class="mode-badge" id="bottomModeBadge"></span>
+          <select id="bottomModeSelect">
+            <option value="auto">🌟 Auto Orchestrator</option>
+            <option value="policy">📖 HR Policy Specialist</option>
+            <option value="hcm">📅 WorkWeek HCM (Leave)</option>
+            <option value="itsm">🎫 ServiceImmediately ITSM</option>
+          </select>
+        </div>
+        <button class="btn-submit" id="btnBottomSubmit" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- How to Use Modal -->
   <div class="modal-backdrop" id="howToModal">
@@ -833,30 +923,31 @@
   <div class="toast" id="toastMsg">Copied to clipboard</div>
 
   <script>
-    const queryInput = document.getElementById('queryInput');
-    const btnSubmit = document.getElementById('btnSubmit');
-    const modeSelect = document.getElementById('modeSelect');
-    const modeBadge = document.getElementById('modeBadge');
-    const heroSection = document.getElementById('heroSection');
-    const loadingState = document.getElementById('loadingState');
+    const initialView = document.getElementById('initialView');
+    const initialInput = document.getElementById('initialInput');
+    const btnInitialSubmit = document.getElementById('btnInitialSubmit');
+    const initialModeSelect = document.getElementById('initialModeSelect');
+    const initialModeBadge = document.getElementById('initialModeBadge');
+
+    const chatStream = document.getElementById('chatStream');
+    const loadingCard = document.getElementById('loadingCard');
     const loadingStatus = document.getElementById('loadingStatus');
-    const responseContainer = document.getElementById('responseContainer');
-    const responseBody = document.getElementById('responseBody');
-    const responseAgentTag = document.getElementById('responseAgentTag');
-    const btnCopy = document.getElementById('btnCopy');
+
+    const bottomBar = document.getElementById('bottomBar');
+    const bottomInput = document.getElementById('bottomInput');
+    const btnBottomSubmit = document.getElementById('btnBottomSubmit');
+    const bottomModeSelect = document.getElementById('bottomModeSelect');
+    const bottomModeBadge = document.getElementById('bottomModeBadge');
+
+    const btnNewChat = document.getElementById('btnNewChat');
+    const btnBrandHome = document.getElementById('btnBrandHome');
     const btnHowToUse = document.getElementById('btnHowToUse');
     const howToModal = document.getElementById('howToModal');
     const modalClose = document.getElementById('modalClose');
     const toastMsg = document.getElementById('toastMsg');
 
-    // Auto-grow textarea
-    queryInput.addEventListener('input', () => {
-      queryInput.style.height = 'auto';
-      queryInput.style.height = Math.min(queryInput.scrollHeight, 180) + 'px';
-      btnSubmit.disabled = !queryInput.value.trim();
-    });
+    let isChatActive = false;
 
-    // Mode badge colors
     const modeColors = {
       auto: '#1a73e8',
       policy: '#ea4335',
@@ -864,105 +955,206 @@
       itsm: '#34a853'
     };
 
-    modeSelect.addEventListener('change', () => {
-      modeBadge.style.background = modeColors[modeSelect.value] || '#1a73e8';
-    });
+    const modeLabels = {
+      auto: "Auto Orchestrator (Multi-Agent)",
+      policy: "HR Policy Specialist",
+      hcm: "WorkWeek HCM Specialist",
+      itsm: "ServiceImmediately ITSM Specialist"
+    };
 
-    // Chip click handlers
+    function syncMode(newMode) {
+      initialModeSelect.value = newMode;
+      bottomModeSelect.value = newMode;
+      const color = modeColors[newMode] || '#1a73e8';
+      initialModeBadge.style.background = color;
+      bottomModeBadge.style.background = color;
+    }
+
+    initialModeSelect.addEventListener('change', (e) => syncMode(e.target.value));
+    bottomModeSelect.addEventListener('change', (e) => syncMode(e.target.value));
+
+    // Auto-grow textareas
+    function setupTextarea(el, btn) {
+      el.addEventListener('input', () => {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+        btn.disabled = !el.value.trim();
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (el.value.trim()) handleSendMessage(el.value.trim());
+        }
+      });
+    }
+
+    setupTextarea(initialInput, btnInitialSubmit);
+    setupTextarea(bottomInput, btnBottomSubmit);
+
+    // Suggestion chips
     document.querySelectorAll('.chip').forEach(chip => {
       chip.addEventListener('click', () => {
         const prompt = chip.getAttribute('data-prompt');
-        const mode = chip.getAttribute('data-mode');
-        queryInput.value = prompt;
-        if (mode) {
-          modeSelect.value = mode;
-          modeBadge.style.background = modeColors[mode] || '#1a73e8';
-        }
-        btnSubmit.disabled = false;
-        queryInput.focus();
-        queryInput.dispatchEvent(new Event('input'));
-        submitQuery();
+        const mode = chip.getAttribute('data-mode') || 'auto';
+        syncMode(mode);
+        handleSendMessage(prompt);
       });
     });
 
-    // Submit query
-    async function submitQuery() {
-      const text = queryInput.value.trim();
+    btnInitialSubmit.addEventListener('click', () => {
+      if (initialInput.value.trim()) handleSendMessage(initialInput.value.trim());
+    });
+
+    btnBottomSubmit.addEventListener('click', () => {
+      if (bottomInput.value.trim()) handleSendMessage(bottomInput.value.trim());
+    });
+
+    // Reset to initial screen
+    function resetChat() {
+      isChatActive = false;
+      chatStream.innerHTML = '';
+      chatStream.style.display = 'none';
+      loadingCard.style.display = 'none';
+      initialView.classList.remove('collapsed');
+      bottomBar.classList.remove('visible');
+      btnNewChat.style.display = 'none';
+      initialInput.value = '';
+      initialInput.style.height = 'auto';
+      btnInitialSubmit.disabled = true;
+      initialInput.focus();
+    }
+
+    btnNewChat.addEventListener('click', resetChat);
+    btnBrandHome.addEventListener('click', resetChat);
+
+    // Send message execution
+    async function handleSendMessage(text) {
       if (!text) return;
 
-      const mode = modeSelect.value;
-      btnSubmit.disabled = true;
-      heroSection.classList.add('collapsed');
-      responseContainer.style.display = 'none';
-      loadingState.style.display = 'flex';
+      const currentMode = initialModeSelect.value || 'auto';
 
-      const statusMessages = [
-        "Analyzing request and identifying domains...",
-        "Querying FastMCP servers & company policies...",
-        "Executing sub-agent workflow...",
-        "Synthesizing response with safety guardrails..."
+      // Transition to chat view
+      if (!isChatActive) {
+        isChatActive = true;
+        initialView.classList.add('collapsed');
+        chatStream.style.display = 'flex';
+        bottomBar.classList.add('visible');
+        btnNewChat.style.display = 'flex';
+      }
+
+      // Clear inputs
+      initialInput.value = '';
+      initialInput.style.height = 'auto';
+      btnInitialSubmit.disabled = true;
+      bottomInput.value = '';
+      bottomInput.style.height = 'auto';
+      btnBottomSubmit.disabled = true;
+
+      // Append User message bubble
+      const msgGroup = document.createElement('div');
+      msgGroup.className = 'msg-group';
+
+      const userBubble = document.createElement('div');
+      userBubble.className = 'user-msg';
+      userBubble.innerText = text;
+      msgGroup.appendChild(userBubble);
+      chatStream.appendChild(msgGroup);
+
+      // Scroll down
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+      // Show loader below message
+      loadingCard.style.display = 'flex';
+      const statusStages = [
+        "Analyzing intent & selecting specialist agents...",
+        "Querying FastMCP servers & company knowledge base...",
+        "Executing multi-system transactions...",
+        "Formatting detailed breakdown and policy citations..."
       ];
-      let msgIdx = 0;
-      loadingStatus.innerText = statusMessages[0];
-      const statusInterval = setInterval(() => {
-        msgIdx = (msgIdx + 1) % statusMessages.length;
-        loadingStatus.innerText = statusMessages[msgIdx];
+      let stageIdx = 0;
+      loadingStatus.innerText = statusStages[0];
+      const stageTimer = setInterval(() => {
+        stageIdx = (stageIdx + 1) % statusStages.length;
+        loadingStatus.innerText = statusStages[stageIdx];
       }, 2500);
 
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, mode: mode })
+          body: JSON.stringify({ message: text, mode: currentMode })
         });
 
-        clearInterval(statusInterval);
-        loadingState.style.display = 'none';
+        clearInterval(stageTimer);
+        loadingCard.style.display = 'none';
 
-        if (!res.ok) {
-          throw new Error(`HTTP Error ${res.status}`);
-        }
-
+        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
         const data = await res.json();
-        const modeLabels = {
-          auto: "Auto Orchestrator (Multi-Agent)",
-          policy: "HR Policy Specialist",
-          hcm: "WorkWeek HCM Specialist",
-          itsm: "ServiceImmediately ITSM Specialist"
-        };
-        responseAgentTag.innerText = modeLabels[data.mode] || data.mode.toUpperCase();
-        responseBody.innerHTML = marked.parse(data.response || "No response generated.");
-        responseContainer.style.display = 'flex';
-        responseContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // Create Assistant Response Card
+        const assistantCard = document.createElement('div');
+        assistantCard.className = 'assistant-card';
+
+        const cardHeader = document.createElement('div');
+        cardHeader.className = 'card-header';
+        cardHeader.innerHTML = `
+          <div class="card-meta">
+            <div class="google-dots">
+              <div class="dot dot-blue"></div>
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+            </div>
+            <span class="agent-pill">${modeLabels[data.mode] || data.mode.toUpperCase()}</span>
+          </div>
+          <button class="btn-copy">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy
+          </button>
+        `;
+
+        const copyBtn = cardHeader.querySelector('.btn-copy');
+        copyBtn.addEventListener('click', () => {
+          const bodyText = markdownBody.innerText;
+          navigator.clipboard.writeText(bodyText).then(() => {
+            toastMsg.style.display = 'block';
+            setTimeout(() => { toastMsg.style.display = 'none'; }, 2200);
+          });
+        });
+
+        const markdownBody = document.createElement('div');
+        markdownBody.className = 'markdown-body';
+        markdownBody.innerHTML = marked.parse(data.response || "No response generated.");
+
+        assistantCard.appendChild(cardHeader);
+        assistantCard.appendChild(markdownBody);
+        msgGroup.appendChild(assistantCard);
 
       } catch (err) {
-        clearInterval(statusInterval);
-        loadingState.style.display = 'none';
-        responseAgentTag.innerText = "System Error";
-        responseBody.innerHTML = `<p style="color: #d93025;"><strong>Error connecting to agent:</strong> ${err.message}. Please ensure the server is running.</p>`;
-        responseContainer.style.display = 'flex';
-      } finally {
-        btnSubmit.disabled = false;
+        clearInterval(stageTimer);
+        loadingCard.style.display = 'none';
+
+        const errorCard = document.createElement('div');
+        errorCard.className = 'assistant-card';
+        errorCard.innerHTML = `
+          <div class="card-header">
+            <div class="card-meta">
+              <span class="agent-pill" style="background: #fce8e6; color: #d93025;">System Error</span>
+            </div>
+          </div>
+          <div class="markdown-body" style="color: #d93025;">
+            <p><strong>Error executing query:</strong> ${err.message}. Please check that the server is running.</p>
+          </div>
+        `;
+        msgGroup.appendChild(errorCard);
       }
+
+      // Smooth scroll to latest response
+      setTimeout(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        bottomInput.focus();
+      }, 100);
     }
-
-    btnSubmit.addEventListener('click', submitQuery);
-
-    queryInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        submitQuery();
-      }
-    });
-
-    // Copy to clipboard
-    btnCopy.addEventListener('click', () => {
-      const text = responseBody.innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        toastMsg.style.display = 'block';
-        setTimeout(() => { toastMsg.style.display = 'none'; }, 2500);
-      });
-    });
 
     // Modal controls
     btnHowToUse.addEventListener('click', () => { howToModal.style.display = 'flex'; });
