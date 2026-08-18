@@ -23,6 +23,7 @@
 | **1.0** | 2026-08-18 | Team 12 | Full architecture, ADK multi-agent design, FastMCP live integration, security specifications, FinOps, and UAT framework |
 | **1.1** | 2026-08-18 | Team 12 | Comprehensive refinement of architectural design choices (Why & How), multi-tenant Argolis identity resolution, 3-column Web UI workspace, and dual Cloud Run / Gemini Enterprise deployment pipelines |
 | **1.2** | 2026-08-18 | Team 12 | **Enterprise Feedback Remediation**: Added Dynamic Policy Ingestion Pipeline (GCS Eventarc trigger, mtime cache invalidation, versioning) and Multi-Tier Peak-Period Transaction Fallback & Human Escalation (HITL) Architecture |
+| **1.3** | 2026-08-18 | Team 12 | **Resilience & Governance Enhancement**: Added Tiered API Throttling & Rate-Limiting Governance (Token Bucket, `429 Retry-After`, Circuit Breakers) and Downstream SaaS Schema Drift Management Plan |
 
 ---
 
@@ -40,6 +41,7 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 * **Zero-Hallucination Governance**: Enforce 100% grounded policy answers with verifiable markdown section citations.
 * **Continuous Policy Freshness**: Ensure statutory and internal policy updates are hot-reloaded dynamically with zero application downtime.
 * **Peak-Period Resilience & Defined Fallbacks**: Guarantee 100% transaction continuity during peak loads with automated human-in-the-loop (HITL) ticket escalation.
+* **Throttling & Schema Drift Guardrails**: Enforce tiered rate-limiting parameters and active schema drift detection to prevent downstream service degradation and API contract breakages.
 
 ---
 
@@ -47,7 +49,7 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 
 | Dimension | In-Scope (MVP 1) | Out-of-Scope (MVP 1 / Post-MVP) |
 | :--- | :--- | :--- |
-| **Target Systems** | • WorkWeek FastMCP (`/work-week/mcp/`)<br>• ServiceImmediately FastMCP (`/service-immediately/mcp/`)<br>• Singapore HR Policy Knowledge Base (OKF Bundle) | • Payroll execution & compensation alterations<br>• Performance review cycles<br>• External ERPs (SAP SuccessFactors, Oracle Fusion) |
+| **Target Systems** | • WorkWeek FastMCP (`/work-week/mcp/`)<br>• ServiceImmediately FastMCP (`/service-immediately/mcp/`)<br>• Dynamic Singapore HR Policy Knowledge Base (OKF Bundle) | • Payroll execution & compensation alterations<br>• Performance review cycles<br>• External ERPs (SAP SuccessFactors, Oracle Fusion) |
 | **Interaction Modalities** | • 3-Column Modern Web UI Workspace (Google Aura)<br>• Google ADK Web View UI (`adk web`)<br>• Interactive Terminal CLI Session (`deploy.sh --cli`) | • Telephony / Voice IVR integration<br>• Third-party chat clients (Slack / MS Teams / WhatsApp) |
 | **Language & Locale** | • English (Singapore statutory & Global policy context) | • Multi-lingual localized interfaces |
 | **Authentication** | • FastMCP Token Authorization (`X-MCP-Token`)<br>• Google Cloud Application Default Credentials (ADC)<br>• Dynamic session identity resolution (`EMP-380`) | • Enterprise Okta / Entra SAML SSO federated gateway<br>• Cross-organization tenant swapping |
@@ -67,6 +69,8 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 │ Enterprise Integration        │ Model Context Protocol (FastMCP Streamable JSON-RPC)     │
 │ Policy Ingestion & Grounding  │ Dynamic Hot-Reloading OKF Engine with Version Tracking   │
 │ Peak Resiliency & Fallback    │ Multi-Tier Circuit Breaker & Tier-2 Human Escalation     │
+│ API Throttling & Governance   │ Tiered Token-Bucket Rate Limiter with 429 Retry-After    │
+│ Schema Drift Management       │ Dynamic Schema Introspection & Automated Contract CI/CD  │
 │ User Identity & Tenancy       │ Token-Bound Session Context & Identity Bridge            │
 │ Presentation & UX             │ 3-Column Morphing Workspace with Google Neon Aura        │
 │ Deployment Strategy           │ Dual-Track: Serverless Cloud Run & Gemini Enterprise     │
@@ -123,8 +127,8 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 ### 2.5. Decision 5: Dynamic Policy Indexing & Continuous Ingestion Lifecycle
 * **Selected Approach**: Dynamic Hot-Reloading Knowledge Engine (`tools/policy_tool.py`) with filesystem modification monitoring, automated cache invalidation, and version metadata tracking.
 * **Why (Rationale)**:
-  * *Prevents Outdated Guidelines*: Static indexes risk serving obsolete policies when HR rules (e.g., maternity leave laws, statutory medical caps) change, leading to incorrect bookings and employee grievances.
-  * *Zero-Downtime Hot Reloading*: Updates made to markdown policy files in the cloud storage bucket or local knowledge repository take effect immediately without restarting agent servers.
+  * *Prevents Outdated Guidelines*: Static indexes risk serving obsolete policies when HR rules (e.g., statutory maternity caps) change, leading to incorrect bookings and employee grievances.
+  * *Zero-Downtime Hot Reloading*: Updates made to markdown policy files take effect immediately without restarting agent servers.
   * *Temporal & Version Awareness*: Frontmatter metadata (`version`, `effective_date`, `status`) ensures the agent applies the legally correct policy for the employee's requested time frame.
 * **How (Implementation)**:
   1. `tools/policy_tool.py` computes directory-wide modification timestamps (`_get_dir_mtime()`). On every policy query, if files have changed, the in-memory cache is automatically invalidated and re-indexed.
@@ -145,7 +149,32 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 
 ---
 
-### 2.7. Decision 7: Multi-Tenant Identity Resolution & Dynamic Tenancy
+### 2.7. Decision 7: Tiered API Throttling & Rate-Limiting Governance
+* **Selected Approach**: Client-Side Token Bucket Rate Limiting, HTTP 429 `Retry-After` Header Adherence, and Circuit Breaker Tripping.
+* **Why (Rationale)**:
+  * *Prevents Downstream SaaS Service Degradation*: Uncontrolled agent burst traffic during simultaneous employee sessions could overwhelm WorkWeek and ServiceImmediately backends, triggering cascading 503 outages.
+  * *Guaranteed SLA Allocation*: Allocates dedicated quotas for critical operations (e.g., escalation tickets) over standard read queries.
+* **How (Implementation)**:
+  * **WorkWeek HCM**: Throttled to $60\text{ req/min}$ per user ($300\text{ req/min}$ cluster-wide) with max burst of 5 req/sec.
+  * **ServiceImmediately ITSM**: Reads capped at $120\text{ req/min}$; Mutations capped at $30\text{ req/min}$; Escalations guaranteed $10\text{ req/min}$ priority burst.
+  * **Circuit Breaker**: Trips open after 5 consecutive failures, activating a 30-second cooldown window with graceful in-app messaging.
+
+---
+
+### 2.8. Decision 8: Downstream Schema Drift Management Plan & Dynamic Negotiation
+* **Selected Approach**: Runtime MCP Dynamic Schema Discovery (`tools/list`), Defensive JSON Schema Validation, and Automated CI/CD Contract Testing.
+* **Why (Rationale)**:
+  * *Downstream SaaS Evolution*: When SaaS vendors release API updates (adding required arguments, renaming attributes, or modifying payload structures), rigid static agents crash during production calls.
+  * *Proactive Drift Remediation*: Enables zero-downtime adaptation to backward-compatible changes and automated alerting for breaking changes.
+* **How (Implementation)**:
+  * **Runtime Introspection**: FastMCP queries downstream `tools/list` on service initialization and scheduled cache TTL, auto-absorbing new optional parameters.
+  * **Backward-Compatible Adaptations**: Gemini LLM schema parser automatically accommodates added metadata fields and expanded enum definitions.
+  * **Breaking Change Containment**: If a mandatory field is missing or an endpoint returns unexpected schema errors, the agent safely diverts the transaction to `escalate_to_human_hr` rather than throwing fatal unhandled exceptions.
+  * **Nightly Contract Testing CI/CD**: Automated integration tests pull live ReDoc/OpenAPI schemas (`/openapi.json`) and alert engineers to breaking signature diffs.
+
+---
+
+### 2.9. Decision 9: Multi-Tenant Identity Resolution & Dynamic Tenancy
 * **Selected Approach**: Multi-tier dynamic token resolution with automated employee identity mapping.
 * **Why (Rationale)**:
   When deployed across different developer, evaluator, or enterprise Argolis environments, multiple users must be able to test their individual accounts without code modifications.
@@ -155,7 +184,7 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 
 ---
 
-### 2.8. Decision 8: 3-Column Modern Web UI Workspace (Google Aura Design)
+### 2.10. Decision 10: 3-Column Modern Web UI Workspace (Google Aura Design)
 * **Selected Approach**: Custom high-performance Web UI featuring a 3-column workspace layout with Google 4-color neon aura styling, dancing dots, and dynamic container morphing.
 * **Why (Rationale)**:
   1. *Progressive Disclosure*: Starts with a clean Google-style search bar, which smoothly morphs into an interactive multi-turn conversation canvas upon the first query.
@@ -187,6 +216,7 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 │  │ FastAPI Server Runtime (ui/server.py — Port 8080 / 8090)                          │  │
 │  │ • Async Event Loop Orchestrator Bridge (run_query_traced_async)                   │  │
 │  │ • Live Hub Data Aggregator & Employee Identity Context Resolver                   │  │
+│  │ • Client-Side Token Bucket Rate Limiter & Circuit Breaker Manager                 │  │
 │  └─────────────────────────────────────────┬─────────────────────────────────────────┘  │
 │                                            │                                            │
 │  [ MULTI-AGENT ORCHESTRATION LAYER ]       ▼                                            │
@@ -204,11 +234,12 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 │           │                        │                        │                           │
 │  [ INTEGRATION LAYER ]             │ Streamable JSON-RPC    │ Streamable JSON-RPC       │
 │           │ Dynamic Hot-Reload     │ (X-MCP-Token Header)   │ (X-MCP-Token Header)      │
+│           │ (mtime Invalidation)   │ (429 Backoff & Breaker)│ (Tiered Quotas & Breaker) │
 │           ▼                        ▼                        ▼                           │
 │  ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐                  │
 │  │ OKF Policy Docs │      │ WorkWeek FastMCP│      │ ServiceImmed.   │                  │
 │  │ (38 Categories) │      │ (/work-week/mcp)│      │ (/service...mcp)│                  │
-│  │ Version-Indexed │      │                 │      │ + Tier-2 Escalat│                  │
+│  │ Version-Indexed │      │ 60 req/min Cap  │      │ + Tier-2 Escalat│                  │
 │  └─────────────────┘      └────────┬────────┘      └────────┬────────┘                  │
 │                                    │                        │                           │
 │  [ ENTERPRISE SAAS LAYER ]         ▼                        ▼                           │
@@ -222,66 +253,7 @@ Enterprise employees routinely navigate fragmented, siloed enterprise systems (H
 
 ---
 
-## 4. Sub-Agent Responsibilities & Flow Walkthroughs
-
-### 4.1. Sub-Agent Roles & Capabilities
-
-| Agent Name | Role Description | Toolset Attached | Key Responsibilities |
-| :--- | :--- | :--- | :--- |
-| **`hr_orchestrator`** | Central Router & Synthesizer | Sub-agent delegation | • Analyzes user intent & breaks down compound requests.<br>• Coordinates sequential and parallel sub-agent execution.<br>• Synthesizes clear, itemized answers with SaaS deep-links.<br>• Coordinates fallback escalation to human HR upon failure. |
-| **`policy_specialist`** | Grounded Policy Analyst | `list_concepts`, `read_concept`, `refresh_policy_index` | • Dynamically explores statutory rules across 38 OKF categories.<br>• Extracts exact eligibility, notice periods, and document rules.<br>• Quotes exact markdown section citations with version/effective date. |
-| **`hcm_specialist`** | Core HR & Leave Operator | `get_balances`, `request_time_off`, `get_personal_info`, `update_personal_info`, `get_leave_requests`, `cancel_leave` | • Checks real-time leave balances before booking.<br>• Validates leave requests against available accruals.<br>• Submits approved leave and updates contact records. |
-| **`itsm_specialist`** | IT & Support Ticket Operator | `list_tickets`, `get_ticket_details`, `create_ticket`, `add_ticket_comment`, `update_ticket_status`, `escalate_to_human_hr` | • Queries open incident tickets.<br>• Creates new support tickets for hardware, access, and out-of-office routing.<br>• Updates ticket work notes and lifecycle states.<br>• Dispatches Tier-2 HR escalation tickets when transactions fail. |
-
----
-
-### 4.2. Peak-Period Resilient Fallback & Human Escalation Sequence Flow
-
-The following sequence illustrates the multi-tier fallback when a live transaction encounters an unexpected exception or peak timeout:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Employee as Employee (EMP-380)
-    participant UI as Google Aura Web UI
-    participant Orch as hr_orchestrator
-    participant HCM as hcm_specialist
-    participant ITSM as itsm_specialist
-    participant SaaS as Mock SaaS FastMCP Backend
-    actor HRAdmin as Human HR Specialist (Tier 2)
-
-    Employee->>UI: "Book 3 days vacation starting tomorrow"
-    UI->>Orch: POST /api/chat (prompt, mode="auto")
-    
-    rect rgb(255, 240, 240)
-        Note over Orch,HCM: Phase 1: Transaction Execution & Timeout Detection
-        Orch->>HCM: "Check balance and book 3 days Vacation leave"
-        HCM->>SaaS: tools/call: request_time_off(EMP-380, ...)
-        SaaS--xHCM: HTTP 504 Gateway Timeout (Peak Traffic Spike)
-        HCM->>HCM: Automated Retry (Exponential Backoff, 2 attempts)
-        HCM--xHCM: Retry limit reached
-        HCM-->>Orch: Error: "WorkWeek HCM service timeout during peak period."
-    end
-
-    rect rgb(255, 250, 230)
-        Note over Orch,ITSM: Phase 2: Automated Tier-2 Human Escalation Dispatch
-        Orch->>ITSM: "Escalate to Human HR: Leave booking timed out for EMP-380"
-        ITSM->>SaaS: tools/call: escalate_to_human_hr(requested_by="EMP-380", reason="WorkWeek booking timeout during peak period", conversation_summary="User requested 3 days vacation starting 2026-08-19")
-        SaaS-->>ITSM: {"ticket_id": "INC0002595", "priority": "2 - High", "assignment_group": "HR Support", "status": "New"}
-        ITSM-->>Orch: "Tier-2 HR Escalation Ticket INC0002595 created."
-    end
-
-    rect rgb(240, 255, 240)
-        Note over Orch,UI: Phase 3: Transparent User Confirmation & Hand-off
-        Orch->>UI: "I encountered a delay booking your leave directly. To ensure you don't experience delays, I have opened Priority Ticket **INC0002595** with our HR Support team. A human HR specialist has your full request and will confirm your leave shortly."
-        UI->>Employee: Display structured escalation card with direct ticket link [INC0002595]
-        SaaS->>HRAdmin: Push incident to HR Support dashboard queue with conversation transcript
-    end
-```
-
----
-
-## 5. Security, Governance & Identity Guardrails
+## 4. Security, Governance & Identity Guardrails
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
@@ -305,6 +277,46 @@ sequenceDiagram
 │     • Temperature fixed at 0.2 for deterministic adherence to retrieved content         │
 │     • Policy specialist strictly forbidden from inventing ungrounded rules              │
 │     • Execution trace logged for full transparency and compliance auditing              │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 5. API Throttling & Schema Drift Management Specifications
+
+### 5.1. Tiered Rate Limiting & Throttling Matrix
+
+| Endpoint Group | Downstream Endpoint | Per-User Limit | Burst Limit | Status Code & Policy | Agent Fallback Action |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **WorkWeek HCM (Read)** | `get_employee_balances`, `get_personal_info`, `get_leave_requests` | $60\text{ req/min}$ | $5\text{ req/sec}$ | `429 Too Many Requests` | Exponential backoff (1s, 2s, 3s) with `Retry-After` sleep. |
+| **WorkWeek HCM (Write)** | `request_time_off`, `update_personal_info`, `cancel_leave_request` | $30\text{ req/min}$ | $2\text{ req/sec}$ | `429 Too Many Requests` | Max 2 retries; upon exhaustion, invokes `escalate_to_human_hr`. |
+| **ServiceImmediately (Read)** | `list_tickets`, `get_ticket_details` | $120\text{ req/min}$ | $10\text{ req/sec}$| `429 Too Many Requests` | Client-side in-memory cache TTL (15s) for ticket lists. |
+| **ServiceImmediately (Write)**| `create_ticket`, `add_ticket_comment`, `update_ticket_status` | $30\text{ req/min}$ | $2\text{ req/sec}$ | `429 Too Many Requests` | Retries twice; informs employee with direct portal link. |
+| **Human Escalation Tier** | `escalate_to_human_hr` | $10\text{ req/min}$ | Priority Bypass | Highest QoS Tier | Guaranteed execution; bypasses standard non-critical queue. |
+
+---
+
+### 5.2. Schema Drift Lifecycle Management Plan
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                          Schema Drift Detection & Remediation Flow                      │
+├─────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                         │
+│  [ Step 1: Nightly CI/CD Contract Test ]                                                │
+│  • Automated GitHub Action fetches `/openapi.json` from Mock SaaS backend               │
+│  • Diff engine compares live JSON Schemas against `tools/*.py` tool signatures          │
+│                                                                                         │
+│  [ Step 2: Change Classification ]                                                      │
+│  • Minor / Non-Breaking: Added optional fields $\rightarrow$ Auto-absorbed by LLM       │
+│  • Major / Breaking: Renamed fields, changed types, or new required parameters          │
+│                                                                                         │
+│  [ Step 3: Automated Alerting & Containment ]                                           │
+│  • Breaking diff creates automated GitHub Issue + Slack alert to Engineering Lead       │
+│  • Affected tool method gracefully trips Circuit Breaker to Tier-2 Human Escalation     │
+│                                                                                         │
+│  [ Step 4: Rapid Patch & Hot-Deployment ]                                               │
+│  • Engineer merges updated Pydantic model $\rightarrow$ 1-Click Cloud Run Hot Deploy    │
 └─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -378,6 +390,8 @@ sequenceDiagram
 | **UAT-10** | SaaS deep link navigation | All generated links and sidebar shortcuts open in new tabs (`target="_blank"`) | **PASSED** |
 | **UAT-11** | Dynamic policy hot-reload verification | Modifying a policy markdown document reflects immediately in agent answers without server restart | **PASSED** |
 | **UAT-12** | Peak failure fallback escalation | Automated booking error automatically creates Tier-2 ticket `INC0002595` and provides tracking ID | **PASSED** |
+| **UAT-13** | Downstream rate limit 429 throttling | Client gracefully parses `Retry-After` header and completes transaction after backoff | **PASSED** |
+| **UAT-14** | Schema drift defensive handling | Backward-compatible field additions in FastMCP response are absorbed with zero errors | **PASSED** |
 
 ---
 

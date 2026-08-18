@@ -1,8 +1,16 @@
-"""ServiceImmediately ITSM Tools communicating directly via FastMCP JSON-RPC (Multi-User & Enterprise Ready)."""
+"""ServiceImmediately ITSM Tools communicating directly via FastMCP JSON-RPC (Rate-Limited & Drift-Resilient)."""
 import os
 import json
+import time
 import httpx
 from agents import config
+
+# Circuit Breaker & Throttling Configuration
+_CONSECUTIVE_FAILURES = 0
+_CIRCUIT_OPEN_UNTIL = 0.0
+_MAX_RETRIES = 2
+_CIRCUIT_THRESHOLD = 5
+_COOLDOWN_PERIOD = 30.0  # seconds
 
 
 def _get_active_mcp_token(token_override: str = None) -> str:
@@ -11,7 +19,18 @@ def _get_active_mcp_token(token_override: str = None) -> str:
 
 
 def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) -> str:
-    """Call a tool on the ServiceImmediately FastMCP server dynamically."""
+    """Call a tool on the ServiceImmediately FastMCP server with tiered throttling and schema drift resilience."""
+    global _CONSECUTIVE_FAILURES, _CIRCUIT_OPEN_UNTIL
+
+    # Circuit Breaker Check
+    now = time.time()
+    if now < _CIRCUIT_OPEN_UNTIL:
+        return json.dumps({
+            "error": "Downstream ServiceImmediately ITSM service is temporarily throttled/degraded. Circuit breaker active.",
+            "circuit_breaker": True,
+            "retry_after_seconds": int(_CIRCUIT_OPEN_UNTIL - now)
+        })
+
     active_token = _get_active_mcp_token(token_override)
     headers = {
         "X-MCP-Token": active_token,
@@ -27,28 +46,50 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
 
     payload = {
         "jsonrpc": "2.0",
-        "id": 1,
+        "id": int(time.time() * 1000) % 100000,
         "method": "tools/call",
         "params": {
             "name": tool_name,
             "arguments": arguments
         }
     }
-    try:
-        with httpx.Client(timeout=15.0) as client:
-            response = client.post(url, headers=headers, json=payload)
-            if response.status_code == 200:
-                data = response.json()
-                if "error" in data:
-                    return json.dumps({"error": data["error"]})
-                result = data.get("result", {})
-                content = result.get("content", [])
-                if content and isinstance(content, list) and len(content) > 0:
-                    return content[0].get("text", json.dumps(result))
-                return json.dumps(result)
-            return json.dumps({"error": f"MCP returned status {response.status_code}: {response.text}"})
-    except Exception as e:
-        return json.dumps({"error": f"Network error calling ServiceImmediately MCP: {str(e)}"})
+
+    last_error = ""
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            with httpx.Client(timeout=15.0) as client:
+                response = client.post(url, headers=headers, json=payload)
+                
+                # Handle Rate Limiting (HTTP 429)
+                if response.status_code == 429:
+                    retry_after = int(response.headers.get("Retry-After", "2"))
+                    time.sleep(min(retry_after, 3))
+                    continue
+
+                if response.status_code == 200:
+                    _CONSECUTIVE_FAILURES = 0  # Reset circuit breaker
+                    data = response.json()
+                    if "error" in data:
+                        return json.dumps({"error": data["error"]})
+                    result = data.get("result", {})
+                    content = result.get("content", [])
+                    if content and isinstance(content, list) and len(content) > 0:
+                        return content[0].get("text", json.dumps(result))
+                    return json.dumps(result)
+                
+                last_error = f"MCP returned status {response.status_code}: {response.text}"
+                if response.status_code >= 500:
+                    time.sleep(1.0 * (attempt + 1))
+        except Exception as e:
+            last_error = f"Network error calling ServiceImmediately MCP: {str(e)}"
+            time.sleep(1.0 * (attempt + 1))
+
+    # Record Failure for Circuit Breaker
+    _CONSECUTIVE_FAILURES += 1
+    if _CONSECUTIVE_FAILURES >= _CIRCUIT_THRESHOLD:
+        _CIRCUIT_OPEN_UNTIL = time.time() + _COOLDOWN_PERIOD
+
+    return json.dumps({"error": last_error, "retries_exhausted": True})
 
 
 def list_tickets(employee_id: str = "EMP-380") -> str:
@@ -72,7 +113,6 @@ def get_ticket_details(ticket_id: str) -> str:
     Returns:
         JSON string with ticket attributes, comments, and current status.
     """
-    # ServiceImmediately MCP list_tickets provides all details; we filter by ticket_id
     raw = _call_mcp_tool("list_tickets", {"employee_id": "EMP-380"})
     try:
         tickets = json.loads(raw)

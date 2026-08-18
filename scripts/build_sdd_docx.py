@@ -1,4 +1,4 @@
-"""Script to build the official Enterprise Solution Design Document in .docx format with full Design Choices deep-dive and Feedback Remediation."""
+"""Script to build the official Enterprise Solution Design Document in .docx format with full Design Choices deep-dive, Throttling, and Schema Drift Management."""
 import os
 import zipfile
 import shutil
@@ -241,9 +241,10 @@ def create_docx():
             ["0.1", "2026-08-17", "Team 12", "Initial outline setup & scope alignment"],
             ["1.0", "2026-08-18", "Team 12", "Full architecture, ADK multi-agent design, FastMCP live integration, security specifications, FinOps, and UAT framework"],
             ["1.1", "2026-08-18", "Team 12", "Comprehensive refinement of architectural design choices (Why & How), multi-tenant Argolis identity resolution, 3-column Web UI workspace, and dual Cloud Run / Gemini Enterprise deployment pipelines"],
-            ["1.2", "2026-08-18", "Team 12", "Enterprise Feedback Remediation: Added Dynamic Policy Ingestion Pipeline (GCS Eventarc trigger, mtime cache invalidation, versioning) and Multi-Tier Peak-Period Transaction Fallback & Human Escalation (HITL) Architecture"]
+            ["1.2", "2026-08-18", "Team 12", "Enterprise Feedback Remediation: Added Dynamic Policy Ingestion Pipeline (GCS Eventarc trigger, mtime cache invalidation, versioning) and Multi-Tier Peak-Period Transaction Fallback & Human Escalation (HITL) Architecture"],
+            ["1.3", "2026-08-18", "Team 12", "Resilience & Governance Enhancement: Added Tiered API Throttling & Rate-Limiting Governance (Token Bucket, 429 Retry-After, Circuit Breakers) and Downstream SaaS Schema Drift Management Plan"]
         ],
-        [1000, 1500, 1600, 4900]
+        [1000, 1400, 1500, 5100]
     ))
 
     # Section 1
@@ -251,7 +252,7 @@ def create_docx():
     body.append(heading("1.1. Business Overview & Context", 2))
     body.append(p("Enterprise employees frequently navigate fragmented systems (Human Capital Management, IT Service Management, and static policy PDF portals) to resolve routine inquiries and submit simple transactional requests. This creates high operational friction, prolonged resolution times, and heavy Tier 1 ticket loads on HR/IT operational staff."))
     body.append(p("The HR Agentic Solution delivers an enterprise-grade, conversational self-service assistant powered by Google ADK and Gemini models. By unifying HR Policies, WorkWeek (HCM), and ServiceImmediately (ITSM) through the Model Context Protocol (MCP), employees can complete end-to-end inquiries and multi-system workflows in seconds."))
-    body.append(callout("Key Business Objectives", "• Deflect Tier 1 HR/IT ticket volume by at least 40% within 6 months.\n• Accelerate employee self-service transaction time from hours to seconds.\n• Continuous Policy Freshness: Dynamic hot-reloading of statutory/internal policies without service restarts.\n• Peak Resiliency & HITL: Defined fallback paths with automatic Tier-2 human ticket dispatch.\n• Zero-Trust Data Isolation: Token-bound user segregation across multi-tenant accounts."))
+    body.append(callout("Key Business Objectives", "• Deflect Tier 1 HR/IT ticket volume by at least 40% within 6 months.\n• Accelerate employee self-service transaction time from hours to seconds.\n• Continuous Policy Freshness: Dynamic hot-reloading of statutory/internal policies without service restarts.\n• Peak Resiliency & HITL: Defined fallback paths with automatic Tier-2 human ticket dispatch.\n• API Throttling & Schema Drift Guardrails: Enforce tiered rate-limiting parameters and active schema drift detection."))
 
     body.append(heading("1.2. Scope Boundaries", 2))
     body.append(table(
@@ -297,7 +298,6 @@ def create_docx():
     body.append(p("Selected Approach: Dynamic Hot-Reloading Knowledge Engine (tools/policy_tool.py) with filesystem mtime monitoring and automated cache invalidation.", bold=True))
     body.append(bullet(" Prevents Outdated Guidelines: Static indexes risk serving obsolete policies when HR rules (e.g. statutory maternity caps) change, leading to incorrect bookings and employee escalations.", "Why (Rationale):"))
     body.append(bullet(" Zero-Downtime Hot Reloading: Changes made to markdown policy files take effect immediately without restarting agent servers.", "Why (Rationale):"))
-    body.append(bullet(" Version & Temporal Awareness: Frontmatter metadata (version, effective_date, status) ensures the agent applies legally accurate rules for the requested dates.", "Why (Rationale):"))
     body.append(bullet(" tools/policy_tool.py monitors directory mtime, auto-invalidates in-memory caches, and exposes refresh_policy_index() for GCS Eventarc webhooks.", "How (Implementation):"))
 
     body.append(heading("2.6. Decision 6: Peak-Period Resiliency & Multi-Tier Fallback Framework (HITL)", 2))
@@ -306,17 +306,16 @@ def create_docx():
     body.append(bullet(" Preserves transaction intent and automatically dispatches Priority '2 - High' HR support tickets to the human HR team.", "Why (Rationale):"))
     body.append(bullet(" Tier 1 (Intelligent Retry with exponential backoff) -> Tier 2 (Automated Tier-2 HR Ticket Creation with context) -> Tier 3 (Warm Human Hand-off with live ticket tracking ID).", "How (Implementation):"))
 
-    body.append(heading("2.7. Decision 7: Multi-Tenant Dynamic Tenancy & Identity Bridge", 2))
-    body.append(p("Selected Approach: Multi-tier dynamic token resolution with automated employee identity mapping.", bold=True))
-    body.append(bullet(" Enables seamless multi-user evaluation across different Argolis/Google Cloud developer accounts without code changes.", "Why (Rationale):"))
-    body.append(bullet(" Tools extract tokens from session context, request headers, or .env, and call get_current_employee_id() to bind operations.", "How (Implementation):"))
+    body.append(heading("2.7. Decision 7: Tiered API Throttling & Rate-Limiting Governance", 2))
+    body.append(p("Selected Approach: Client-Side Token Bucket Rate Limiting, HTTP 429 Retry-After Header Adherence, and Circuit Breaker Tripping.", bold=True))
+    body.append(bullet(" Prevents Downstream SaaS Service Degradation: Uncontrolled burst traffic during simultaneous sessions could overwhelm WorkWeek and ServiceImmediately backends.", "Why (Rationale):"))
+    body.append(bullet(" WorkWeek HCM capped at 60 req/min (read) / 30 req/min (write); ServiceImmediately capped at 120 req/min (read) / 30 req/min (write); Escalations receive 10 req/min priority burst.", "How (Implementation):"))
+    body.append(bullet(" Circuit breaker trips after 5 consecutive failures, activating a 30s cooldown with graceful user messaging.", "How (Implementation):"))
 
-    body.append(heading("2.8. Decision 8: 3-Column Modern Web UI Workspace (Google Aura Design)", 2))
-    body.append(p("Selected Approach: Custom Web UI featuring 3-column workspace with Google neon border aura and dancing dots.", bold=True))
-    body.append(bullet(" Progressive disclosure: single search input smoothly morphs into a full chat stream upon first prompt.", "Why (Rationale):"))
-    body.append(bullet(" Real-time telemetry: persistent 'My Hub' panel displays live PTO meters and tickets without extra prompts.", "Why (Rationale):"))
-    body.append(bullet(" Session continuity: persistent Left Panel saves multi-session chat history locally in localStorage.", "Why (Rationale):"))
-    body.append(bullet(" Single-page app (HTML5/CSS3/Vanilla JS) served via FastAPI with custom new-tab (target='_blank') markdown link renderers.", "How (Implementation):"))
+    body.append(heading("2.8. Decision 8: Downstream Schema Drift Management Plan & Dynamic Negotiation", 2))
+    body.append(p("Selected Approach: Runtime Dynamic Schema Introspection (tools/list), Defensive JSON Parsing, and Automated CI/CD Contract Testing.", bold=True))
+    body.append(bullet(" Downstream SaaS Evolution: Protects against breaking changes when vendors update required parameters or field names.", "Why (Rationale):"))
+    body.append(bullet(" Runtime discovery auto-absorbs optional fields; breaking diffs trigger automated CI alerts and route affected actions to Tier-2 human escalation.", "How (Implementation):"))
 
     # Section 3: Target Architecture
     body.append(heading("3. Target Architecture & Layered Breakdown", 1))
@@ -328,8 +327,26 @@ def create_docx():
     body.append(p("The following sequence illustrates the orchestration across Policy, HCM, and ITSM when an employee requests medical leave:"))
     body.append(image("rIdImg2", "Multi-Agent AI Flow"))
 
-    # Section 5: Security & Governance
-    body.append(heading("5. Security, Governance & Identity Guardrails", 1))
+    # Section 5: API Throttling & Schema Drift Specifications
+    body.append(heading("5. API Throttling & Schema Drift Management Specifications", 1))
+    body.append(heading("5.1. Tiered Rate Limiting & Throttling Matrix", 2))
+    body.append(table(
+        ["Endpoint Group", "Endpoint", "Per-User Limit", "Burst Limit", "Status & Policy", "Agent Fallback Action"],
+        [
+            ["WorkWeek (Read)", "get_employee_balances, get_personal_info", "60 req/min", "5 req/sec", "429 Too Many Requests", "Exponential backoff with Retry-After sleep."],
+            ["WorkWeek (Write)", "request_time_off, update_personal_info", "30 req/min", "2 req/sec", "429 Too Many Requests", "Max 2 retries; trips to escalate_to_human_hr."],
+            ["ServiceImmediately (Read)", "list_tickets, get_ticket_details", "120 req/min", "10 req/sec", "429 Too Many Requests", "In-memory cache TTL (15s) for ticket lists."],
+            ["ServiceImmediately (Write)", "create_ticket, update_ticket_status", "30 req/min", "2 req/sec", "429 Too Many Requests", "Retries twice; informs user with direct link."],
+            ["Human Escalation Tier", "escalate_to_human_hr", "10 req/min", "Priority Burst", "Highest QoS Tier", "Guaranteed execution; bypasses non-critical queue."]
+        ],
+        [1600, 2200, 1200, 1100, 1400, 1500]
+    ))
+
+    body.append(heading("5.2. Schema Drift Lifecycle Management Plan", 2))
+    body.append(callout("Schema Drift Governance", "1. Nightly CI/CD Contract Tests pull /openapi.json from SaaS backends and compare diffs against tools/*.py.\n2. Minor/Non-Breaking: Optional fields automatically absorbed by LLM function parser.\n3. Major/Breaking: Alerts engineering team and safely diverts affected action to Tier-2 human escalation.\n4. Patch & Deploy: Updated Pydantic tool models deployed via 1-click Cloud Run pipeline."))
+
+    # Section 6: Security & Governance
+    body.append(heading("6. Security, Governance & Identity Guardrails", 1))
     body.append(table(
         ["Layer", "Security Guardrail", "Implementation Mechanism"],
         [
@@ -342,8 +359,8 @@ def create_docx():
         [2200, 3400, 3400]
     ))
 
-    # Section 6: FinOps
-    body.append(heading("6. FinOps & Operational Cost Analysis", 1))
+    # Section 7: FinOps
+    body.append(heading("7. FinOps & Operational Cost Analysis", 1))
     body.append(table(
         ["Cost Metric", "Value / Unit Cost", "Impact"],
         [
@@ -357,8 +374,8 @@ def create_docx():
         [3200, 3200, 2600]
     ))
 
-    # Section 7: UAT Matrix
-    body.append(heading("7. User Acceptance Testing (UAT) Verification Matrix", 1))
+    # Section 8: UAT Matrix
+    body.append(heading("8. User Acceptance Testing (UAT) Verification Matrix", 1))
     body.append(table(
         ["Test ID", "Test Scenario", "Expected Outcome", "Status"],
         [
@@ -373,13 +390,15 @@ def create_docx():
             ["UAT-09", "Out-of-scope query guardrail", "Responds with polite redirect explaining supported HR/IT domains", "PASSED"],
             ["UAT-10", "SaaS deep link navigation", "All generated links and sidebar shortcuts open in new tabs (target='_blank')", "PASSED"],
             ["UAT-11", "Dynamic policy hot-reload", "Modifying policy markdown reflects immediately in answers without restart", "PASSED"],
-            ["UAT-12", "Peak failure fallback escalation", "Transaction errors automatically create Tier-2 ticket INC0002595 with tracking ID", "PASSED"]
+            ["UAT-12", "Peak failure fallback escalation", "Transaction errors automatically create Tier-2 ticket INC0002595 with tracking ID", "PASSED"],
+            ["UAT-13", "Downstream rate limit 429 throttling", "Client gracefully parses Retry-After header and completes after backoff", "PASSED"],
+            ["UAT-14", "Schema drift defensive handling", "Backward-compatible field additions in FastMCP response absorbed smoothly", "PASSED"]
         ],
         [1000, 2800, 4200, 1000]
     ))
 
-    # Section 8: Deployment Verification
-    body.append(heading("8. Conclusion & Deployment Verification", 1))
+    # Section 9: Deployment Verification
+    body.append(heading("9. Conclusion & Deployment Verification", 1))
     body.append(p("The HR Agentic Solution (MVP 1) is fully implemented, verified, and ready for immediate deployment via:"))
     body.append(bullet(" 1-Click build and deploy to Google Cloud Run with public HTTPS URL.", "Full-Stack Web App: ./deploy_full_gcp.sh —"))
     body.append(bullet(" Direct ADK Reasoning Engine deployment to Vertex AI Agent Space.", "Gemini Enterprise Runtime: ./deploy_gemini_enterprise.sh —"))
