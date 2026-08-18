@@ -135,7 +135,10 @@ project_elevate_team_12/
 │   └── test_mcp_connection.py    # Connection verification test suite
 ├── agents-cli-manifest.yaml      # ADK Web manifest descriptor
 ├── deploy.sh                     # Automated deployment & execution script
-├── Plan_and_Architecture.md      # Comprehensive technical design document
+├── Solution_Design_Document.md   # Official Enterprise Solution Design Document (SDD)
+├── BMAD_METHODOLOGY.md           # BMAD Agile AI-Driven Development Framework
+├── Plan_and_Architecture.md      # Implementation plan and architecture
+├── TESTING_GUIDE.md              # Complete test prompts & verification suite
 └── README.md                     # Project documentation
 ```
 
