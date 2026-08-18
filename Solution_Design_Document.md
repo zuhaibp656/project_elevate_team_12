@@ -22,7 +22,7 @@
 | **1.1** | 2026-08-18 | Added Architectural Design Choices (Why & How), Identity Bridge & 3-Column UI |
 | **1.2** | 2026-08-18 | Added Dynamic Policy Ingestion Pipeline, Peak Resiliency & Tier-2 Human Escalation (HITL) |
 | **2.0** | 2026-08-18 | Stakeholder Remediation (Canary Verification, Tracing, DLQ, DDL/ERD, Risk Register) |
-| **2.4** | 2026-08-18 | **Comprehensive Architectural Rationale**: Added Deep-Dive Alternatives Justification across 5 Dimensions, Visual Flowcharts, and Next-Phase Innovation Roadmap |
+| **2.5** | 2026-08-18 | **Visual Decision Logic Addition**: Added Comprehensive End-to-End Decision Flowchart with Detailed Node-by-Node Explanation Matrix |
 
 ---
 
@@ -103,7 +103,7 @@ To provide total architectural transparency, all technology and architectural to
 
 ### 2.3. Dimension 3: Enterprise SaaS Integration Protocol
 | Option | Description | Score | Why We Chose / Rejected It |
-| :--- | :--- | :---: | :---: |
+| :--- | :--- | :---: | :--- |
 | **FastMCP JSON-RPC 2.0** <br>*(Selected)* | Standardized Model Context Protocol exposing runtime `tools/list` schema discovery and `tools/call` execution via `X-MCP-Token`. | **5.0 / 5.0** | **Selected**: Clean separation of tool contracts, auto-discovers schemas, natively bypasses Google Cloud IAP browser redirect walls, and aligns with the emerging global AI standard. |
 | **Bespoke REST API Clients** | Custom hand-coded Python client methods for every single Workday and ServiceNow endpoint. | **1.5 / 5.0** | **Rejected**: Extremely fragile; any vendor API schema update breaks client code. High maintenance burden and no standardized discovery mechanism. |
 | **GraphQL Federation** | Unified GraphQL supergraph stitching HCM and ITSM schemas together. | **3.1 / 5.0** | **Rejected**: Heavy infrastructure footprint, requires maintaining complex GraphQL schema stitchers, and adds unnecessary query translation latency. |
@@ -128,7 +128,83 @@ To provide total architectural transparency, all technology and architectural to
 
 ---
 
-## 3. Core Architecture & FastMCP Interface Contracts
+## 3. End-to-End System Decision Logic Flowchart
+
+The following flowchart details the complete, deterministic decision path executed by the system from the moment an employee submits a query to final response synthesis:
+
+```mermaid
+flowchart TD
+    Start([Employee Submits Query in Aura Web UI]) --> W3C[API Gateway: Inject W3C Tracing & Correlation ID]
+    W3C --> DLP[In-Flight DLP: Mask NRIC, Credit Cards, Credentials]
+    DLP --> Auth[Identity Bridge: Map Email -> EMP-380 Session Binding]
+    Auth --> Orch{hr_orchestrator: Intent Classification & Router}
+
+    %% Branch 1: Policy Retrieval
+    Orch -->|Policy Inquiry| PolAgent[policy_specialist]
+    PolAgent --> PolIndex[Read Chunked OKF Policy Markdown]
+    PolIndex --> PolCite[Attach Verifiable policy:// Citations]
+    PolCite --> Synth
+
+    %% Branch 2: HCM Leave & Profile
+    Orch -->|Leave Booking / Balance| HCMAgent[hcm_specialist]
+    HCMAgent --> CheckBal[FastMCP: get_employee_balances]
+    CheckBal --> BalanceGuard{Requested Days <= Available?}
+    BalanceGuard -->|No: Exceeds Balance| RejectBal[Gently Refuse & Propose Options]
+    BalanceGuard -->|Yes: Valid| BookLeave[FastMCP: request_time_off]
+    BookLeave --> Synth
+    RejectBal --> Synth
+
+    %% Branch 3: ITSM Tickets & Escalation
+    Orch -->|IT / Support Request| ITSMAgent[itsm_specialist]
+    ITSMAgent --> SupportType{Standard IT Ticket or Crisis / Failure?}
+    SupportType -->|Standard Request| CreateTkt[FastMCP: create_ticket / list_tickets]
+    SupportType -->|Crisis / Downstream Fail| EscalateHR[FastMCP: escalate_to_human_hr]
+    EscalateHR --> HRCase[Open Priority-2 Ticket INC0002609 & Alert HR 2h SLA]
+    CreateTkt --> Synth
+    HRCase --> Synth
+
+    %% Branch 4: Compound Multi-System Workflow
+    Orch -->|Compound Workflow| CompSeq[Sequential Chaining: Policy -> HCM -> ITSM]
+    CompSeq --> Synth
+
+    %% Branch 5: Out of Scope
+    Orch -->|Out of Scope / Unsafe| SafetyRefuse[Safety Guardrail: Polite Domain Redirect]
+    SafetyRefuse --> Synth
+
+    %% Response Synthesis
+    Synth[Orchestrator: Synthesize Unified Conversational Response]
+    Synth --> LogDB[(Cloud SQL: Record Immutable Transcript & Audit)]
+    LogDB --> StreamResp([Stream Response to UI + Refresh My Hub Telemetry])
+
+    classDef primary fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef decision fill:#FEFCBF,stroke:#D69E2E,stroke-width:2px;
+    classDef action fill:#E6FFFA,stroke:#319795,stroke-width:1px;
+    classDef alert fill:#FED7D7,stroke:#E53E3E,stroke-width:2px;
+
+    class Start,StreamResp primary;
+    class Orch,BalanceGuard,SupportType decision;
+    class PolAgent,HCMAgent,ITSMAgent,CompSeq,Synth action;
+    class RejectBal,EscalateHR,HRCase,SafetyRefuse alert;
+```
+
+---
+
+### 3.1. Detailed Node-by-Node Flowchart Explanation
+
+| Flowchart Node | Component / Layer | Input & Trigger | Execution Logic & Decision Invariant | Output / System Action |
+| :--- | :--- | :--- | :--- | :--- |
+| **`W3C & DLP`** | API Gateway | Inbound HTTP Request | Extracts or generates `traceparent` and `X-Correlation-ID`; runs regex DLP filter replacing NRICs with `[NRIC_REDACTED]`. | Clean, traceable payload ready for AI processing. |
+| **`Identity Bridge`** | Security Layer | Corporate Email Claim | Queries `users` directory table; locks session to `employee_id = EMP-380`. | Prevents cross-user data access or parameter tampering. |
+| **`hr_orchestrator`** | Central AI Brain | Natural Language Query | Analyzes semantic intent using Gemini 2.5 Flash; determines if request is Policy, HCM, ITSM, or Compound. | Routes sub-tasks to appropriate specialist sub-agents. |
+| **`policy_specialist`** | Knowledge Engine | Statutory/HR Question | Scans indexed OKF markdown; extracts exact clauses (e.g. 14d outpatient sick leave). | Returns grounded answer with mandatory `policy://` citations. |
+| **`BalanceGuard`** | Safety Guardrail | Leave Request Parameters | Compares requested days against live WorkWeek vacation/sick balances. | • If $\le$ balance: Submits `request_time_off`.<br>• If $>$ balance: Explains shortage and offers alternatives. |
+| **`SupportType`** | IT / Escalation Router | IT Query or Crisis | Checks if user reported an urgent personal crisis (bereavement, medical) or SaaS 5xx timeout. | • Standard: Calls `create_ticket` (Category: Hardware/Access).<br>• Crisis: Calls `escalate_to_human_hr` (Priority 2, 2h SLA). |
+| **`CompSeq`** | Chained Coordinator | Compound Request | Executes sequential pipeline: Step 1 Policy $\rightarrow$ Step 2 HCM $\rightarrow$ Step 3 ITSM. | Ensures all cross-system tasks succeed atomically. |
+| **`Synth & LogDB`** | Response Generator | Sub-Agent Evidence | Aggregates all JSON outputs into a friendly Markdown message; logs turn to Cloud SQL `hr_agentic_sessions.db`. | Streams response to Web UI and updates "My Hub" sidebar. |
+
+---
+
+## 4. Core Architecture & FastMCP Interface Contracts
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
@@ -186,7 +262,7 @@ To provide total architectural transparency, all technology and architectural to
 
 ---
 
-### 3.1. FastMCP Interface Contracts & Tool Catalog
+### 4.1. FastMCP Interface Contracts & Tool Catalog
 
 | Sub-Agent | Tool Name | Required Parameters | Return Payload Schema | Rate Limit |
 | :--- | :--- | :--- | :--- | :--- |
@@ -199,10 +275,7 @@ To provide total architectural transparency, all technology and architectural to
 
 ---
 
-## 4. Cross-System Orchestration & Step-by-Step Sequence Execution
-
-The following sequence diagram illustrates the exact step-by-step chaining when an employee submits a compound, multi-system intent:
-*"I need 2 days of sick leave starting 2026-09-01. Check policy, book my leave in WorkWeek, and create an IT ticket to route my emails."*
+## 5. Cross-System Orchestration & Step-by-Step Sequence Execution
 
 ```mermaid
 sequenceDiagram
@@ -253,9 +326,7 @@ sequenceDiagram
 
 ---
 
-## 5. Secure Identity Bridging Architecture (Email to Employee ID)
-
-To guarantee that employees can only view and mutate their own enterprise records, the system implements an **Identity Bridging Resolution Gateway**:
+## 6. Secure Identity Bridging Architecture (Email to Employee ID)
 
 ```
 ┌─────────────────────────┐       ┌─────────────────────────┐       ┌─────────────────────────┐
@@ -271,9 +342,9 @@ To guarantee that employees can only view and mutate their own enterprise record
 
 ---
 
-## 6. Infrastructure as Code (IaC) & CI/CD Pipelines
+## 7. Infrastructure as Code (IaC) & CI/CD Pipelines
 
-### 6.1. Terraform Infrastructure as Code (`main.tf`)
+### 7.1. Terraform Infrastructure as Code (`main.tf`)
 
 ```hcl
 terraform {
@@ -291,7 +362,7 @@ provider "google" {
   region  = var.region
 }
 
-# 1. Cloud Run Service (Web UI & Multi-Agent Gateway)
+# Cloud Run Service (Web UI & Multi-Agent Gateway)
 resource "google_cloud_run_v2_service" "hr_agent_service" {
   name     = "hr-agentic-solution"
   location = var.region
@@ -331,7 +402,7 @@ resource "google_cloud_run_v2_service" "hr_agent_service" {
   }
 }
 
-# 2. Google Cloud Secret Manager for FastMCP Token
+# Google Cloud Secret Manager for FastMCP Token
 resource "google_secret_manager_secret" "mcp_token" {
   secret_id = "hr-agent-mcp-token"
   replication {
@@ -339,7 +410,7 @@ resource "google_secret_manager_secret" "mcp_token" {
   }
 }
 
-# 3. Cloud SQL PostgreSQL Instance (Session Storage)
+# Cloud SQL PostgreSQL Instance (Session Storage)
 resource "google_sql_database_instance" "postgres_instance" {
   name             = "hr-agent-postgres"
   database_version = "POSTGRES_15"
@@ -356,7 +427,7 @@ resource "google_sql_database_instance" "postgres_instance" {
 
 ---
 
-### 6.2. Automated CI/CD Pipeline (`cloudbuild.yaml`)
+### 7.2. Automated CI/CD Pipeline (`cloudbuild.yaml`)
 
 ```yaml
 steps:
@@ -408,9 +479,9 @@ timeout: '900s'
 
 ---
 
-## 7. Downstream Error Handling, State Persistence & Dynamic Ingestion
+## 8. Downstream Error Handling, State Persistence & Dynamic Ingestion
 
-### 7.1. Consolidated Downstream API Error-Handling Matrix
+### 8.1. Consolidated Downstream API Error-Handling Matrix
 
 | HTTP Status / Error | Downstream Trigger Condition | User-Facing Conversational Message | System / Recovery Action |
 | :--- | :--- | :--- | :--- |
@@ -423,7 +494,7 @@ timeout: '900s'
 
 ---
 
-### 7.2. Canary Verification Loop & Quantitative Evaluation Metrics
+### 8.2. Canary Verification Loop & Quantitative Evaluation Metrics
 
 | Quantitative Metric | Target Threshold | Measurement Framework | Definition & Purpose |
 | :--- | :---: | :--- | :--- |
@@ -435,7 +506,7 @@ timeout: '900s'
 
 ---
 
-## 8. Database Schemas, DDL & Entity-Relationship Diagram (ERD)
+## 9. Database Schemas, DDL & Entity-Relationship Diagram (ERD)
 
 ```sql
 -- PostgreSQL Cloud SQL DDL
@@ -474,9 +545,9 @@ CREATE TABLE escalation_tickets (
 
 ---
 
-## 9. Security, RBAC, Privacy & Consolidated Risk Register
+## 10. Security, RBAC, Privacy & Consolidated Risk Register
 
-### 9.1. Role-Based Access Control (RBAC) Matrix
+### 10.1. Role-Based Access Control (RBAC) Matrix
 
 | Enterprise Role | Authorized Sub-Agents | Allowed Tools & Actions | Prohibited Actions |
 | :--- | :--- | :--- | :--- |
@@ -487,7 +558,7 @@ CREATE TABLE escalation_tickets (
 
 ---
 
-### 9.2. Consolidated Enterprise Risk Register
+### 10.2. Consolidated Enterprise Risk Register
 
 | Risk ID | Category | Risk Description | Likelihood | Impact | Technical Mitigation Strategy | Owner |
 | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
@@ -499,9 +570,7 @@ CREATE TABLE escalation_tickets (
 
 ---
 
-## 10. Future Innovation Opportunities & Next-Phase Roadmap
-
-The modular architecture naturally accommodates future enterprise scale and omnichannel extensions:
+## 11. Future Innovation Opportunities & Next-Phase Roadmap
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -525,7 +594,7 @@ The modular architecture naturally accommodates future enterprise scale and omni
 
 ---
 
-## 11. Conclusion & 1-Click Deployment
+## 12. Conclusion & 1-Click Deployment
 
 The **HR Agentic Solution (MVP 1)** is fully implemented, verified, containerized, and ready for immediate deployment via:
 1. **Google Cloud Run (Full-Stack Web App)**: `./deploy_full_gcp.sh` (or `./deploy.sh --gcp`)

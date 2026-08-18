@@ -1,4 +1,4 @@
-"""Script to build the official Enterprise Solution Design Document in .docx format with full 5-dimension alternatives deep dive and visual diagrams."""
+"""Script to build the official Enterprise Solution Design Document in .docx format with full decision flowchart and node explanation matrix."""
 import os
 import zipfile
 import shutil
@@ -262,13 +262,33 @@ def create_docx():
         [2200, 1000, 2800, 3000]
     ))
 
-    # Section 3: Architecture & FastMCP Contracts
-    body.append(heading("3. Core Architecture & FastMCP Interface Contracts", 1))
+    # Section 3: End-to-End Decision Flowchart & Node Explanation
+    body.append(heading("3. End-to-End System Decision Logic Flowchart & Execution Matrix", 1))
+    body.append(p("The following visual flow diagram and node-by-node explanation define the deterministic decision path executed by the multi-agent system:"))
+    body.append(image("rIdImg2", "Multi-Agent AI Decision Flow"))
+
+    body.append(heading("3.1. Flowchart Node-by-Node Explanation Matrix", 2))
+    body.append(table(
+        ["Flowchart Node", "Component / Layer", "Input & Trigger Condition", "Execution Logic & Invariant Check", "Output / System Action"],
+        [
+            ["W3C & In-Flight DLP", "API Gateway", "Inbound user message", "Injects traceparent & X-Correlation-ID; regex scrubs Singapore NRICs with [NRIC_REDACTED].", "Sanitized, traced payload passed to agent."],
+            ["Identity Bridge", "Security Layer", "OIDC email claim", "Queries users directory table; immutably locks session to EMP-380.", "Blocks cross-user profile mutation attempts."],
+            ["hr_orchestrator", "Central AI Brain", "Natural language query", "Analyzes intent using Gemini 2.5 Flash; classifies request as Policy, HCM, ITSM, or Compound.", "Routes sub-tasks to specialist sub-agents."],
+            ["policy_specialist", "Knowledge Engine", "Policy inquiry", "Reads indexed OKF markdown; extracts exact statutory clauses (14d outpatient).", "Returns grounded answer with policy:// citations."],
+            ["BalanceGuard", "Safety Invariant", "Leave parameters", "Compares requested days against live WorkWeek vacation/sick balance.", "If <= balance: executes booking. If >: explains limit politely."],
+            ["SupportType", "ITSM / Escalation", "IT request or crisis", "Detects urgent medical/family crisis or downstream SaaS 5xx timeout.", "Standard: opens ticket. Crisis: calls escalate_to_human_hr (2h SLA)."],
+            ["CompSeq", "Chained Coordinator", "Compound request", "Executes atomic sequence: Policy Check -> Leave Booking -> IT Ticket Routing.", "Ensures end-to-end multi-system execution."],
+            ["Synth & LogDB", "Response Generator", "Sub-agent payloads", "Synthesizes final cohesive response; logs turn to Cloud SQL hr_agentic_sessions.db.", "Streams response to UI and refreshes My Hub drawer."]
+        ],
+        [1500, 1200, 1600, 2500, 2200]
+    ))
+
+    # Section 4: Architecture & FastMCP Contracts
+    body.append(heading("4. Core Architecture & FastMCP Interface Contracts", 1))
     body.append(p("The system implements a decoupled multi-agent architecture built on the Google ADK and Model Context Protocol, fronted by a 3-column web workspace:"))
     body.append(image("rIdImg1", "Target Solution Architecture"))
-    body.append(image("rIdImg2", "Multi-Agent AI Flow"))
 
-    body.append(heading("3.1. FastMCP Interface Contracts & Tool Catalog", 2))
+    body.append(heading("4.1. FastMCP Interface Contracts & Tool Catalog", 2))
     body.append(table(
         ["Sub-Agent", "Tool Name", "Required Parameters", "Return Payload Schema", "Rate Limit"],
         [
@@ -282,28 +302,9 @@ def create_docx():
         [1500, 1800, 2000, 2500, 1200]
     ))
 
-    # Section 4: Cross-System Orchestration
-    body.append(heading("4. Cross-System Orchestration & Step-by-Step Chaining", 1))
-    body.append(bullet(" Step 1: Policy specialist validates Singapore MOM statutory sick leave rules (14d outpatient, 60d hospitalization).", "Policy Validation: "))
-    body.append(bullet(" Step 2: HCM specialist checks live WorkWeek balance (10.0d available) and confirms 2-day booking (Req ID: REQ-8812).", "Transactional Booking: "))
-    body.append(bullet(" Step 3: ITSM specialist opens IT Access Ticket INC0002608 with Moderate priority to route emails during absence.", "IT Routing: "))
-    body.append(bullet(" Step 4: Orchestrator unifies sub-agent confirmations into a single cohesive response streamed to Web UI.", "Response Synthesis: "))
-
-    # Section 5: Identity Bridging
-    body.append(heading("5. Secure Identity Bridging Architecture (Email to Employee ID)", 1))
-    body.append(bullet(" Corporate SSO passes verified email claim (emp380@enterprise.demo) upon OIDC login.", "SSO Ingress: "))
-    body.append(bullet(" Gateway queries local users directory (Redis SCIM cache) to resolve email -> normalized employee_id (EMP-380).", "Directory Resolution: "))
-    body.append(bullet(" The resolved employee_id is immutably locked to session context, strictly preventing cross-user profile mutations.", "Session Security Binding: "))
-
-    # Section 6: Infrastructure as Code & CI/CD
-    body.append(heading("6. Infrastructure as Code (Terraform) & Automated CI/CD", 1))
-    body.append(bullet(" Serverless Cloud Run service with 1-10 autoscaling, 2 CPU, 2Gi RAM, and public HTTPS ingress.", "Terraform main.tf: "))
-    body.append(bullet(" Google Cloud Secret Manager manages MCP_TOKEN with automated rotation and zero plaintext code storage.", "Secret Manager: "))
-    body.append(bullet(" Cloud Build automated CI/CD runs 12 unit/integration tests (tests/run_tests.py) before zero-downtime production deployment.", "Cloud Build Pipeline: "))
-
-    # Section 7: Downstream Error Handling & Canary Metrics
-    body.append(heading("7. Downstream Error Handling, State Persistence & Dynamic Ingestion", 1))
-    body.append(heading("7.1. Consolidated Downstream API Error-Handling Matrix", 2))
+    # Section 5: Downstream Error Handling
+    body.append(heading("5. Downstream Error Handling, State Persistence & Dynamic Ingestion", 1))
+    body.append(heading("5.1. Consolidated Downstream API Error-Handling Matrix", 2))
     body.append(table(
         ["HTTP Status", "Trigger Condition", "User-Facing Conversational Message", "System / Recovery Action"],
         [
@@ -316,23 +317,9 @@ def create_docx():
         [1400, 2200, 3200, 2200]
     ))
 
-    # Section 8: Database Schemas & DDL
-    body.append(heading("8. Database Schemas, Entity-Relationship Diagram (ERD) & DDL", 1))
-    body.append(table(
-        ["Table Name", "Primary Key", "Foreign Keys", "Core Responsibilities & Compliance Scope"],
-        [
-            ["users", "user_id", "None", "Stores employee identity (EMP-380), email, full name, department, country code."],
-            ["chat_sessions", "session_id", "user_id -> users", "Maintains conversational sessions, channel origin, and active state."],
-            ["session_messages", "message_id", "session_id -> chat_sessions", "Stores input/output transcripts, W3C correlation ID, and token usage metrics."],
-            ["tool_executions", "execution_id", "session_id -> chat_sessions", "Immutable audit trail of all sub-agent tool calls, parameters, and latencies."],
-            ["escalation_tickets", "ticket_id", "session_id, user_id", "Tracks Tier-2 human HR escalation lifecycle, SLA timers, and acknowledgement status."]
-        ],
-        [1500, 1300, 1800, 4400]
-    ))
-
-    # Section 9: Security, RBAC & Risk Register
-    body.append(heading("9. Security, RBAC, Privacy & Consolidated Risk Register", 1))
-    body.append(heading("9.1. Role-Based Access Control (RBAC) Matrix", 2))
+    # Section 6: Security, RBAC & Risk Register
+    body.append(heading("6. Security, RBAC, Privacy & Consolidated Risk Register", 1))
+    body.append(heading("6.1. Role-Based Access Control (RBAC) Matrix", 2))
     body.append(table(
         ["Enterprise Role", "Authorized Sub-Agents", "Allowed Tools & Actions", "Prohibited Actions"],
         [
@@ -344,7 +331,7 @@ def create_docx():
         [1800, 1600, 2800, 2800]
     ))
 
-    body.append(heading("9.2. Consolidated Enterprise Risk Register", 2))
+    body.append(heading("6.2. Consolidated Enterprise Risk Register", 2))
     body.append(table(
         ["Risk ID", "Category", "Risk Description", "Likelihood", "Impact", "Technical Mitigation Strategy", "Owner"],
         [
@@ -357,15 +344,15 @@ def create_docx():
         [800, 1100, 2300, 900, 900, 2000, 1000]
     ))
 
-    # Section 10: Future Opportunities
-    body.append(heading("10. Future Innovation Opportunities & Strategic Roadmap", 1))
+    # Section 7: Future Opportunities
+    body.append(heading("7. Future Innovation Opportunities & Strategic Roadmap", 1))
     body.append(bullet(" Connect FastAPI gateway to Slack Bolt & MS Teams for direct slash command interaction in daily tools.", "Omnichannel Slack / Teams Expansion: "))
     body.append(bullet(" Cloud Eventarc & Pub/Sub integration to notify employees of expiring vacation balances before annual rollover.", "Proactive Leave Rollover Alerts: "))
     body.append(bullet(" Graph RAG (Neo4j / Vertex) to automate multi-tier matrix manager leave and equipment approval flows.", "Graph RAG Matrix Approvals: "))
     body.append(bullet(" Dedicated manager copilot providing 1-click team leave approvals and on-call coverage analysis.", "Manager Copilot Sub-Agent: "))
 
-    # Section 11: Conclusion
-    body.append(heading("11. Conclusion & 1-Click Deployment", 1))
+    # Section 8: Conclusion
+    body.append(heading("8. Conclusion & 1-Click Deployment", 1))
     body.append(p("The HR Agentic Solution (MVP 1) is fully implemented, verified, and ready for immediate deployment via:"))
     body.append(bullet(" 1-Click build and deploy to Google Cloud Run with public HTTPS URL.", "Full-Stack Web App: ./deploy_full_gcp.sh —"))
     body.append(bullet(" Direct ADK Reasoning Engine deployment to Vertex AI Agent Space.", "Gemini Enterprise Runtime: ./deploy_gemini_enterprise.sh —"))
