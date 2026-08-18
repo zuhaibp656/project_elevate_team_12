@@ -114,18 +114,24 @@
     /* Header Nav */
     header {
       width: 100%;
-      max-width: 1220px;
-      padding: 20px 24px 14px;
+      max-width: 1380px;
+      padding: 16px 20px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 20;
     }
 
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
       color: var(--text-main);
       cursor: pointer;
@@ -147,17 +153,17 @@
     .dot-green { background: var(--g-green); }
 
     .brand-text {
-      font-size: 19px;
+      font-size: 18.5px;
       font-weight: 700;
       letter-spacing: -0.4px;
     }
 
     .brand-badge {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
       background: var(--g-blue-light);
       color: var(--g-blue);
-      padding: 3px 8px;
+      padding: 2.5px 7px;
       border-radius: var(--radius-full);
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -165,7 +171,7 @@
 
     .header-actions {
       display: flex;
-      gap: 9px;
+      gap: 8px;
       align-items: center;
     }
 
@@ -173,14 +179,14 @@
       background: var(--surface-color);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 7px 13px;
+      padding: 6px 12px;
       border-radius: var(--radius-full);
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 500;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       text-decoration: none;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: var(--shadow-sm);
@@ -198,17 +204,138 @@
       border-color: rgba(66, 133, 244, 0.35);
     }
 
-    /* App 2-Column Layout */
+    /* 3-Column Workspace Layout */
     .app-layout {
       width: 100%;
-      max-width: 1220px;
+      max-width: 1380px;
       display: flex;
-      gap: 24px;
-      padding: 0 24px 140px;
+      gap: 18px;
+      padding: 0 16px 140px;
       z-index: 10;
       flex: 1;
       align-items: flex-start;
       position: relative;
+    }
+
+    /* Left Panel: Conversation History & Chats */
+    .history-side-panel {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: sticky;
+      top: 16px;
+      max-height: calc(100vh - 100px);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .history-side-panel.collapsed {
+      width: 0;
+      padding: 0;
+      margin: 0;
+      opacity: 0;
+      border: none;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .btn-new-chat-prominent {
+      background: var(--g-blue);
+      color: white;
+      border: none;
+      border-radius: var(--radius-full);
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 3px 10px rgba(26, 115, 232, 0.3);
+      transition: all 0.2s;
+    }
+
+    .btn-new-chat-prominent:hover {
+      background: #1557b0;
+      transform: scale(1.02);
+    }
+
+    .history-list-wrapper {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      padding-right: 4px;
+    }
+
+    .history-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin: 6px 0 4px 4px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      color: var(--text-main);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      text-align: left;
+    }
+
+    .history-item:hover {
+      background: var(--surface-subtle);
+    }
+
+    .history-item.active {
+      background: var(--g-blue-light);
+      color: var(--g-blue);
+      font-weight: 600;
+      border-color: rgba(66, 133, 244, 0.25);
+    }
+
+    .history-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      margin-right: 6px;
+    }
+
+    .btn-del-history {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      padding: 2px;
+    }
+
+    .history-item:hover .btn-del-history {
+      opacity: 1;
+    }
+
+    .btn-del-history:hover {
+      color: #ea4335;
     }
 
     /* Main Chat Canvas */
@@ -219,7 +346,6 @@
       flex-direction: column;
       align-items: center;
       position: relative;
-      transition: max-width 0.35s ease;
     }
 
     /* Initial Hero & Center Box Container */
@@ -229,7 +355,7 @@
       flex-direction: column;
       align-items: center;
       transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-      margin-top: 45px;
+      margin-top: 40px;
     }
 
     .initial-view.collapsed {
@@ -243,11 +369,11 @@
 
     .hero {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 28px;
     }
 
     .hero-title {
-      font-size: 40px;
+      font-size: 38px;
       font-weight: 700;
       letter-spacing: -1px;
       color: var(--text-main);
@@ -258,11 +384,11 @@
     }
 
     .hero-subtitle {
-      font-size: 15px;
+      font-size: 14.5px;
       color: var(--text-muted);
-      max-width: 520px;
+      max-width: 500px;
       margin: 0 auto;
-      line-height: 1.6;
+      line-height: 1.55;
     }
 
     /* Neon Ring Search Box Wrapper */
@@ -655,7 +781,7 @@
       border-color: var(--g-blue);
     }
 
-    /* Markdown Body Styling */
+    /* Markdown Body Styling & Link Badges */
     .markdown-body {
       font-size: 15px;
       line-height: 1.75;
@@ -800,20 +926,22 @@
       gap: 8px;
     }
 
-    /* Dedicated "My Hub" Side Panel */
+    /* Right Panel: "My Hub" Side Panel */
     .hub-side-panel {
-      width: 320px;
+      width: 290px;
       flex-shrink: 0;
       background: var(--surface-color);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-sm);
-      padding: 20px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
       position: sticky;
-      top: 20px;
+      top: 16px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
       transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -831,17 +959,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 12px;
+      padding-bottom: 10px;
       border-bottom: 1px solid var(--border-color);
     }
 
     .panel-title {
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 700;
       color: var(--text-main);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .btn-panel-toggle {
@@ -859,7 +987,7 @@
     }
 
     .hub-section-title {
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -877,9 +1005,9 @@
     .balance-info {
       display: flex;
       justify-content: space-between;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
-      margin-bottom: 5px;
+      margin-bottom: 4px;
     }
 
     .progress-bar-bg {
@@ -903,7 +1031,7 @@
       background: var(--surface-subtle);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
-      padding: 10px 12px;
+      padding: 9px 11px;
       cursor: pointer;
       transition: all 0.2s;
     }
@@ -1038,41 +1166,65 @@
 
   <!-- Header -->
   <header>
-    <div class="brand" id="btnBrandHome" title="Start New Conversation">
-      <div class="google-dots">
-        <div class="dot dot-blue"></div>
-        <div class="dot dot-red"></div>
-        <div class="dot dot-yellow"></div>
-        <div class="dot dot-green"></div>
+    <div class="header-left">
+      <button class="btn-action active" id="btnToggleHistory" title="Toggle Conversation History Panel">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Chats
+      </button>
+      <div class="brand" id="btnBrandHome" title="Start New Conversation">
+        <div class="google-dots">
+          <div class="dot dot-blue"></div>
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <span class="brand-text">Elevate HR</span>
+        <span class="brand-badge">Team 12</span>
       </div>
-      <span class="brand-text">Elevate HR</span>
-      <span class="brand-badge">Team 12</span>
     </div>
+    
     <div class="header-actions">
+      <button class="btn-action" id="btnNewChatHeader" title="Start New Conversation">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        New Chat
+      </button>
       <button class="btn-action active" id="btnToggleHub" title="Toggle My Hub Side Panel">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         My Hub
       </button>
       <button class="btn-action" id="btnExportChat" style="display: none;" title="Download Consultation Transcript">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         Export
       </button>
       <button class="btn-action" id="btnThemeToggle" title="Toggle Dark/Light Mode">
         🌙
       </button>
       <button class="btn-action" id="btnHowToUse">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        How to Use
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        Guide
       </button>
       <a href="https://mock-saas.aishprabhat.demo.altostrat.com/" target="_blank" class="btn-action">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-        SaaS Portal
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        Portal
       </a>
     </div>
   </header>
 
-  <!-- 2-Column App Layout -->
+  <!-- 3-Column App Layout -->
   <div class="app-layout">
+    <!-- Left Panel: Conversation History & Chats -->
+    <aside class="history-side-panel" id="historySidePanel">
+      <button class="btn-new-chat-prominent" id="btnNewChatSidebar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        New Conversation
+      </button>
+
+      <div class="history-label">Past Conversations</div>
+      <div class="history-list-wrapper" id="historyListContainer">
+        <!-- Injected via JavaScript -->
+      </div>
+    </aside>
+
     <!-- Main Chat Canvas -->
     <main class="chat-canvas">
       <!-- Initial Center Search & Hero View -->
@@ -1157,7 +1309,7 @@
       </div>
     </main>
 
-    <!-- Dedicated "My Hub" Side Panel -->
+    <!-- Right Panel: "My Hub" Side Panel -->
     <aside class="hub-side-panel" id="hubSidePanel">
       <div class="panel-header">
         <div class="panel-title">
@@ -1168,16 +1320,16 @@
 
       <!-- Employee Info -->
       <div class="hub-section">
-        <div style="font-size: 14.5px; font-weight: 700;">Zuhaibp Employee</div>
-        <div style="font-size: 12px; color: var(--g-blue); font-weight: 600;">EMP-380 • Senior Cloud Engineer</div>
-        <div style="font-size: 11.5px; color: var(--text-muted);">📍 Singapore Office, Pasir Panjang</div>
+        <div style="font-size: 14px; font-weight: 700;">Zuhaibp Employee</div>
+        <div style="font-size: 11.5px; color: var(--g-blue); font-weight: 600;">EMP-380 • Senior Cloud Engineer</div>
+        <div style="font-size: 11px; color: var(--text-muted);">📍 Singapore Office, Pasir Panjang</div>
       </div>
 
       <!-- Leave Balances -->
       <div class="hub-section">
         <div class="hub-section-title">
           <span>Leave Balances (2026)</span>
-          <a href="https://mock-saas.aishprabhat.demo.altostrat.com/work-week/" target="_blank" title="Open in WorkWeek HCM" style="color: var(--g-blue); text-decoration: none; font-size: 11px; font-weight: 600;">WorkWeek ↗</a>
+          <a href="https://mock-saas.aishprabhat.demo.altostrat.com/work-week/" target="_blank" title="Open in WorkWeek HCM" style="color: var(--g-blue); text-decoration: none; font-size: 10.5px; font-weight: 600;">WorkWeek ↗</a>
         </div>
         <div class="balance-row">
           <div class="balance-info">
@@ -1203,10 +1355,10 @@
       <div class="hub-section">
         <div class="hub-section-title">
           <span>Recent Tickets</span>
-          <button style="background: none; border: none; color: var(--g-blue); font-size: 11px; cursor: pointer;" id="btnRefreshSideHub">🔄 Refresh</button>
+          <button style="background: none; border: none; color: var(--g-blue); font-size: 10.5px; cursor: pointer;" id="btnRefreshSideHub">🔄 Refresh</button>
         </div>
         <div id="sideHubTickets">
-          <div style="font-size: 12px; color: var(--text-muted);">Loading tickets...</div>
+          <div style="font-size: 11.5px; color: var(--text-muted);">Loading tickets...</div>
         </div>
       </div>
     </aside>
@@ -1293,6 +1445,13 @@
     const modalClose = document.getElementById('modalClose');
     const toastMsg = document.getElementById('toastMsg');
 
+    // Panels
+    const btnToggleHistory = document.getElementById('btnToggleHistory');
+    const historySidePanel = document.getElementById('historySidePanel');
+    const historyListContainer = document.getElementById('historyListContainer');
+    const btnNewChatSidebar = document.getElementById('btnNewChatSidebar');
+    const btnNewChatHeader = document.getElementById('btnNewChatHeader');
+
     const btnToggleHub = document.getElementById('btnToggleHub');
     const hubSidePanel = document.getElementById('hubSidePanel');
     const btnClosePanel = document.getElementById('btnClosePanel');
@@ -1302,8 +1461,8 @@
     const btnInitialMic = document.getElementById('btnInitialMic');
     const btnBottomMic = document.getElementById('btnBottomMic');
 
-    let isChatActive = false;
-    let conversationHistory = [];
+    let currentSessionId = null;
+    let chatSessions = [];
 
     const modeColors = {
       auto: '#1a73e8',
@@ -1337,14 +1496,108 @@
       btnThemeToggle.innerText = isDark ? '🌙' : '☀️';
     });
 
-    // Side Panel Toggle
-    function toggleSidePanel() {
+    // Panel Toggles
+    btnToggleHistory.addEventListener('click', () => {
+      const isCollapsed = historySidePanel.classList.toggle('collapsed');
+      btnToggleHistory.classList.toggle('active', !isCollapsed);
+    });
+
+    function toggleHubPanel() {
       const isCollapsed = hubSidePanel.classList.toggle('collapsed');
       btnToggleHub.classList.toggle('active', !isCollapsed);
     }
+    btnToggleHub.addEventListener('click', toggleHubPanel);
+    btnClosePanel.addEventListener('click', toggleHubPanel);
 
-    btnToggleHub.addEventListener('click', toggleSidePanel);
-    btnClosePanel.addEventListener('click', toggleSidePanel);
+    // Load Chat Sessions from localStorage
+    function loadSavedSessions() {
+      try {
+        const saved = localStorage.getItem('elevate_hr_sessions');
+        chatSessions = saved ? JSON.parse(saved) : [];
+      } catch (e) {
+        chatSessions = [];
+      }
+      renderHistoryList();
+    }
+
+    function saveSessions() {
+      try {
+        localStorage.setItem('elevate_hr_sessions', JSON.stringify(chatSessions));
+      } catch (e) {}
+      renderHistoryList();
+    }
+
+    function renderHistoryList() {
+      if (chatSessions.length === 0) {
+        historyListContainer.innerHTML = '<div style="font-size: 11.5px; color: var(--text-muted); padding: 8px 4px;">No saved conversations.</div>';
+        return;
+      }
+      historyListContainer.innerHTML = chatSessions.map(session => `
+        <div class="history-item ${session.id === currentSessionId ? 'active' : ''}" onclick="switchSession('${session.id}')">
+          <span class="history-title" title="${session.title}">${session.title}</span>
+          <button class="btn-del-history" onclick="deleteSession(event, '${session.id}')" title="Delete chat">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function createNewSession() {
+      currentSessionId = 'session_' + Date.now();
+      chatStream.innerHTML = '';
+      chatStream.style.display = 'none';
+      loadingCard.style.display = 'none';
+      initialView.classList.remove('collapsed');
+      bottomBar.classList.remove('visible');
+      btnExportChat.style.display = 'none';
+      initialInput.value = '';
+      initialInput.style.height = 'auto';
+      btnInitialSubmit.disabled = true;
+      initialInput.focus();
+      renderHistoryList();
+    }
+
+    function switchSession(sessionId) {
+      const session = chatSessions.find(s => s.id === sessionId);
+      if (!session) return;
+      currentSessionId = session.id;
+
+      initialView.classList.add('collapsed');
+      chatStream.style.display = 'flex';
+      bottomBar.classList.add('visible');
+      btnExportChat.style.display = 'flex';
+      chatStream.innerHTML = '';
+
+      session.messages.forEach(msg => {
+        const msgGroup = document.createElement('div');
+        msgGroup.className = 'msg-group';
+
+        if (msg.role === 'user') {
+          const userBubble = document.createElement('div');
+          userBubble.className = 'user-msg';
+          userBubble.innerText = msg.text;
+          msgGroup.appendChild(userBubble);
+        } else {
+          const assistantCard = renderAssistantCard(msg.text, msg.mode, msg.trace);
+          msgGroup.appendChild(assistantCard);
+        }
+        chatStream.appendChild(msgGroup);
+      });
+
+      renderHistoryList();
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    function deleteSession(e, sessionId) {
+      e.stopPropagation();
+      chatSessions = chatSessions.filter(s => s.id !== sessionId);
+      saveSessions();
+      if (currentSessionId === sessionId) {
+        createNewSession();
+      }
+    }
+
+    btnNewChatSidebar.addEventListener('click', createNewSession);
+    btnNewChatHeader.addEventListener('click', createNewSession);
+    btnBrandHome.addEventListener('click', createNewSession);
 
     // Voice Input (Web Speech API)
     function setupVoice(btn, inputEl) {
@@ -1412,28 +1665,93 @@
       if (bottomInput.value.trim()) handleSendMessage(bottomInput.value.trim());
     });
 
-    // Reset to initial screen
-    function resetChat() {
-      isChatActive = false;
-      conversationHistory = [];
-      chatStream.innerHTML = '';
-      chatStream.style.display = 'none';
-      loadingCard.style.display = 'none';
-      initialView.classList.remove('collapsed');
-      bottomBar.classList.remove('visible');
-      btnExportChat.style.display = 'none';
-      initialInput.value = '';
-      initialInput.style.height = 'auto';
-      btnInitialSubmit.disabled = true;
-      initialInput.focus();
-    }
+    // Assistant Card Builder
+    function renderAssistantCard(responseHtml, mode, trace = []) {
+      const assistantCard = document.createElement('div');
+      assistantCard.className = 'assistant-card';
 
-    btnBrandHome.addEventListener('click', resetChat);
+      const cardHeader = document.createElement('div');
+      cardHeader.className = 'card-header';
+      cardHeader.innerHTML = `
+        <div class="card-meta">
+          <div class="google-dots">
+            <div class="dot dot-blue"></div>
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+          </div>
+          <span class="agent-pill">${modeLabels[mode] || (mode ? mode.toUpperCase() : 'AUTO')}</span>
+        </div>
+        <button class="btn-copy">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Copy
+        </button>
+      `;
+
+      const copyBtn = cardHeader.querySelector('.btn-copy');
+      copyBtn.addEventListener('click', () => {
+        const bodyText = markdownBody.innerText;
+        navigator.clipboard.writeText(bodyText).then(() => {
+          toastMsg.style.display = 'block';
+          setTimeout(() => { toastMsg.style.display = 'none'; }, 2200);
+        });
+      });
+
+      const markdownBody = document.createElement('div');
+      markdownBody.className = 'markdown-body';
+      markdownBody.innerHTML = marked.parse(responseHtml || "No response generated.");
+
+      assistantCard.appendChild(cardHeader);
+      assistantCard.appendChild(markdownBody);
+
+      // Reasoning Trace Accordion
+      if (trace && trace.length > 0) {
+        const traceWrapper = document.createElement('div');
+        traceWrapper.className = 'trace-wrapper';
+        traceWrapper.innerHTML = `
+          <button class="trace-toggle">
+            <span>🧠</span> View Agent Execution Trace (${trace.length} tool calls) ▾
+          </button>
+          <div class="trace-content">
+            ${trace.map((t, idx) => `<div><strong>${idx + 1}. Tool: ${t.tool}</strong></div>`).join('')}
+          </div>
+        `;
+        const toggleBtn = traceWrapper.querySelector('.trace-toggle');
+        const traceContent = traceWrapper.querySelector('.trace-content');
+        toggleBtn.addEventListener('click', () => {
+          const isShown = traceContent.style.display === 'block';
+          traceContent.style.display = isShown ? 'none' : 'block';
+          toggleBtn.innerHTML = `<span>🧠</span> View Agent Execution Trace (${trace.length} tool calls) ${isShown ? '▾' : '▴'}`;
+        });
+        assistantCard.appendChild(traceWrapper);
+      }
+
+      // Quick Action Chips
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'response-actions';
+      const followups = [
+        "Check my updated balances",
+        "Show all my open tickets",
+        "What is the sick leave policy?"
+      ];
+      followups.forEach(fText => {
+        const chip = document.createElement('button');
+        chip.className = 'res-action-chip';
+        chip.innerText = fText;
+        chip.addEventListener('click', () => handleSendMessage(fText));
+        actionsDiv.appendChild(chip);
+      });
+      assistantCard.appendChild(actionsDiv);
+
+      return assistantCard;
+    }
 
     // Export Chat Transcript
     btnExportChat.addEventListener('click', () => {
-      let md = `# Elevate HR Consultation Transcript\n*Date: ${new Date().toLocaleString()}*\n\n---\n\n`;
-      conversationHistory.forEach(item => {
+      const activeSession = chatSessions.find(s => s.id === currentSessionId);
+      if (!activeSession) return;
+      let md = `# Elevate HR Consultation Transcript: ${activeSession.title}\n*Date: ${new Date(activeSession.timestamp).toLocaleString()}*\n\n---\n\n`;
+      activeSession.messages.forEach(item => {
         if (item.role === 'user') {
           md += `### 👤 Employee:\n${item.text}\n\n`;
         } else {
@@ -1449,19 +1767,32 @@
       URL.revokeObjectURL(url);
     });
 
-    // Send message execution
+    // Send Message Execution
     async function handleSendMessage(text) {
       if (!text) return;
 
       const currentMode = initialModeSelect.value || 'auto';
 
-      if (!isChatActive) {
-        isChatActive = true;
-        initialView.classList.add('collapsed');
-        chatStream.style.display = 'flex';
-        bottomBar.classList.add('visible');
-        btnExportChat.style.display = 'flex';
+      if (!currentSessionId) {
+        currentSessionId = 'session_' + Date.now();
       }
+
+      let activeSession = chatSessions.find(s => s.id === currentSessionId);
+      if (!activeSession) {
+        activeSession = {
+          id: currentSessionId,
+          title: text.length > 32 ? text.substring(0, 32) + '...' : text,
+          timestamp: Date.now(),
+          messages: []
+        };
+        chatSessions.unshift(activeSession);
+      }
+
+      // Transition to active chat
+      initialView.classList.add('collapsed');
+      chatStream.style.display = 'flex';
+      bottomBar.classList.add('visible');
+      btnExportChat.style.display = 'flex';
 
       initialInput.value = '';
       initialInput.style.height = 'auto';
@@ -1471,7 +1802,9 @@
       btnBottomSubmit.disabled = true;
 
       // Append User message
-      conversationHistory.push({ role: 'user', text: text });
+      activeSession.messages.push({ role: 'user', text: text });
+      saveSessions();
+
       const msgGroup = document.createElement('div');
       msgGroup.className = 'msg-group';
 
@@ -1483,7 +1816,7 @@
 
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 
-      // Show minimal dancing dots
+      // Minimal dancing dots loader
       loadingCard.style.display = 'flex';
 
       try {
@@ -1497,88 +1830,17 @@
         if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
         const data = await res.json();
 
-        conversationHistory.push({ role: 'assistant', text: data.response, mode: data.mode });
-
-        // Assistant Card
-        const assistantCard = document.createElement('div');
-        assistantCard.className = 'assistant-card';
-
-        const cardHeader = document.createElement('div');
-        cardHeader.className = 'card-header';
-        cardHeader.innerHTML = `
-          <div class="card-meta">
-            <div class="google-dots">
-              <div class="dot dot-blue"></div>
-              <div class="dot dot-red"></div>
-              <div class="dot dot-yellow"></div>
-              <div class="dot dot-green"></div>
-            </div>
-            <span class="agent-pill">${modeLabels[data.mode] || data.mode.toUpperCase()}</span>
-          </div>
-          <button class="btn-copy">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            Copy
-          </button>
-        `;
-
-        const copyBtn = cardHeader.querySelector('.btn-copy');
-        copyBtn.addEventListener('click', () => {
-          const bodyText = markdownBody.innerText;
-          navigator.clipboard.writeText(bodyText).then(() => {
-            toastMsg.style.display = 'block';
-            setTimeout(() => { toastMsg.style.display = 'none'; }, 2200);
-          });
+        activeSession.messages.push({
+          role: 'assistant',
+          text: data.response,
+          mode: data.mode,
+          trace: data.trace || []
         });
+        saveSessions();
 
-        const markdownBody = document.createElement('div');
-        markdownBody.className = 'markdown-body';
-        markdownBody.innerHTML = marked.parse(data.response || "No response generated.");
-
-        assistantCard.appendChild(cardHeader);
-        assistantCard.appendChild(markdownBody);
-
-        // Reasoning Trace Accordion
-        if (data.trace && data.trace.length > 0) {
-          const traceWrapper = document.createElement('div');
-          traceWrapper.className = 'trace-wrapper';
-          traceWrapper.innerHTML = `
-            <button class="trace-toggle">
-              <span>🧠</span> View Agent Execution Trace (${data.trace.length} tool calls) ▾
-            </button>
-            <div class="trace-content">
-              ${data.trace.map((t, idx) => `<div><strong>${idx + 1}. Tool: ${t.tool}</strong></div>`).join('')}
-            </div>
-          `;
-          const toggleBtn = traceWrapper.querySelector('.trace-toggle');
-          const traceContent = traceWrapper.querySelector('.trace-content');
-          toggleBtn.addEventListener('click', () => {
-            const isShown = traceContent.style.display === 'block';
-            traceContent.style.display = isShown ? 'none' : 'block';
-            toggleBtn.innerHTML = `<span>🧠</span> View Agent Execution Trace (${data.trace.length} tool calls) ${isShown ? '▾' : '▴'}`;
-          });
-          assistantCard.appendChild(traceWrapper);
-        }
-
-        // Quick Follow-up Action Chips
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'response-actions';
-        const followups = [
-          "Check my updated balances",
-          "Show all my open tickets",
-          "What is the sick leave policy?"
-        ];
-        followups.forEach(fText => {
-          const chip = document.createElement('button');
-          chip.className = 'res-action-chip';
-          chip.innerText = fText;
-          chip.addEventListener('click', () => handleSendMessage(fText));
-          actionsDiv.appendChild(chip);
-        });
-        assistantCard.appendChild(actionsDiv);
-
+        const assistantCard = renderAssistantCard(data.response, data.mode, data.trace || []);
         msgGroup.appendChild(assistantCard);
 
-        // Refresh side panel after transaction
         loadSideHubData();
 
       } catch (err) {
@@ -1626,16 +1888,17 @@
             `;
           }).join('');
         } else {
-          sideHubTickets.innerHTML = '<div style="font-size: 12px; color: var(--text-muted);">No active tickets.</div>';
+          sideHubTickets.innerHTML = '<div style="font-size: 11.5px; color: var(--text-muted);">No active tickets.</div>';
         }
       } catch(e) {
-        sideHubTickets.innerHTML = '<div style="font-size: 12px; color: #d93025;">Failed to load hub data.</div>';
+        sideHubTickets.innerHTML = '<div style="font-size: 11.5px; color: #d93025;">Failed to load hub data.</div>';
       }
     }
 
     btnRefreshSideHub.addEventListener('click', loadSideHubData);
 
-    // Initial Side Hub Load
+    // Initial setup
+    loadSavedSessions();
     loadSideHubData();
 
     // Modal
