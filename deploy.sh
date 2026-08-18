@@ -75,12 +75,17 @@ case "$MODE" in
         fi
         "$PYTHON_EXEC" -m agents.orchestrator "$QUERY"
         ;;
+    --ge|--gemini-enterprise)
+        shift
+        exec ./deploy_gemini_enterprise.sh "$@"
+        ;;
     *)
         echo ""
         echo "Usage: ./deploy.sh [OPTION]"
         echo ""
         echo "Options:"
         echo "  -u, --ui            Launch the Elevate HR Google Aura Web UI (http://localhost:8090)"
+        echo "  --ge, --gemini-enterprise Deploy ONLY agent to Gemini Enterprise (Agent Engine / Cloud Run)"
         echo "  -w, --web           Launch the Google ADK Web View UI (http://localhost:8088)"
         echo "  -i, --cli           Launch Interactive Terminal Chat session"
         echo "  -t, --test          Run MCP endpoints connectivity test"
@@ -88,6 +93,7 @@ case "$MODE" in
         echo ""
         echo "Examples:"
         echo "  ./deploy.sh --ui"
+        echo "  ./deploy.sh --ge --project <PROJECT_ID>"
         echo "  ./deploy.sh --web"
         echo "  ./deploy.sh --cli"
         echo "  ./deploy.sh --query \"How many days of sick leave do I get?\""
