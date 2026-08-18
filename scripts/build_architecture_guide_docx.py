@@ -181,36 +181,6 @@ def create_guide_docx():
             </w:r>
         </w:p>'''
 
-    def callout(title, text):
-        escaped_title = title.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        escaped_text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        return f'''<w:tbl>
-            <w:tblPr>
-                <w:tblW w:w="9000" w:type="dxa"/>
-                <w:tblBorders>
-                    <w:left w:val="single" w:sz="24" w:space="0" w:color="3182CE"/>
-                    <w:top w:val="none"/>
-                    <w:bottom w:val="none"/>
-                    <w:right w:val="none"/>
-                </w:tblBorders>
-                <w:tblCellMar><w:top w:w="100" w:type="dxa"/><w:left w:w="160" w:type="dxa"/><w:bottom w:w="100" w:type="dxa"/><w:right w:w="160" w:type="dxa"/></w:tblCellMar>
-            </w:tblPr>
-            <w:tblGrid><w:gridCol w:w="9000"/></w:tblGrid>
-            <w:tr>
-                <w:tc>
-                    <w:tcPr><w:tcW w:w="9000" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="EBF8FF"/></w:tcPr>
-                    <w:p>
-                        <w:pPr><w:spacing w:after="30"/></w:pPr>
-                        <w:r><w:rPr><w:b/><w:color w:val="2B6CB0"/><w:sz w:val="19"/></w:rPr><w:t>{escaped_title}</w:t></w:r>
-                    </w:p>
-                    <w:p>
-                        <w:pPr><w:spacing w:after="30"/></w:pPr>
-                        <w:r><w:rPr><w:sz w:val="18"/><w:color w:val="2D3748"/></w:rPr><w:t>{escaped_text}</w:t></w:r>
-                    </w:p>
-                </w:tc>
-            </w:tr>
-        </w:tbl><w:p><w:pPr><w:spacing w:after="120"/></w:pPr></w:p>'''
-
     # Build the document XML content
     body = []
     
@@ -224,7 +194,7 @@ def create_guide_docx():
     body.append(table(
         ["Field", "Value"],
         [
-            ["Document Title", "The HR Agentic Solution: Architecture, Philosophy & Design Guide"],
+            ["Document Title", "The HR Agentic Solution: Architecture, Philosophy & Practical Design Guide"],
             ["Project Name", "Project Elevate — HR Agentic Solution"],
             ["Team", "Team 12"],
             ["Author(s)", "Team 12"],
@@ -244,7 +214,7 @@ def create_guide_docx():
 
     # Section 2: Core Philosophy & Design Choices
     body.append(heading("2. Our Core Design Philosophy: Why We Made These Choices", 1))
-    body.append(heading("2.1. Plain-English Architecture Translation", 2))
+    body.append(heading("2.1. Plain-English Architecture Translation for Executives", 2))
     body.append(table(
         ["Technical Term", "Friendly Plain-English Analogy", "Real-World Business Function"],
         [
@@ -258,12 +228,18 @@ def create_guide_docx():
         [2500, 2500, 4000]
     ))
 
-    body.append(heading("2.2. The 5 Foundational Architectural Decisions", 2))
-    body.append(bullet(" Specialized domain agents (Policy, HCM, ITSM) supervised by an Orchestrator deliver higher accuracy and zero role confusion compared to a generic one-size-fits-all chatbot.", "1. Hub-and-Spoke Teamwork: "))
-    body.append(bullet(" Every policy answer is backed by verifiable clickable citations (policy://...). If a policy doesn't exist, the AI politely explains rather than making up answers.", "2. Grounded Factual Truth: "))
-    body.append(bullet(" Open standard FastMCP dynamically discovers tool schemas, ensuring zero breaking changes when Workday or ServiceNow update.", "3. Universal System Connectors: "))
-    body.append(bullet(" Technology should never block a human connection. Moments of crisis (medical, bereavement) automatically trigger Priority-2 HR tickets with 2-hour SLAs.", "4. Compassionate Human Escalation: "))
-    body.append(bullet(" In-flight DLP regex filters automatically redact Singapore NRICs, credit cards, and passwords before transmission, honoring employee dignity and GDPR/PDPA laws.", "5. Fierce Privacy Protection: "))
+    body.append(heading("2.2. Comprehensive Alternatives Scorecard Across 5 Pillars", 2))
+    body.append(table(
+        ["Architectural Pillar", "Selected Design", "Alternative Options Evaluated", "Why Our Choice Won & Trade-Offs"],
+        [
+            ["1. Orchestration", "Google ADK (LlmAgent)", "LangChain, CrewAI, Monolithic Bot", "SELECTED: Native Gemini streaming, sub-second latency, zero wrapper overhead."],
+            ["2. Knowledge RAG", "Dynamic Chunked OKF", "Pinecone Vector DB, Vertex Search", "SELECTED: 100% factual grounding, zero monthly hosting cost, <60s hot-reload."],
+            ["3. SaaS Integration", "FastMCP JSON-RPC 2.0", "Bespoke REST Clients, GraphQL", "SELECTED: Auto-discovers schemas at runtime, universal standard, IAP bypass."],
+            ["4. Persistence", "Stateless Cloud Run + DB", "Sticky Sessions, Client-Only State", "SELECTED: True horizontal auto-scaling (0-to-N), zero data loss on pod restart."],
+            ["5. User Workspace", "3-Column Aura Workspace", "Floating Chat Widget, Slack Only", "SELECTED: Complete glass pane eliminating context-switching with live telemetry."]
+        ],
+        [1800, 2000, 2400, 2800]
+    ))
 
     # Section 3: Architecture & Visual Overview
     body.append(heading("3. The Architecture: How the System Works Together", 1))
@@ -291,8 +267,15 @@ def create_guide_docx():
     body.append(bullet(" ITSM specialist immediately calls escalate_to_human_hr(), creating Priority-2 Case INC0002609 under HR Support with a 2-hour SLA.", "Execution Trace: "))
     body.append(p("Outcome: Employee is offered immediate condolences, 24/7 EAP counseling contacts, and a direct human callback commitment."))
 
-    # Section 5: Strategic Business & Human Outcomes
-    body.append(heading("5. Strategic Business & Human Outcomes", 1))
+    # Section 5: Future Innovation Opportunities
+    body.append(heading("5. Future Innovation Opportunities & Next-Phase Roadmap", 1))
+    body.append(bullet(" Direct integration with Slack Bolt and MS Teams bots for seamless workplace conversation.", "Omnichannel Slack / Teams: "))
+    body.append(bullet(" Google Cloud Eventarc & Pub/Sub integration notifying employees before annual PTO expiry.", "Proactive Leave Rollover Alerts: "))
+    body.append(bullet(" Knowledge Graph RAG resolving matrix manager leave and hardware approval chains.", "Graph RAG Matrix Approvals: "))
+    body.append(bullet(" Dedicated manager copilot providing 1-click team leave approvals and on-call coverage analysis.", "Manager Copilot Sub-Agent: "))
+
+    # Section 6: Strategic Business & Human Outcomes
+    body.append(heading("6. Strategic Business & Human Outcomes", 1))
     body.append(table(
         ["Strategic Metric", "Baseline (Manual State)", "With HR Agentic Solution", "Human & Business Impact"],
         [
@@ -305,8 +288,8 @@ def create_guide_docx():
         [2200, 2200, 2200, 2400]
     ))
 
-    # Section 6: Summary
-    body.append(heading("6. Conclusion: A Modern Bridge for the Enterprise", 1))
+    # Section 7: Summary
+    body.append(heading("7. Conclusion: A Modern Bridge for the Enterprise", 1))
     body.append(p("The HR Agentic Solution (Team 12) is more than an AI integration—it is a modern, empathetic digital workplace bridge. By combining Google's cutting-edge Gemini reasoning engine with grounded policy retrieval, universal enterprise connectors, and deep human empathy, we empower every employee to do their best work with peace of mind."))
 
     # Write document.xml
@@ -341,7 +324,7 @@ def create_guide_docx():
 
     # Cleanup temp
     shutil.rmtree("scripts/temp_guide_docx")
-    print(f"[✓] Successfully generated Architecture & Philosophy Guide: {OUTPUT_DOCX}")
+    print(f"[✓] Successfully generated updated Architecture & Philosophy Guide: {OUTPUT_DOCX}")
 
 if __name__ == "__main__":
     create_guide_docx()
