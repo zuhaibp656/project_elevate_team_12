@@ -1701,6 +1701,12 @@
       markdownBody.className = 'markdown-body';
       markdownBody.innerHTML = marked.parse(responseHtml || "No response generated.");
 
+      // Ensure every link opens in a new tab automatically without navigating away
+      markdownBody.querySelectorAll('a').forEach(a => {
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+      });
+
       assistantCard.appendChild(cardHeader);
       assistantCard.appendChild(markdownBody);
 
@@ -1906,6 +1912,18 @@
     modalClose.addEventListener('click', () => { howToModal.style.display = 'none'; });
     howToModal.addEventListener('click', (e) => {
       if (e.target === howToModal) howToModal.style.display = 'none';
+    });
+
+    // Global link handler: ensure all outbound links open in a new tab without leaving the app
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a');
+      if (link && link.getAttribute('href')) {
+        const href = link.getAttribute('href');
+        if (href.startsWith('http://') || href.startsWith('https://')) {
+          link.setAttribute('target', '_blank');
+          link.setAttribute('rel', 'noopener noreferrer');
+        }
+      }
     });
   </script>
 </body>
