@@ -1,0 +1,12 @@
+{
+  "display_name": "Elevate-HR-Agentic-Orchestrator",
+  "description": "Centralized HR Multi-Agent Orchestrator (Policy Specialist, WorkWeek HCM, ServiceImmediately ITSM)",
+  "adk_version": "2.4.0",
+  "session_service_uri": "memory://",
+  "env": {
+    "GEMINI_MODEL": "gemini-2.5-flash",
+    "MOCK_SAAS_BASE_URL": "https://mock-saas.aishprabhat.demo.altostrat.com",
+    "MCP_TOKEN": "mcp_CsoiJPHj_FGICu8pf8aFJLIuPc4Kt4AXeOLWyUmwHxQ",
+    "GOOGLE_GENAI_USE_ENTERPRISE": "true"
+  }
+}
