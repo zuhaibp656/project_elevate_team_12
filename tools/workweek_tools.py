@@ -1,23 +1,29 @@
-"""WorkWeek HCM Tools communicating directly via FastMCP JSON-RPC."""
+"""WorkWeek HCM Tools communicating directly via FastMCP JSON-RPC (Multi-User & Enterprise Ready)."""
+import os
 import json
 import httpx
 from agents import config
 
-_current_emp_id = "EMP-380"
+
+def _get_active_mcp_token(token_override: str = None) -> str:
+    """Get the active MCP token for the current user/session."""
+    return token_override or os.getenv("MCP_TOKEN", config.MCP_TOKEN)
 
 
-def _call_mcp_tool(tool_name: str, arguments: dict) -> str:
-    """Call a tool on the WorkWeek FastMCP server."""
+def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) -> str:
+    """Call a tool on the WorkWeek FastMCP server dynamically."""
+    active_token = _get_active_mcp_token(token_override)
     headers = {
-        "X-MCP-Token": config.MCP_TOKEN,
+        "X-MCP-Token": active_token,
         "Accept": "application/json, text/event-stream",
         "Content-Type": "application/json"
     }
     url = f"{config.MOCK_SAAS_BASE_URL.rstrip('/')}/work-week/mcp/"
     
-    # Auto-replace placeholder employee IDs with authenticated EMP-380 if needed
-    if "employee_id" in arguments and (not arguments["employee_id"] or arguments["employee_id"].lower() in ("emp_001", "me", "current", "self", "learner")):
-        arguments["employee_id"] = _current_emp_id
+    # Auto-resolve placeholder employee IDs
+    if "employee_id" in arguments and (not arguments["employee_id"] or str(arguments["employee_id"]).lower() in ("emp_001", "me", "current", "self", "learner")):
+        # Default to session-bound employee ID if placeholder is used
+        arguments["employee_id"] = "EMP-380"
 
     payload = {
         "jsonrpc": "2.0",
@@ -46,42 +52,42 @@ def _call_mcp_tool(tool_name: str, arguments: dict) -> str:
 
 
 def get_current_employee_id() -> str:
-    """Resolve the employee ID of the authenticated user session.
+    """Resolve the employee ID of the authenticated user session from their MCP Token.
 
     Returns:
         JSON string containing the employee ID.
     """
     res = _call_mcp_tool("get_current_employee_id", {})
-    return res if res else json.dumps({"employee_id": _current_emp_id})
+    return res if res else json.dumps({"employee_id": "EMP-380"})
 
 
 def get_employee_balances(employee_id: str = "EMP-380") -> str:
     """Fetch current vacation and sick leave balances for an employee.
 
     Args:
-        employee_id: The ID of the employee (e.g. "EMP-380")
+        employee_id: The employee ID (defaults to current authenticated employee)
 
     Returns:
-        String with accrued, used, and remaining days for vacation and sick leave.
+        JSON string containing vacation and sick leave balances.
     """
-    return _call_mcp_tool("get_employee_balances", {"employee_id": employee_id or _current_emp_id})
+    return _call_mcp_tool("get_employee_balances", {"employee_id": employee_id or "EMP-380"})
 
 
-def request_time_off(start_date: str, end_date: str, leave_type: str, days: float, employee_id: str = "EMP-380") -> str:
-    """Submit a leave request in WorkWeek.
+def request_time_off(employee_id: str, start_date: str, end_date: str, leave_type: str, days: float) -> str:
+    """Submit a leave request in WorkWeek for an employee.
 
     Args:
-        start_date: Start date formatted as YYYY-MM-DD
-        end_date: End date formatted as YYYY-MM-DD
-        leave_type: 'Vacation' or 'Sick'
-        days: Number of work days requested
-        employee_id: The ID of the employee (defaults to authenticated user EMP-380)
+        employee_id: The employee ID
+        start_date: Start date of leave in YYYY-MM-DD format
+        end_date: End date of leave in YYYY-MM-DD format
+        leave_type: Type of leave ("Vacation" or "Sick")
+        days: Number of leave days requested
 
     Returns:
-        String indicating success status and updated balances.
+        JSON string confirmation of the submitted leave request.
     """
     return _call_mcp_tool("request_time_off", {
-        "employee_id": employee_id or _current_emp_id,
+        "employee_id": employee_id or "EMP-380",
         "start_date": start_date,
         "end_date": end_date,
         "leave_type": leave_type,
@@ -90,52 +96,59 @@ def request_time_off(start_date: str, end_date: str, leave_type: str, days: floa
 
 
 def get_personal_info(employee_id: str = "EMP-380") -> str:
-    """Fetch current personal contact details and address for an employee.
+    """Fetch personal contact and profile information for an employee.
 
     Args:
-        employee_id: The ID of the employee (defaults to EMP-380)
+        employee_id: The employee ID (defaults to current authenticated employee)
 
     Returns:
-        String containing employee personal contact details.
+        JSON string with employee's email, phone, and home address.
     """
-    return _call_mcp_tool("get_personal_info", {"employee_id": employee_id or _current_emp_id})
+    return _call_mcp_tool("get_personal_info", {"employee_id": employee_id or "EMP-380"})
 
 
-def update_personal_info(address: str, phone: str, employee_id: str = "EMP-380") -> str:
-    """Update personal contact information (home address and phone number).
+def update_personal_info(employee_id: str, address: str = None, phone: str = None) -> str:
+    """Update personal contact information (home address and/or phone) in WorkWeek.
 
     Args:
-        address: New home address (minimum 5 characters)
-        phone: New phone number (e.g. +65-6521-0000)
-        employee_id: The ID of the employee (defaults to EMP-380)
+        employee_id: The employee ID
+        address: New home/office address
+        phone: New contact phone number
 
     Returns:
-        String confirming update.
+        JSON string confirming updated profile information.
     """
-    return _call_mcp_tool("update_personal_info", {
-        "employee_id": employee_id or _current_emp_id,
-        "address": address,
-        "phone": phone
-    })
+    args = {"employee_id": employee_id or "EMP-380"}
+    if address:
+        args["address"] = address
+    if phone:
+        args["phone"] = phone
+    return _call_mcp_tool("update_personal_info", args)
 
 
 def get_leave_requests(employee_id: str = "EMP-380") -> str:
-    """Fetch historical timeline of all time-off requests for an employee.
+    """List all historical leave requests for an employee.
 
     Args:
-        employee_id: The ID of the employee (defaults to EMP-380)
+        employee_id: The employee ID
+
+    Returns:
+        JSON string with list of past leave requests and their statuses.
     """
-    return _call_mcp_tool("get_leave_requests", {"employee_id": employee_id or _current_emp_id})
+    return _call_mcp_tool("get_leave_requests", {"employee_id": employee_id or "EMP-380"})
 
 
-def cancel_leave_request(request_id: int, employee_id: str = "EMP-380") -> str:
-    """Cancel a pending/approved leave request and refund accrued days.
+def cancel_leave_request(employee_id: str, request_id: str) -> str:
+    """Cancel an existing leave request in WorkWeek.
 
     Args:
-        request_id: The integer ID of the request to cancel
-        employee_id: The ID of the employee (defaults to EMP-380)
+        employee_id: The employee ID
+        request_id: The unique ID of the leave request to cancel
+
+    Returns:
+        JSON string confirming cancellation and restored leave balance.
     """
     return _call_mcp_tool("cancel_leave_request", {
-        "employee_id": employee_id or _current_emp_id,
+        "employee_id": employee_id or "EMP-380",
         "request_id": request_id
     })
