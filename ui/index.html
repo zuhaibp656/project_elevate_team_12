@@ -1651,8 +1651,7 @@
     document.querySelectorAll('.chip').forEach(chip => {
       chip.addEventListener('click', () => {
         const prompt = chip.getAttribute('data-prompt');
-        const mode = chip.getAttribute('data-mode') || 'auto';
-        syncMode(mode);
+        syncMode('auto');
         handleSendMessage(prompt);
       });
     });

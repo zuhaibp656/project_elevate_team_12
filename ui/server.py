@@ -161,11 +161,9 @@ async def chat_endpoint(req: ChatRequest, request: Request):
     mode = req.mode.lower()
     start_t = time.time()
     try:
-        if mode in ("policy", "hcm", "itsm"):
-            ans, evidence = await _run_single_agent(mode, sanitized_prompt, user_id=user_id, session_id=session_id)
-        else:
-            ans, evidence = await run_query_traced_async(sanitized_prompt, user_id=user_id, session_id=session_id)
-            mode = "auto"
+        # Always execute via the central Multi-Agent Orchestrator so all sub-agents and tools (HCM leave booking, ITSM ticketing, Policy RAG) are accessible
+        ans, evidence = await run_query_traced_async(sanitized_prompt, user_id=user_id, session_id=session_id)
+        mode = "auto"
         
         latency = int((time.time() - start_t) * 1000)
         sanitized_ans = sanitize_pii(ans)
