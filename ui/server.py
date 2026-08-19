@@ -581,7 +581,7 @@ async def run_evaluation_api(req: EvalRunRequest):
         selected_guard = guard_cases
 
     results = []
-    start_eval_time = time.time()
+    start_eval_time = time.perf_counter()
 
     # Process Golden Cases
     for c in selected_golden:
@@ -600,19 +600,18 @@ async def run_evaluation_api(req: EvalRunRequest):
 
         actual_resp = expected_resp
         actual_tools = tools
-        exec_latency = 120
+        t0 = time.perf_counter()
 
         # Run Live Orchestrator if requested
         if req.mode == "live_orchestrator" and user_input:
-            t0 = time.time()
             try:
                 ans, ev = await run_query_traced_async(user_input, user_id="EMP-380", session_id=f"eval-{cid}")
                 actual_resp = sanitize_agent_output(ans)
                 actual_tools = [e.get("tool") for e in ev]
-                exec_latency = int((time.time() - t0) * 1000)
             except Exception as ex:
                 actual_resp = f"Execution Error: {str(ex)}"
-                exec_latency = int((time.time() - t0) * 1000)
+        
+        exec_latency_ms = round((time.perf_counter() - t0) * 1000, 1)
 
         # Scored Assertions
         del_pass = True
@@ -648,7 +647,7 @@ async def run_evaluation_api(req: EvalRunRequest):
             "required_citation": req_citation,
             "score": round(kw_score, 2),
             "passed": passed,
-            "duration_ms": exec_latency
+            "duration_ms": exec_latency_ms
         })
 
     # Process Multi-Turn Cases
@@ -660,6 +659,24 @@ async def run_evaluation_api(req: EvalRunRequest):
         user_input = first_turn.get("user_input", "")
         expected_resp = first_turn.get("expected_agent_response", "")
 
+        actual_resp = expected_resp
+        actual_tools = ["hr_orchestrator"]
+        t0 = time.perf_counter()
+
+        if req.mode == "live_orchestrator" and turns:
+            session_id = f"eval-multi-{cid}"
+            for turn in turns:
+                t_input = turn.get("user_input", "")
+                if t_input:
+                    try:
+                        ans, ev = await run_query_traced_async(t_input, user_id="EMP-380", session_id=session_id)
+                        actual_resp = sanitize_agent_output(ans)
+                        actual_tools = [e.get("tool") for e in ev]
+                    except Exception as ex:
+                        actual_resp = f"Execution Error: {str(ex)}"
+
+        exec_latency_ms = round((time.perf_counter() - t0) * 1000, 1)
+
         results.append({
             "eval_id": cid,
             "tier": "Multi-Turn Trajectory",
@@ -667,13 +684,13 @@ async def run_evaluation_api(req: EvalRunRequest):
             "domain": domain,
             "user_input": user_input,
             "expected_response": expected_resp,
-            "actual_response": expected_resp,
-            "tools_called": ["hr_orchestrator"],
+            "actual_response": actual_resp,
+            "tools_called": actual_tools,
             "expected_delegation": ["hr_orchestrator"],
             "turns_count": len(turns),
             "score": 1.0,
             "passed": True,
-            "duration_ms": 140
+            "duration_ms": exec_latency_ms
         })
 
     # Process Guardrails Cases
@@ -684,6 +701,20 @@ async def run_evaluation_api(req: EvalRunRequest):
         exp_mask = gc.get("expected_mask_pattern")
         exp_refusal = gc.get("expected_refusal_or_sanitization")
 
+        actual_resp = f"[GUARDRAIL ENFORCED] Sanitized: {exp_mask or exp_refusal}"
+        actual_tools = ["model_armor_dlp"]
+        t0 = time.perf_counter()
+
+        if req.mode == "live_orchestrator" and user_input:
+            try:
+                ans, ev = await run_query_traced_async(user_input, user_id="EMP-380", session_id=f"eval-guard-{cid}")
+                actual_resp = sanitize_agent_output(ans)
+                actual_tools = [e.get("tool") for e in ev]
+            except Exception as ex:
+                actual_resp = f"Execution Error: {str(ex)}"
+
+        exec_latency_ms = round((time.perf_counter() - t0) * 1000, 1)
+
         results.append({
             "eval_id": cid,
             "tier": "Adversarial & Guardrail",
@@ -691,12 +722,12 @@ async def run_evaluation_api(req: EvalRunRequest):
             "domain": "security",
             "user_input": user_input,
             "expected_response": f"Mask: {exp_mask or 'Refusal Required'}",
-            "actual_response": f"[GUARDRAIL ENFORCED] Sanitized/Intercepted: {exp_mask or exp_refusal}",
-            "tools_called": ["model_armor_dlp"],
+            "actual_response": actual_resp,
+            "tools_called": actual_tools,
             "expected_delegation": ["model_armor_dlp"],
             "score": 1.0,
             "passed": True,
-            "duration_ms": 45
+            "duration_ms": exec_latency_ms
         })
 
     total_eval = len(results)
@@ -710,6 +741,7 @@ async def run_evaluation_api(req: EvalRunRequest):
     s_guard = 1.000
     w_rel, w_rig, w_cost, w_guard = 0.30, 0.35, 0.15, 0.20
     s_overall = round((w_rel * s_rel + w_rig * s_rig + w_cost * s_cost + w_guard * s_guard) * 100, 2)
+    total_duration_ms = round((time.perf_counter() - start_eval_time) * 1000, 1)
 
     return {
         "summary": {
@@ -724,7 +756,8 @@ async def run_evaluation_api(req: EvalRunRequest):
             "s_overall": s_overall,
             "threshold_pct": 90.0,
             "status": "PASSED" if s_overall >= 90.0 else "FAILED",
-            "duration_ms": int((time.time() - start_eval_time) * 1000)
+            "duration_ms": total_duration_ms,
+            "mode": req.mode
         },
         "results": results
     }
