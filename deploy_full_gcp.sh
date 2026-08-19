@@ -295,6 +295,14 @@ fi
 
 "${DEPLOY_CMD[@]}"
 
+# Explicitly ensure unauthenticated public access (roles/run.invoker to allUsers)
+echo "[*] Setting public unauthenticated access policy (roles/run.invoker)..."
+gcloud run services add-iam-policy-binding "$SERVICE_NAME" \
+    --project "$PROJECT_ID" \
+    --region "$REGION" \
+    --member="allUsers" \
+    --role="roles/run.invoker" 2>/dev/null || true
+
 # -----------------------------------------------------------------------------
 # 8. Retrieve Live Public URL & Health Check
 # -----------------------------------------------------------------------------
