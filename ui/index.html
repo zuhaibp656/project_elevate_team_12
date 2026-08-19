@@ -450,7 +450,7 @@
       width: 100vw;
       height: 100vh;
       background: var(--bg-color);
-      z-index: 1000;
+      z-index: 10000;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -3042,9 +3042,16 @@
       if (profileDropdownCard) profileDropdownCard.classList.remove('show');
       updateIdentityUI();
       if (identityModal) identityModal.style.display = 'none';
+      if (howToModal) howToModal.style.display = 'none';
+      const evalModal = document.getElementById('evalModalBackdrop');
+      if (evalModal) evalModal.style.display = 'none';
       startNewChat();
       loginGateScreen.classList.remove('hidden');
+      loginGateScreen.style.removeProperty('display');
       loginGateScreen.style.display = 'flex';
+      loginGateScreen.style.opacity = '1';
+      loginGateScreen.style.visibility = 'visible';
+      loginGateScreen.style.pointerEvents = 'auto';
       toastMsg.innerText = 'Signed out from workspace';
       toastMsg.classList.add('show');
       setTimeout(() => toastMsg.classList.remove('show'), 2500);
