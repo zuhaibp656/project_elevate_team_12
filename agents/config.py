@@ -9,8 +9,15 @@ load_dotenv(os.path.join(REPO_ROOT, ".env"), override=True)
 # Google Cloud & Project Settings
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", os.getenv("PROJECT_ID", ""))
 GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", os.getenv("REGION", "us-central1"))
-GOOGLE_GENAI_USE_ENTERPRISE = os.getenv("GOOGLE_GENAI_USE_ENTERPRISE", "false").lower() in ("true", "1", "yes")
-IAP_CLIENT_ID = os.getenv("IAP_CLIENT_ID", "")
+GOOGLE_GENAI_USE_VERTEXAI = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "true").lower() in ("true", "1", "yes")
+
+# Auto-configure Vertex AI for Google GenAI / ADK when deployed on GCP or when no API key is specified
+if not os.getenv("GEMINI_API_KEY") or GOOGLE_GENAI_USE_VERTEXAI:
+    os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "true"
+    if GOOGLE_CLOUD_PROJECT:
+        os.environ["GOOGLE_CLOUD_PROJECT"] = GOOGLE_CLOUD_PROJECT
+    if GOOGLE_CLOUD_LOCATION:
+        os.environ["GOOGLE_CLOUD_LOCATION"] = GOOGLE_CLOUD_LOCATION
 
 
 def get_secret(secret_name: str, env_fallback: str, default: str = "") -> str:

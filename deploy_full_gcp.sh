@@ -266,6 +266,7 @@ echo "================================================================="
 
 ENV_VARS="GEMINI_MODEL=gemini-2.5-flash"
 ENV_VARS="$ENV_VARS,MOCK_SAAS_BASE_URL=https://mock-saas.aishprabhat.demo.altostrat.com"
+ENV_VARS="$ENV_VARS,GOOGLE_GENAI_USE_VERTEXAI=true"
 ENV_VARS="$ENV_VARS,GOOGLE_GENAI_USE_ENTERPRISE=true"
 ENV_VARS="$ENV_VARS,GOOGLE_CLOUD_PROJECT=$PROJECT_ID"
 ENV_VARS="$ENV_VARS,GOOGLE_CLOUD_LOCATION=$REGION"
