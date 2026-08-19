@@ -15,7 +15,9 @@ _COOLDOWN_PERIOD = 30.0  # seconds
 
 def _get_active_mcp_token(token_override: str = None) -> str:
     """Get the active MCP token for the current user/session."""
-    return token_override or os.getenv("MCP_TOKEN", config.MCP_TOKEN)
+    if token_override and token_override.strip():
+        return token_override.strip()
+    return config.get_current_mcp_token()
 
 
 def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) -> str:
@@ -42,7 +44,7 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
     # Auto-resolve placeholder employee IDs
     for key in ("employee_id", "requested_by", "author", "updated_by"):
         if key in arguments and (not arguments[key] or str(arguments[key]).lower() in ("emp_001", "me", "current", "self", "learner")):
-            arguments[key] = "EMP-380"
+            arguments[key] = config.get_current_user_id()
 
     payload = {
         "jsonrpc": "2.0",

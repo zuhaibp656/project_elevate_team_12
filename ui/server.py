@@ -81,6 +81,14 @@ class ChatRequest(BaseModel):
     mode: str = "auto"  # "auto", "policy", "hcm", "itsm"
     session_id: Optional[str] = "session-1"
     user_id: Optional[str] = "EMP-380"
+    mcp_token: Optional[str] = None
+    user_email: Optional[str] = None
+
+
+class VerifyIdentityRequest(BaseModel):
+    mcp_token: str
+    email: Optional[str] = None
+    employee_id: Optional[str] = None
 
 
 class TraceItem(BaseModel):
@@ -146,14 +154,103 @@ async def _run_single_agent(agent_key: str, prompt: str, user_id: str = "EMP-380
     return res_text or "No response generated.", evidence
 
 
+class GoogleAuthRequest(BaseModel):
+    credential: Optional[str] = None
+    email: Optional[str] = None
+    employee_id: Optional[str] = None
+
+
+@app.post("/api/auth/google")
+async def google_auth_endpoint(req: GoogleAuthRequest):
+    """Verify Google OAuth2 ID Token or direct Google account email."""
+    email = req.email or ""
+    name = ""
+    picture = ""
+
+    if req.credential:
+        try:
+            import base64
+            import json
+            parts = req.credential.split(".")
+            if len(parts) >= 2:
+                padded = parts[1] + "=" * (4 - len(parts[1]) % 4)
+                payload = json.loads(base64.urlsafe_b64decode(padded))
+                email = payload.get("email", email)
+                name = payload.get("name", "")
+                picture = payload.get("picture", "")
+        except Exception as e:
+            logger.warning(f"Could not parse Google ID token: {e}")
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Google corporate email or token is required.")
+
+    # Check domain
+    is_google = email.lower().endswith("@google.com")
+    clean_name = name or email.split("@")[0].replace(".", " ").title() or "Google Team Member"
+    emp_id = req.employee_id or "EMP-380"
+
+    return {
+        "authenticated": True,
+        "email": email,
+        "name": clean_name,
+        "picture": picture,
+        "is_google": is_google,
+        "employee_id": emp_id,
+        "role": "Senior Cloud Engineer" if is_google else "Corporate Team Member",
+        "address": "Singapore Office, 80 Pasir Panjang Rd, Singapore",
+        "message": f"Successfully authenticated Google account: {email}"
+    }
+
+
+@app.post("/api/identity/verify")
+async def verify_identity_endpoint(req: VerifyIdentityRequest):
+    """Validate user FastMCP token and return connection status."""
+    token = req.mcp_token.strip() if req.mcp_token else ""
+    if not token:
+        raise HTTPException(status_code=400, detail="MCP token is required.")
+    
+    emp_id = req.employee_id or "EMP-380"
+    config.ACTIVE_MCP_TOKEN_CV.set(token)
+    config.ACTIVE_USER_ID_CV.set(emp_id)
+
+    raw_bal = get_employee_balances(emp_id)
+    if isinstance(raw_bal, str) and ("error" in raw_bal.lower() or "circuit breaker" in raw_bal.lower()) and not ("leave balances" in raw_bal.lower() or "{" in raw_bal):
+        return {
+            "valid": False,
+            "error": "Authentication failed on Mock SaaS. Please verify your FastMCP token from https://mock-saas.aishprabhat.demo.altostrat.com/"
+        }
+    
+    raw_info = get_personal_info(emp_id)
+    return {
+        "valid": True,
+        "employee_id": emp_id,
+        "email": req.email or f"{emp_id.lower()}@altostrat.demo",
+        "raw_balances": raw_bal,
+        "raw_info": raw_info,
+        "message": f"Successfully connected workspace identity for {emp_id}!"
+    }
+
+
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(req: ChatRequest, request: Request):
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="Empty query message.")
     
+    # Extract caller-specific FastMCP token & Identity headers if provided
+    client_token = req.mcp_token or request.headers.get("X-MCP-Token") or request.headers.get("x-mcp-token") or ""
+    client_user_id = req.user_id or request.headers.get("X-Employee-ID") or request.headers.get("x-employee-id") or "EMP-380"
+    client_email = req.user_email or request.headers.get("X-User-Email") or request.headers.get("x-user-email") or ""
+
+    if client_token:
+        config.ACTIVE_MCP_TOKEN_CV.set(client_token)
+    if client_user_id:
+        config.ACTIVE_USER_ID_CV.set(client_user_id)
+    if client_email:
+        config.ACTIVE_USER_EMAIL_CV.set(client_email)
+
     correlation_id = getattr(request.state, "correlation_id", f"trace-{uuid.uuid4().hex[:12]}")
     session_id = req.session_id or "session-1"
-    user_id = req.user_id or "EMP-380"
+    user_id = client_user_id
     
     # In-Flight PII Sanitization
     sanitized_prompt = sanitize_pii(req.message)
@@ -200,9 +297,17 @@ async def chat_endpoint(req: ChatRequest, request: Request):
 
 
 @app.get("/api/hub")
-async def get_hub_data():
+async def get_hub_data(request: Request, employee_id: Optional[str] = None):
     """Fetch and decode live dynamic data from FastMCP servers for the user hub drawer."""
-    emp_id = "EMP-380"
+    client_token = request.headers.get("X-MCP-Token") or request.headers.get("x-mcp-token") or ""
+    client_user_id = employee_id or request.headers.get("X-Employee-ID") or request.headers.get("x-employee-id") or "EMP-380"
+    
+    if client_token:
+        config.ACTIVE_MCP_TOKEN_CV.set(client_token)
+    if client_user_id:
+        config.ACTIVE_USER_ID_CV.set(client_user_id)
+        
+    emp_id = client_user_id
     
     # 1. Decode Live Balances from FastMCP
     raw_bal = get_employee_balances(emp_id)

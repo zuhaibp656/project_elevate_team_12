@@ -1,11 +1,12 @@
-"""Configuration module for HR Agentic Multi-Agent System (Enterprise Ready & Secret Manager Integration)."""
+"""Configuration module for HR Agentic Multi-Agent System (Enterprise Ready, Multi-User Isolation & Secret Manager Integration)."""
 import os
+from contextvars import ContextVar
 from dotenv import load_dotenv
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(REPO_ROOT, ".env"), override=True)
 
-# Google Cloud & Project Settings (Dynamically resolved from environment / metadata)
+# Google Cloud & Project Settings
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", os.getenv("PROJECT_ID", ""))
 GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", os.getenv("REGION", "us-central1"))
 GOOGLE_GENAI_USE_ENTERPRISE = os.getenv("GOOGLE_GENAI_USE_ENTERPRISE", "false").lower() in ("true", "1", "yes")
@@ -43,6 +44,30 @@ MOCK_SAAS_BASE_URL = os.getenv(
     "https://mock-saas.aishprabhat.demo.altostrat.com"
 )
 MCP_TOKEN = get_secret("hr-agent-mcp-token", "MCP_TOKEN", "")
+
+# ---------------------------------------------------------------------------
+# Dynamic ContextVar for Per-Request Multi-User Token & Identity Isolation
+# ---------------------------------------------------------------------------
+ACTIVE_MCP_TOKEN_CV: ContextVar[str] = ContextVar("active_mcp_token", default="")
+ACTIVE_USER_ID_CV: ContextVar[str] = ContextVar("active_user_id", default="")
+ACTIVE_USER_EMAIL_CV: ContextVar[str] = ContextVar("active_user_email", default="")
+
+
+def get_current_mcp_token() -> str:
+    """Get the active MCP token for the currently executing async request or fallback to default secret."""
+    token = ACTIVE_MCP_TOKEN_CV.get()
+    if token and token.strip():
+        return token.strip()
+    return MCP_TOKEN
+
+
+def get_current_user_id() -> str:
+    """Get the active employee ID for the currently executing request or default to EMP-380."""
+    uid = ACTIVE_USER_ID_CV.get()
+    if uid and uid.strip():
+        return uid.strip()
+    return "EMP-380"
+
 
 # Path to local HR Policy Knowledge Base (OKF Bundle)
 KNOWLEDGE_DIR = os.getenv("KNOWLEDGE_DIR", os.path.join(REPO_ROOT, "knowledge"))
