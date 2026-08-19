@@ -150,9 +150,18 @@ fi
 # 4. FastMCP Backend Connectivity & Secret Manager Auto-Resolution
 # -----------------------------------------------------------------------------
 echo ""
-echo "[*] Checking FastMCP SaaS backend connectivity & existing secrets..."
+echo "[*] Resolving FastMCP token and Secret Manager configuration..."
 
-# Check if secret exists in Google Cloud Secret Manager first
+# 1. Check if token is in .env if not set via CLI or env
+if [ -z "$MCP_TOKEN_VAL" ] && [ -f "$REPO_ROOT/.env" ]; then
+    ENV_TOKEN=$(grep -E '^MCP_TOKEN=' "$REPO_ROOT/.env" 2>/dev/null | head -n1 | cut -d '=' -f2- | tr -d '"' | tr -d "'" | tr -d '\r' || true)
+    if [ -n "$ENV_TOKEN" ]; then
+        MCP_TOKEN_VAL="$ENV_TOKEN"
+        echo "  [✓] Auto-loaded FastMCP token from .env file."
+    fi
+fi
+
+# 2. Check if secret exists in Google Cloud Secret Manager
 if [ -z "$MCP_TOKEN_VAL" ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT_ID" ]; then
     EXISTING_SECRET=$(gcloud secrets versions access latest --secret=hr-agent-mcp-token --project="$PROJECT_ID" 2>/dev/null || true)
     if [ -n "$EXISTING_SECRET" ]; then
@@ -161,40 +170,18 @@ if [ -z "$MCP_TOKEN_VAL" ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJEC
     fi
 fi
 
-check_mcp() {
-    local token="$1"
-    python3 -c "
-import sys, json, urllib.request
-url = 'https://mock-saas.aishprabhat.demo.altostrat.com/work-week/mcp/'
-headers = {'X-MCP-Token': '$token', 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream'}
-payload = json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call', 'params': {'name': 'get_employee_balances', 'arguments': {'employee_id': 'EMP-380'}}}).encode('utf-8')
-try:
-    req = urllib.request.Request(url, data=payload, headers=headers, method='POST')
-    with urllib.request.urlopen(req, timeout=8) as resp:
-        if resp.status == 200:
-            sys.exit(0)
-        sys.exit(1)
-except Exception:
-    sys.exit(1)
-" 2>/dev/null
-}
-
-if [ -n "$MCP_TOKEN_VAL" ] && check_mcp "$MCP_TOKEN_VAL"; then
-    echo "  [✓] FastMCP token verified! (Status 200 OK)"
-else
+# 3. Only prompt if token is completely absent across all sources
+if [ -z "$MCP_TOKEN_VAL" ]; then
     if [ -t 0 ] && [ "$DRY_RUN" = false ]; then
-        echo "  [!] Prompting for FastMCP token..."
+        echo "  [!] No existing FastMCP token found in Secret Manager or .env."
         read -r -p "🔑 Enter your FastMCP Token (from https://mock-saas.aishprabhat.demo.altostrat.com/): " NEW_TOKEN
         if [ -n "$NEW_TOKEN" ]; then
-            if check_mcp "$NEW_TOKEN"; then
-                echo "  [✓] Success! Token verified."
-                MCP_TOKEN_VAL="$NEW_TOKEN"
-            else
-                echo "  [!] Warning: Token could not be verified online, continuing with provided value."
-                MCP_TOKEN_VAL="$NEW_TOKEN"
-            fi
+            MCP_TOKEN_VAL="$NEW_TOKEN"
+            echo "  [✓] FastMCP token recorded for deployment."
         fi
     fi
+else
+    echo "  [✓] FastMCP token ready (${MCP_TOKEN_VAL:0:8}...). Proceeding without prompting."
 fi
 
 # -----------------------------------------------------------------------------
