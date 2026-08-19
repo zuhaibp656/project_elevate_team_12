@@ -1405,32 +1405,64 @@
       text-overflow: ellipsis;
     }
 
-    /* Modal */
+    /* Custom Modern Smooth Scrollbars */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(100, 116, 139, 0.3) transparent;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.5);
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Modal Backdrop */
     .modal-backdrop {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(4px);
-      z-index: 110;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
       display: none;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      animation: fadeInModal 0.2s ease-out;
+    }
+
+    @keyframes fadeInModal {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .modal {
       background: var(--surface-color);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
-      max-width: 580px;
+      max-width: 600px;
+      max-height: 88vh;
+      overflow-y: auto;
       width: 100%;
       padding: 30px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.24);
       position: relative;
-      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     @keyframes modalPop {
-      from { transform: scale(0.92); opacity: 0; }
+      from { transform: scale(0.94); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
 
@@ -1438,29 +1470,45 @@
       position: absolute;
       top: 20px;
       right: 20px;
-      background: none;
-      border: none;
-      font-size: 22px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
       color: var(--text-muted);
       cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      background: var(--surface);
+      color: var(--text-main);
+      transform: scale(1.08);
     }
 
     .modal-title {
-      font-size: 21px;
+      font-size: 20px;
       font-weight: 700;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .modal-content {
-      font-size: 14px;
-      line-height: 1.6;
+      font-size: 13.5px;
+      line-height: 1.65;
       color: var(--text-muted);
     }
-
     .modal-content h4 {
       color: var(--text-main);
-      margin: 14px 0 6px;
+      margin-top: 14px;
+      margin-bottom: 4px;
+      font-size: 14.5px;
     }
 
     
@@ -2406,22 +2454,62 @@
   <!-- How to Use Modal -->
   <div class="modal-backdrop" id="howToModal">
     <div class="modal">
-      <button class="modal-close" id="modalClose">&times;</button>
-      <h3 class="modal-title">How to Use Elevate HR</h3>
+      <button class="modal-close" id="modalClose" title="Close Guide">&times;</button>
+      <h3 class="modal-title">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--g-blue)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <span>Elevate HR User Guide</span>
+      </h3>
       <div class="modal-content">
-        <p>This virtual assistant connects directly to your company's live systems using the <strong>Model Context Protocol (MCP)</strong>.</p>
+        <p style="margin-bottom: 14px;">
+          Elevate HR connects directly to your company's live systems using the <strong>Model Context Protocol (FastMCP)</strong> and Google Vertex AI.
+        </p>
+
+        <div style="background: var(--surface-subtle); padding: 12px 14px; border-radius: var(--radius-md); border-left: 3px solid var(--g-blue); margin-bottom: 16px; font-size: 12.5px;">
+          <strong>💡 Interactive Guide:</strong> Click any prompt chip below to execute it live in your active chat session!
+        </div>
         
-        <h4>🌟 1. Auto (Recommended)</h4>
-        <p>Handles complex, multi-step requests across policies, WorkWeek, and ServiceImmediately in a single turn.</p>
+        <h4 style="display: flex; align-items: center; gap: 6px;">
+          <span>🌟</span> 1. Autonomous Multi-Agent Orchestrator (Auto)
+        </h4>
+        <p style="margin-bottom: 8px;">Handles complex, cross-system workflows—such as booking sick leave in WorkWeek and filing an IT ticket in ServiceImmediately in one single request.</p>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;">
+          <button type="button" class="chip" style="font-size: 11.5px; padding: 4px 10px; cursor: pointer;" onclick="document.getElementById('howToModal').style.display='none'; handleSendMessage('I have flu and fever. Apply for 2 days sick leave and raise IT ticket for laptop setup');">
+            ⚡ Apply 2 days sick leave & open IT ticket ↗
+          </button>
+        </div>
 
-        <h4>📖 2. Policy Specialist</h4>
-        <p>Directly queries official Singapore HR policies, allowances, and rules with exact citations and zero hallucinations.</p>
+        <h4 style="display: flex; align-items: center; gap: 6px;">
+          <span>📖</span> 2. Policy Specialist (Grounding & Citations)
+        </h4>
+        <p style="margin-bottom: 8px;">Directly queries Singapore HR policies, allowances, and rules with exact citations and zero hallucinations.</p>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;">
+          <button type="button" class="chip" style="font-size: 11.5px; padding: 4px 10px; cursor: pointer;" onclick="document.getElementById('howToModal').style.display='none'; handleSendMessage('What is the sick leave policy for outpatient medical certificates in Singapore?');">
+            📖 Sick leave policy requirements ↗
+          </button>
+          <button type="button" class="chip" style="font-size: 11.5px; padding: 4px 10px; cursor: pointer;" onclick="document.getElementById('howToModal').style.display='none'; handleSendMessage('What are the bereavement leave entitlements for immediate family?');">
+            📖 Bereavement leave entitlements ↗
+          </button>
+        </div>
 
-        <h4>📅 3. WorkWeek HCM</h4>
-        <p>Inspects your live PTO balances, submits time off, and checks/updates your profile contact details.</p>
+        <h4 style="display: flex; align-items: center; gap: 6px;">
+          <span>📅</span> 3. WorkWeek HCM Specialist
+        </h4>
+        <p style="margin-bottom: 8px;">Inspects live PTO balances (Vacation, Sick, Childcare), books time off, and checks employee contact details.</p>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;">
+          <button type="button" class="chip" style="font-size: 11.5px; padding: 4px 10px; cursor: pointer;" onclick="document.getElementById('howToModal').style.display='none'; handleSendMessage('Check my current vacation and sick leave balance for 2026');">
+            📅 Check my 2026 leave balances ↗
+          </button>
+        </div>
 
-        <h4>🎫 4. ServiceImmediately ITSM</h4>
-        <p>Tracks open tickets, submits new hardware/software incidents, and manages ticket comments.</p>
+        <h4 style="display: flex; align-items: center; gap: 6px;">
+          <span>🎫</span> 4. ServiceImmediately ITSM Specialist
+        </h4>
+        <p style="margin-bottom: 8px;">Tracks open incidents, logs new hardware/software tickets, and adds comments to active tickets.</p>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px;">
+          <button type="button" class="chip" style="font-size: 11.5px; padding: 4px 10px; cursor: pointer;" onclick="document.getElementById('howToModal').style.display='none'; handleSendMessage('List all my open IT incident tickets');">
+            🎫 List all my open tickets ↗
+          </button>
+        </div>
       </div>
     </div>
   </div>
