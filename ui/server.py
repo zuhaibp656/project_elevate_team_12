@@ -4,6 +4,7 @@ import sys
 import json
 import uuid
 import time
+import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import uvicorn
@@ -208,15 +209,47 @@ async def get_hub_data():
     sick_rem, sick_total, sick_used = 10.0, 10.0, 0.0
     
     try:
-        bal_data = json.loads(raw_bal) if isinstance(raw_bal, str) else raw_bal
-        if isinstance(bal_data, dict):
-            # Parse WorkWeek response format
-            if "vacation_days" in bal_data:
-                vacation_rem = float(bal_data.get("vacation_days", 20.0))
+        if isinstance(raw_bal, str):
+            # Try JSON parsing
+            try:
+                bal_data = json.loads(raw_bal)
+                if isinstance(bal_data, dict):
+                    if "vacation_days" in bal_data:
+                        vacation_rem = float(bal_data.get("vacation_days", 20.0))
+                        vacation_total = 20.0
+                        vacation_used = max(0.0, vacation_total - vacation_rem)
+                    if "sick_days" in bal_data:
+                        sick_rem = float(bal_data.get("sick_days", 10.0))
+                        sick_total = 10.0
+                        sick_used = max(0.0, sick_total - sick_rem)
+            except Exception:
+                # Regex parse formatted string from FastMCP
+                v_match = re.search(r'Vacation:\s*([\d\.]+)\s*days\s*remaining\s*(?:\(([\d\.]+)/([\d\.]+)\s*used\))?', raw_bal, re.IGNORECASE)
+                if v_match:
+                    vacation_rem = float(v_match.group(1))
+                    if v_match.group(2) and v_match.group(3):
+                        vacation_used = float(v_match.group(2))
+                        vacation_total = float(v_match.group(3))
+                    else:
+                        vacation_total = 20.0
+                        vacation_used = max(0.0, vacation_total - vacation_rem)
+
+                s_match = re.search(r'Sick:\s*([\d\.]+)\s*days\s*remaining\s*(?:\(([\d\.]+)/([\d\.]+)\s*used\))?', raw_bal, re.IGNORECASE)
+                if s_match:
+                    sick_rem = float(s_match.group(1))
+                    if s_match.group(2) and s_match.group(3):
+                        sick_used = float(s_match.group(2))
+                        sick_total = float(s_match.group(3))
+                    else:
+                        sick_total = 10.0
+                        sick_used = max(0.0, sick_total - sick_rem)
+        elif isinstance(raw_bal, dict):
+            if "vacation_days" in raw_bal:
+                vacation_rem = float(raw_bal.get("vacation_days", 20.0))
                 vacation_total = 20.0
                 vacation_used = max(0.0, vacation_total - vacation_rem)
-            if "sick_days" in bal_data:
-                sick_rem = float(bal_data.get("sick_days", 10.0))
+            if "sick_days" in raw_bal:
+                sick_rem = float(raw_bal.get("sick_days", 10.0))
                 sick_total = 10.0
                 sick_used = max(0.0, sick_total - sick_rem)
     except Exception:
