@@ -3184,7 +3184,7 @@
       document.getElementById('scoreRel').textContent = `${s.s_relevance}%`;
       document.getElementById('scoreRig').textContent = `${s.s_rigor}%`;
       document.getElementById('scoreGuard').textContent = `${s.s_guardrails}%`;
-      document.getElementById('evalDurationText').textContent = `Duration: ${s.duration_ms}ms`;
+      document.getElementById('evalDurationText').textContent = `Duration: ${s.duration_ms}ms (${s.mode === 'live_orchestrator' ? '🚀 Live ADK Execution' : '⚡ Fast Assertion Engine'})`;
 
       // Render Individual Case Items
       evalResultsList.innerHTML = data.results.map((c, i) => {
