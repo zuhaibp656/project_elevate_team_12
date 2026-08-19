@@ -147,10 +147,19 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 4. FastMCP Backend Connectivity Check
+# 4. FastMCP Backend Connectivity & Secret Manager Auto-Resolution
 # -----------------------------------------------------------------------------
 echo ""
-echo "[*] Checking FastMCP SaaS backend connectivity..."
+echo "[*] Checking FastMCP SaaS backend connectivity & existing secrets..."
+
+# Check if secret exists in Google Cloud Secret Manager first
+if [ -z "$MCP_TOKEN_VAL" ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT_ID" ]; then
+    EXISTING_SECRET=$(gcloud secrets versions access latest --secret=hr-agent-mcp-token --project="$PROJECT_ID" 2>/dev/null || true)
+    if [ -n "$EXISTING_SECRET" ]; then
+        MCP_TOKEN_VAL="$EXISTING_SECRET"
+        echo "  [✓] Auto-loaded FastMCP token from Google Cloud Secret Manager."
+    fi
+fi
 
 check_mcp() {
     local token="$1"
@@ -189,58 +198,81 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 5. Enable Required Google Cloud APIs, IAM Roles & Secret Manager Setup
+# 5. Check for Existing Cloud Run Deployment & Fast-Track Rolling Update
+# -----------------------------------------------------------------------------
+EXISTING_SERVICE_URL=""
+if command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT_ID" ]; then
+    EXISTING_SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" --project "$PROJECT_ID" --region "$REGION" --format="value(status.url)" 2>/dev/null || true)
+fi
+
+if [ -n "$EXISTING_SERVICE_URL" ]; then
+    echo ""
+    echo "================================================================="
+    echo "  ⚡ Existing Deployment Detected: $EXISTING_SERVICE_URL"
+    echo "  [*] Mode: Updating existing Cloud Run service (Rolling Revision)"
+    echo "================================================================="
+    IS_UPDATE=true
+else
+    echo ""
+    echo "================================================================="
+    echo "  [*] Mode: Initial Deployment (Provisioning new Cloud Run service)"
+    echo "================================================================="
+    IS_UPDATE=false
+fi
+
+# -----------------------------------------------------------------------------
+# 6. Enable APIs, IAM Roles & Secret Manager (Only on first run or if needed)
 # -----------------------------------------------------------------------------
 if [ "$DRY_RUN" = false ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT_ID" ]; then
-    echo ""
-    echo "[*] Enabling required Google Cloud APIs..."
-    gcloud services enable \
-        run.googleapis.com \
-        secretmanager.googleapis.com \
-        cloudbuild.googleapis.com \
-        artifactregistry.googleapis.com \
-        aiplatform.googleapis.com \
-        storage-component.googleapis.com \
-        --project "$PROJECT_ID" 2>/dev/null || true
-    echo "  [✓] Cloud Run, Secret Manager, Cloud Build & Vertex AI APIs enabled."
+    if [ "$IS_UPDATE" = false ]; then
+        echo ""
+        echo "[*] Enabling required Google Cloud APIs..."
+        gcloud services enable \
+            run.googleapis.com \
+            secretmanager.googleapis.com \
+            cloudbuild.googleapis.com \
+            artifactregistry.googleapis.com \
+            aiplatform.googleapis.com \
+            storage-component.googleapis.com \
+            --project "$PROJECT_ID" 2>/dev/null || true
+        echo "  [✓] Cloud Run, Secret Manager, Cloud Build & Vertex AI APIs enabled."
 
-    # IAM Role Bindings for Build & Runtime Service Accounts
-    PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || true)
-    if [ -n "$PROJECT_NUMBER" ]; then
-        echo "[*] Configuring IAM permissions for Cloud Build & Compute service accounts..."
-        COMPUTE_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
-        CLOUDBUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
+        # IAM Role Bindings for Build & Runtime Service Accounts
+        PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || true)
+        if [ -n "$PROJECT_NUMBER" ]; then
+            echo "[*] Configuring IAM permissions for Cloud Build & Compute service accounts..."
+            COMPUTE_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+            CLOUDBUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
 
-        # Roles for Compute default service account (used by Cloud Build source deploy & Cloud Run runtime)
-        for ROLE in roles/storage.admin roles/logging.logWriter roles/artifactregistry.writer roles/cloudbuild.builds.builder roles/aiplatform.user roles/secretmanager.secretAccessor; do
-            gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-                --member="serviceAccount:${COMPUTE_SA}" \
-                --role="$ROLE" \
-                --condition=None 2>/dev/null || true
-        done
+            for ROLE in roles/storage.admin roles/logging.logWriter roles/artifactregistry.writer roles/cloudbuild.builds.builder roles/aiplatform.user roles/secretmanager.secretAccessor; do
+                gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+                    --member="serviceAccount:${COMPUTE_SA}" \
+                    --role="$ROLE" \
+                    --condition=None 2>/dev/null || true
+            done
 
-        # Roles for Cloud Build service account
-        for ROLE in roles/storage.admin roles/logging.logWriter roles/artifactregistry.writer roles/aiplatform.user roles/secretmanager.secretAccessor; do
-            gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-                --member="serviceAccount:${CLOUDBUILD_SA}" \
-                --role="$ROLE" \
-                --condition=None 2>/dev/null || true
-        done
-        echo "  [✓] IAM permissions successfully configured."
+            for ROLE in roles/storage.admin roles/logging.logWriter roles/artifactregistry.writer roles/aiplatform.user roles/secretmanager.secretAccessor; do
+                gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+                    --member="serviceAccount:${CLOUDBUILD_SA}" \
+                    --role="$ROLE" \
+                    --condition=None 2>/dev/null || true
+            done
+            echo "  [✓] IAM permissions successfully configured."
+        fi
     fi
 
     # Secret Manager Setup for MCP Token
     if [ -n "$MCP_TOKEN_VAL" ]; then
-        echo "[*] Configuring Google Cloud Secret Manager (hr-agent-mcp-token)..."
         if ! gcloud secrets describe hr-agent-mcp-token --project "$PROJECT_ID" >/dev/null 2>&1; then
+            echo "[*] Creating secret hr-agent-mcp-token in Secret Manager..."
             gcloud secrets create hr-agent-mcp-token \
                 --replication-policy="automatic" \
                 --project "$PROJECT_ID" 2>/dev/null || true
+            echo -n "$MCP_TOKEN_VAL" | gcloud secrets versions add hr-agent-mcp-token \
+                --data-file=- \
+                --project "$PROJECT_ID" 2>/dev/null || true
+            echo "  [✓] Secret hr-agent-mcp-token created in Secret Manager."
         fi
-        echo -n "$MCP_TOKEN_VAL" | gcloud secrets versions add hr-agent-mcp-token \
-            --data-file=- \
-            --project "$PROJECT_ID" 2>/dev/null || true
-        echo "  [✓] Secret hr-agent-mcp-token updated in Secret Manager."
     fi
 fi
 
@@ -257,11 +289,15 @@ if [ "$DRY_RUN" = true ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# 7. Build & Deploy to Google Cloud Run
+# 7. Build & Deploy to Google Cloud Run (Rolling Update / New Revision)
 # -----------------------------------------------------------------------------
 echo ""
 echo "================================================================="
-echo "  [*] Deploying full-stack solution to Google Cloud Run...       "
+if [ "$IS_UPDATE" = true ]; then
+    echo "  [*] Deploying new revision to existing Cloud Run service...  "
+else
+    echo "  [*] Deploying full-stack solution to Google Cloud Run...       "
+fi
 echo "================================================================="
 
 ENV_VARS="GEMINI_MODEL=gemini-2.5-flash"
@@ -314,7 +350,11 @@ SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" \
 
 echo ""
 echo "================================================================="
-echo "  🎉 Deployment Complete!                                       "
+if [ "$IS_UPDATE" = true ]; then
+    echo "  🎉 Existing Service Updated Successfully!                      "
+else
+    echo "  🎉 Deployment Complete!                                       "
+fi
 echo "================================================================="
 echo ""
 echo "  🌐 Live Public URL:  $SERVICE_URL"
