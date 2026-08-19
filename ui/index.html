@@ -2762,6 +2762,7 @@
         return;
       }
 
+      currentSessionId = 'session_' + empId.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
       const name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
       saveUserIdentity({
         token: '',
@@ -2772,6 +2773,7 @@
         address: 'Singapore Office, Pasir Panjang'
       });
 
+      startNewChat();
       loginGateScreen.classList.add('hidden');
       toastMsg.innerText = `Welcome, ${name}! (${empId})`;
       toastMsg.classList.add('show');
@@ -2795,8 +2797,10 @@
       sessionStorage.removeItem('elevate_user_identity');
       sessionStorage.removeItem('elevate_demo_mode');
       sessionStorage.removeItem('elevate_authenticated');
+      currentSessionId = null;
       updateIdentityUI();
-      identityModal.style.display = 'none';
+      if (identityModal) identityModal.style.display = 'none';
+      startNewChat();
       loginGateScreen.classList.remove('hidden');
       toastMsg.innerText = 'Signed out from workspace';
       toastMsg.classList.add('show');
