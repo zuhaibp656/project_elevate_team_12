@@ -25,6 +25,7 @@ from agents.subagents.hcm_subagent import create_hcm_subagent
 from agents.subagents.itsm_subagent import create_itsm_subagent
 from agents.storage import (
     sanitize_pii,
+    sanitize_agent_output,
     record_session,
     record_message,
     record_tool_execution
@@ -167,7 +168,7 @@ async def chat_endpoint(req: ChatRequest, request: Request):
         mode = "auto"
         
         latency = int((time.time() - start_t) * 1000)
-        sanitized_ans = sanitize_pii(ans)
+        sanitized_ans = sanitize_agent_output(ans)
         record_message(session_id, correlation_id, "assistant", sanitized_ans)
 
         trace_items = []

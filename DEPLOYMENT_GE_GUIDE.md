@@ -86,7 +86,7 @@ GEMINI_MODEL=gemini-2.5-flash
 GEMINI_API_KEY=AIzaSy...  # Or use gcloud ADC
 
 # FastMCP Authentication Token
-MCP_TOKEN=mcp_CsoiJPHj_FGICu8pf8aFJLIuPc4Kt4AXeOLWyUmwHxQ
+MCP_TOKEN=mcp_your_token_here
 
 # Google Cloud Settings
 GOOGLE_CLOUD_PROJECT=your-gcp-project-id

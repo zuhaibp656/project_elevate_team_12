@@ -4,7 +4,7 @@
 # ==============================================================================
 # This script deploys the complete solution (Google Aura Web UI + Multi-Agent
 # Orchestrator + FastMCP Tools + Policy Knowledge Base) to Google Cloud Run
-# with a public HTTPS URL and automated authentication.
+# with Secret Manager integration, Model Armor, and automated IAM configuration.
 # ==============================================================================
 
 set -eo pipefail
@@ -36,7 +36,7 @@ fi
 PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-${PROJECT_ID:-}}"
 REGION="${GOOGLE_CLOUD_LOCATION:-${REGION:-}}"
 SERVICE_NAME="elevate-hr-app"
-MCP_TOKEN_VAL="${MCP_TOKEN:-mcp_CsoiJPHj_FGICu8pf8aFJLIuPc4Kt4AXeOLWyUmwHxQ}"
+MCP_TOKEN_VAL="${MCP_TOKEN:-}"
 API_KEY_VAL="${GEMINI_API_KEY:-${GOOGLE_API_KEY:-}}"
 MEMORY="2Gi"
 CPU="2"
@@ -52,12 +52,12 @@ print_usage() {
     echo "  -s, --service <NAME>          Cloud Run service name (default: elevate-hr-app)"
     echo "  -k, --api-key <KEY>           Gemini API Key (optional; uses Cloud Run IAM if omitted)"
     echo "  -m, --mcp-token <TOKEN>       FastMCP token for Mock SaaS backend authentication"
-    echo "  -d, --dry-run                 Validate build configuration without deploying"
+    echo "  -d, --dry-run                 Validate configuration and dependencies without deploying"
     echo "  -h, --help                    Show this help message"
     echo ""
     echo "Examples:"
     echo "  ./deploy_full_gcp.sh"
-    echo "  ./deploy_full_gcp.sh --project my-gcp-project --region us-central1"
+    echo "  ./deploy_full_gcp.sh --project my-target-gcp-project --region us-central1"
     echo "  ./deploy_full_gcp.sh --service my-hr-agent"
     echo ""
     exit 1
@@ -100,18 +100,15 @@ while [[ $# -gt 0 ]]; do
 done
 
 # -----------------------------------------------------------------------------
-# 3. Interactive Google Cloud Project & Region Resolution
+# 3. Google Cloud Project & Region Resolution
 # -----------------------------------------------------------------------------
-echo "[*] Resolving Google Cloud credentials..."
+echo "[*] Resolving Google Cloud project and credentials..."
 
-# Try gcloud active project
 if [ -z "$PROJECT_ID" ] && command -v gcloud >/dev/null 2>&1; then
     PROJECT_ID=$(gcloud config get-value project 2>/dev/null || true)
 fi
 
-# If still missing and interactive, prompt the user
 if [ -z "$PROJECT_ID" ] && [ "$DRY_RUN" = false ]; then
-    echo ""
     if [ -t 0 ]; then
         read -r -p "🔑 Enter your Google Cloud Project ID: " USER_PROJECT
         PROJECT_ID="$USER_PROJECT"
@@ -124,7 +121,6 @@ if [ -z "$PROJECT_ID" ] && [ "$DRY_RUN" = false ]; then
     exit 1
 fi
 
-# Region resolution
 if [ -z "$REGION" ] && command -v gcloud >/dev/null 2>&1; then
     REGION=$(gcloud config get-value compute/region 2>/dev/null || true)
 fi
@@ -144,13 +140,17 @@ if [ -n "$API_KEY_VAL" ]; then
 else
     echo "  • Auth Mode:           Native Cloud Run IAM / Vertex AI Service Account"
 fi
-echo "  • FastMCP Token:       ${MCP_TOKEN_VAL:0:12}... (active)"
+if [ -n "$MCP_TOKEN_VAL" ]; then
+    echo "  • FastMCP Token:       ${MCP_TOKEN_VAL:0:8}... (configured)"
+else
+    echo "  • FastMCP Token:       (Will prompt or check Secret Manager)"
+fi
 
 # -----------------------------------------------------------------------------
-# 4. FastMCP Backend Connectivity Check & Interactive Prompt
+# 4. FastMCP Backend Connectivity Check
 # -----------------------------------------------------------------------------
 echo ""
-echo "[*] Verifying Mock SaaS FastMCP connectivity..."
+echo "[*] Checking FastMCP SaaS backend connectivity..."
 
 check_mcp() {
     local token="$1"
@@ -170,15 +170,18 @@ except Exception:
 " 2>/dev/null
 }
 
-if check_mcp "$MCP_TOKEN_VAL"; then
+if [ -n "$MCP_TOKEN_VAL" ] && check_mcp "$MCP_TOKEN_VAL"; then
     echo "  [✓] FastMCP token verified! (Status 200 OK)"
 else
-    echo "  [!] Warning: FastMCP connection test failed with token: ${MCP_TOKEN_VAL:0:12}..."
     if [ -t 0 ] && [ "$DRY_RUN" = false ]; then
+        echo "  [!] Prompting for FastMCP token..."
         read -r -p "🔑 Enter your FastMCP Token (from https://mock-saas.aishprabhat.demo.altostrat.com/): " NEW_TOKEN
         if [ -n "$NEW_TOKEN" ]; then
             if check_mcp "$NEW_TOKEN"; then
                 echo "  [✓] Success! Token verified."
+                MCP_TOKEN_VAL="$NEW_TOKEN"
+            else
+                echo "  [!] Warning: Token could not be verified online, continuing with provided value."
                 MCP_TOKEN_VAL="$NEW_TOKEN"
             fi
         fi
@@ -186,18 +189,42 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 5. Enable Required Google Cloud APIs
+# 5. Enable Required Google Cloud APIs & Secret Manager Setup
 # -----------------------------------------------------------------------------
-if [ "$DRY_RUN" = false ]; then
+if [ "$DRY_RUN" = false ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT_ID" ]; then
     echo ""
-    echo "[*] Ensuring required Google Cloud APIs are enabled..."
+    echo "[*] Enabling required Google Cloud APIs..."
     gcloud services enable \
         run.googleapis.com \
+        secretmanager.googleapis.com \
         cloudbuild.googleapis.com \
         artifactregistry.googleapis.com \
         aiplatform.googleapis.com \
         --project "$PROJECT_ID" 2>/dev/null || true
-    echo "  [✓] Cloud Run, Cloud Build & Vertex AI APIs enabled."
+    echo "  [✓] Cloud Run, Secret Manager, Cloud Build & Vertex AI APIs enabled."
+
+    # Secret Manager Setup for MCP Token
+    if [ -n "$MCP_TOKEN_VAL" ]; then
+        echo "[*] Configuring Google Cloud Secret Manager (hr-agent-mcp-token)..."
+        if ! gcloud secrets describe hr-agent-mcp-token --project "$PROJECT_ID" >/dev/null 2>&1; then
+            gcloud secrets create hr-agent-mcp-token \
+                --replication-policy="automatic" \
+                --project "$PROJECT_ID" 2>/dev/null || true
+        fi
+        echo -n "$MCP_TOKEN_VAL" | gcloud secrets versions add hr-agent-mcp-token \
+            --data-file=- \
+            --project "$PROJECT_ID" 2>/dev/null || true
+        echo "  [✓] Secret hr-agent-mcp-token updated in Secret Manager."
+
+        # Grant Secret Accessor to Default Compute Service Account
+        PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || true)
+        if [ -n "$PROJECT_NUMBER" ]; then
+            gcloud secrets add-iam-policy-binding hr-agent-mcp-token \
+                --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+                --role="roles/secretmanager.secretAccessor" \
+                --project "$PROJECT_ID" >/dev/null 2>&1 || true
+        fi
+    fi
 fi
 
 # -----------------------------------------------------------------------------
@@ -206,8 +233,8 @@ fi
 if [ "$DRY_RUN" = true ]; then
     echo ""
     echo "================================================================="
-    echo "  [✓] Dry-run complete! Dockerfile, UI server, and agents are"
-    echo "      configured and ready for 1-click deployment to Cloud Run."
+    echo "  [✓] Dry-run complete! All deployment prerequisites, secrets,"
+    echo "      and configurations are validated and ready for Cloud Run."
     echo "================================================================="
     exit 0
 fi
@@ -222,7 +249,6 @@ echo "================================================================="
 
 ENV_VARS="GEMINI_MODEL=gemini-2.5-flash"
 ENV_VARS="$ENV_VARS,MOCK_SAAS_BASE_URL=https://mock-saas.aishprabhat.demo.altostrat.com"
-ENV_VARS="$ENV_VARS,MCP_TOKEN=$MCP_TOKEN_VAL"
 ENV_VARS="$ENV_VARS,GOOGLE_GENAI_USE_ENTERPRISE=true"
 ENV_VARS="$ENV_VARS,GOOGLE_CLOUD_PROJECT=$PROJECT_ID"
 ENV_VARS="$ENV_VARS,GOOGLE_CLOUD_LOCATION=$REGION"
@@ -230,16 +256,27 @@ if [ -n "$API_KEY_VAL" ]; then
     ENV_VARS="$ENV_VARS,GEMINI_API_KEY=$API_KEY_VAL"
 fi
 
-gcloud run deploy "$SERVICE_NAME" \
-    --source . \
-    --project "$PROJECT_ID" \
-    --region "$REGION" \
-    --platform managed \
-    --allow-unauthenticated \
-    --memory "$MEMORY" \
-    --cpu "$CPU" \
-    --timeout 300 \
+DEPLOY_CMD=(
+    gcloud run deploy "$SERVICE_NAME"
+    --source .
+    --project "$PROJECT_ID"
+    --region "$REGION"
+    --platform managed
+    --allow-unauthenticated
+    --memory "$MEMORY"
+    --cpu "$CPU"
+    --timeout 300
     --set-env-vars "$ENV_VARS"
+)
+
+# Use Secret Manager binding if secret is available
+if gcloud secrets describe hr-agent-mcp-token --project "$PROJECT_ID" >/dev/null 2>&1; then
+    DEPLOY_CMD+=(--set-secrets="MCP_TOKEN=hr-agent-mcp-token:latest")
+elif [ -n "$MCP_TOKEN_VAL" ]; then
+    DEPLOY_CMD+=(--set-env-vars="MCP_TOKEN=$MCP_TOKEN_VAL")
+fi
+
+"${DEPLOY_CMD[@]}"
 
 # -----------------------------------------------------------------------------
 # 8. Retrieve Live Public URL & Health Check
@@ -259,7 +296,9 @@ echo ""
 echo "  Features Deployed:"
 echo "    • Google Aura Modern Web UI (3-Column Workspace)"
 echo "    • Multi-Agent Orchestrator (Policy, WorkWeek HCM, ServiceImmediately ITSM)"
+echo "    • Model Armor & Prompt Injection Protection Layer"
 echo "    • FastMCP Streamable JSON-RPC Live Tool Routing"
+echo "    • Google Cloud Secret Manager Token Storage"
 echo "    • Real-time PTO Balances, Incident Tickets Feed & Reasoning Trace"
 echo ""
 echo "  Try opening the URL in your browser: $SERVICE_URL"

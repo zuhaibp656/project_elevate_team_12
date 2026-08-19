@@ -54,7 +54,7 @@ cp .env.example .env
 ```
 Inside `.env`:
 ```env
-MCP_TOKEN=mcp_CsoiJPHj_FGICu8pf8aFJLIuPc4Kt4AXeOLWyUmwHxQ
+MCP_TOKEN=mcp_your_token_here
 MOCK_SAAS_BASE_URL=https://mock-saas.aishprabhat.demo.altostrat.com
 GEMINI_MODEL=gemini-2.5-flash
 ```

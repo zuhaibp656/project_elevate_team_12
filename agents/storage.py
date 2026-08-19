@@ -11,20 +11,13 @@ DB_PATH = os.getenv("STORAGE_DB_PATH", os.path.join(REPO_ROOT, "hr_agentic_sessi
 
 _DB_LOCK = threading.Lock()
 
-# Regex Patterns for In-Flight PII / SPII Redaction
-NRIC_PATTERN = re.compile(r"\b[STFGM]\d{7}[A-Z]\b", re.IGNORECASE)
-CREDIT_CARD_PATTERN = re.compile(r"\b(?:\d[ -]*?){13,16}\b")
-CREDENTIAL_PATTERN = re.compile(r"(?i)(password|secret|api[_-]?key)\s*[:=]\s*['\"]?([A-Za-z0-9_\-\.]{8,})['\"]?")
+from agents.model_armor import inspect_prompt_safety, sanitize_agent_output, NRIC_PATTERN, CREDIT_CARD_PATTERN, CREDENTIAL_PATTERN
 
 
 def sanitize_pii(text: str) -> str:
     """Sanitize in-flight SPII and PII (Singapore NRIC, credit cards, credentials) before LLM or DB storage."""
-    if not text or not isinstance(text, str):
-        return text
-    sanitized = NRIC_PATTERN.sub("[NRIC_REDACTED]", text)
-    sanitized = CREDIT_CARD_PATTERN.sub("[PAYMENT_CARD_REDACTED]", sanitized)
-    sanitized = CREDENTIAL_PATTERN.sub(r"\1: [CREDENTIAL_REDACTED]", sanitized)
-    return sanitized
+    _, cleaned, _ = inspect_prompt_safety(text)
+    return cleaned
 
 
 def init_db():
