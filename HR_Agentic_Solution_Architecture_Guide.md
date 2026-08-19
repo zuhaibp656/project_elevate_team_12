@@ -15,40 +15,14 @@ Yet today, across modern enterprises, employees spend hours digging through 50-p
 
 We built the **HR Agentic Solution (Team 12)** to solve this human problem.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          The Human-Centric Promise                          │
-│                                                                             │
-│   "An empathetic, trusted companion that listens to employees in plain      │
-│    English, reads verified company policies, and takes care of their leave  │
-│    bookings and IT requests instantly — while always keeping a human        │
-│    specialist just one click away when it truly matters."                   │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+> [!NOTE]
+> **The Human-Centric Promise**: An empathetic, trusted companion that listens to employees in plain English, reads verified company policies, and takes care of their leave bookings and IT requests instantly — while always keeping a human specialist just one click away when it truly matters.
 
 ---
 
 ## 🎯 2. Our Core Design Philosophy: Why We Made These Choices
 
 Every architectural decision in our solution was guided by three foundational principles: **Human Empathy, Absolute Factual Truth, and Effortless Simplicity**.
-
-```
-                           ┌──────────────────────────┐
-                           │    Empathy First         │
-                           │  • Understand Intent     │
-                           │  • Respect Private Life  │
-                           │  • Human Escalation Path │
-                           └────────────┬─────────────┘
-                                        │
-                 ┌──────────────────────┴──────────────────────┐
-                 ▼                                             ▼
-  ┌─────────────────────────────┐               ┌─────────────────────────────┐
-  │      Grounded Truth         │               │    Effortless Simplicity    │
-  │ • 100% Policy Citations     │               │ • 3-Column Modern Workspace │
-  │ • Zero Hallucination/Guess  │               │ • Universal System Plug     │
-  │ • In-Flight PII Redaction   │               │ • Single-Turn Execution     │
-  └─────────────────────────────┘               └─────────────────────────────┘
-```
 
 ### 2.1. Plain-English Architecture Translation for Executives
 | Technical Term | Friendly Plain-English Analogy | Real-World Business Function |
@@ -76,64 +50,17 @@ Every architectural decision in our solution was guided by three foundational pr
 
 ## 🏛️ 3. How It Works: The Complete System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                               Target Solution Architecture                              │
-├─────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                         │
-│  [ PRESENTATION LAYER ]                                                                 │
-│  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ Google Aura 3-Column Web UI Workspace (HTML5 / CSS3 / Vanilla JS)                 │  │
-│  │ • Left Sidebar: Persistent Chat History & Session Manager (localStorage)          │  │
-│  │ • Center Canvas: Google Neon Aura Search Card + Morphing Multi-Turn Chat Stream   │  │
-│  │ • Right Sidebar: "My Hub" Live PTO Balances & Incident Tickets Telemetry Feed     │  │
-│  └─────────────────────────────────────────┬─────────────────────────────────────────┘  │
-│                                            │ REST / SSE Stream (/api/chat, /api/hub)    │
-│  [ APPLICATION & API GATEWAY LAYER ]       ▼                                            │
-│  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ FastAPI Server Runtime (ui/server.py — Port 8080 / 8090)                          │  │
-│  │ • Async Event Loop Orchestrator Bridge (run_query_traced_async)                   │  │
-│  │ • W3C Trace Context (traceparent) & Correlation ID (X-Correlation-ID) Injector    │  │
-│  │ • In-Flight DLP Sanitizer (Masks NRIC, Credit Cards, Credentials)                 │  │
-│  │ • Client-Side Token Bucket Rate Limiter & Circuit Breaker Manager                 │  │
-│  └─────────────────────────────────────────┬─────────────────────────────────────────┘  │
-│                                            │                                            │
-│  [ MULTI-AGENT ORCHESTRATION LAYER ]       ▼                                            │
-│  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ Google Agent Development Kit (ADK) — hr_orchestrator                              │  │
-│  │ Foundation Model: Gemini 2.5 Flash (Temp: 0.2, Top-P: 0.95)                       │  │
-│  │                                                                                   │  │
-│  │        ┌────────────────────────┼────────────────────────┐                        │  │
-│  │        ▼                        ▼                        ▼                        │  │
-│  │  ┌───────────┐            ┌───────────┐            ┌───────────┐                  │  │
-│  │  │  Policy   │            │ WorkWeek  │            │  Service  │                  │  │
-│  │  │Specialist │            │HCM Expert │            │Immediately│                  │  │
-│  │  └─────┬─────┘            └─────┬─────┘            └─────┬─────┘                  │  │
-│  └────────┼────────────────────────┼────────────────────────┼────────────────────────┘  │
-│           │                        │                        │                           │
-│  [ INTEGRATION LAYER ]             │ Streamable JSON-RPC    │ Streamable JSON-RPC       │
-│           │ Dynamic Hot-Reload     │ (X-MCP-Token Header)   │ (X-MCP-Token Header)      │
-│           │ (mtime Invalidation)   │ (429 Backoff & Breaker)│ (Tiered Quotas & Breaker) │
-│           ▼                        ▼                        ▼                           │
-│  ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐                  │
-│  │ OKF Policy Docs │      │ WorkWeek FastMCP│      │ ServiceImmed.   │                  │
-│  │ (38 Categories) │      │ (/work-week/mcp)│      │ (/service...mcp)│                  │
-│  │ Version-Indexed │      │ 60 req/min Cap  │      │ + Tier-2 Escalat│                  │
-│  └─────────────────┘      └────────┬────────┘      └────────┬────────┘                  │
-│                                    │                        │                           │
-│  [ ENTERPRISE SAAS LAYER ]         ▼                        ▼                           │
-│  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ Mock SaaS Enterprise Portal (https://mock-saas.aishprabhat.demo.altostrat.com)    │  │
-│  │ • WorkWeek HCM: Employee Records, Vacation/Sick Accruals, Leave Approvals         │  │
-│  │ • ServiceImmediately ITSM: Incident Lifecycle, Activity Comments, Tier-2 Queues  │  │
-│  └───────────────────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-```
+![System Architecture](images/system_architecture.jpg)
 
 ---
 
-## 🔄 4. Cross-System Orchestration & Step-by-Step Chaining
+## 🔄 4. End-to-End Decision Flow & Step-by-Step Chaining
 
+The multi-agent system uses deterministic routing to process employee inquiries:
+
+![Multi-Agent AI Flow](images/flow_diagram.jpg)
+
+### 4.1. Cross-System Chaining Sequence
 When an employee submits a complex compound request:
 *"I need 2 days of sick leave starting 2026-09-01. Check policy, book my leave in WorkWeek, and create an IT ticket to route my emails."*
 
@@ -222,25 +149,11 @@ sequenceDiagram
 
 ## 🔮 6. Future Innovation Opportunities & Next-Phase Roadmap
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       Next-Phase Innovation Horizons                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  [ OMNICHANNEL EXPANSION ]                                                  │
-│  • Slack Bolt & MS Teams Bots: Direct interactive slash commands.           │
-│  • Contact Center AI (CCAI) Voice Gateway: Empathetic phone hotline.        │
-│                                                                             │
-│  [ PROACTIVE EVENT-DRIVEN AUTOMATION ]                                      │
-│  • Google Cloud Eventarc & Pub/Sub: Notifies employees of expiring PTO.     │
-│  • Proactive Manager Copilot: 1-click leave approvals based on team caps.   │
-│                                                                             │
-│  [ ADVANCED KNOWLEDGE GRAPHS ]                                              │
-│  • Graph RAG (Neo4j / Vertex): Multi-tier matrix reporting approval chains. │
-│  • Multilingual Vertex AI Search: Localized handbooks across 50+ countries. │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+* **Omnichannel Expansion**: Direct interactive Slack Bolt and Microsoft Teams slash commands (`/ask-hr`).
+* **Contact Center AI (CCAI) Voice Gateway**: Empathetic phone hotline for leave bookings and compassionate assistance.
+* **Proactive Event-Driven Notifications**: Google Cloud Eventarc & Pub/Sub alerting employees of expiring PTO before rollover.
+* **Manager Copilot Sub-Agent**: 1-click team leave approvals based on department coverage rules.
+* **Graph RAG Knowledge Modeling**: Multi-tier matrix reporting approval chains via Neo4j and Vertex AI.
 
 ---
 

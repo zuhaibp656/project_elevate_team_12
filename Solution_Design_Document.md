@@ -11,7 +11,7 @@
 | **Project Name** | Project Elevate — HR Agentic Solution |
 | **Team** | Team 12 |
 | **Author(s)** | Team 12 |
-| **Date** | August 18, 2026 |
+| **Date** | August 19, 2026 |
 | **Status** | Approved & Enterprise Production-Ready |
 | **Target Audience** | Enterprise Architecture Review Board, HR Leadership, IT Operations, Data Protection Officer, Lead Engineers |
 
@@ -22,7 +22,7 @@
 | **1.1** | 2026-08-18 | Added Architectural Design Choices (Why & How), Identity Bridge & 3-Column UI |
 | **1.2** | 2026-08-18 | Added Dynamic Policy Ingestion Pipeline, Peak Resiliency & Tier-2 Human Escalation (HITL) |
 | **2.0** | 2026-08-18 | Stakeholder Remediation (Canary Verification, Tracing, DLQ, DDL/ERD, Risk Register) |
-| **2.5** | 2026-08-18 | **Visual Decision Logic Addition**: Added Comprehensive End-to-End Decision Flowchart with Detailed Node-by-Node Explanation Matrix |
+| **2.6** | 2026-08-19 | **Visual Diagram Polish**: Embedded Official Architecture & Multi-Agent Flow Diagrams from README; streamlined visual layouts. |
 
 ---
 
@@ -62,25 +62,7 @@ To bridge technical AI concepts with executive leadership, the core technologies
 
 ## 2. Architecture Justification: Why We Chose This Design & Rejected Alternatives
 
-To provide total architectural transparency, all technology and architectural topology choices were evaluated against leading industry alternatives across five standardized dimensions:
-
-```
-                           ┌──────────────────────────┐
-                           │    Empathy First         │
-                           │  • Understand Intent     │
-                           │  • Respect Private Life  │
-                           │  • Human Escalation Path │
-                           └────────────┬─────────────┘
-                                        │
-                 ┌──────────────────────┴──────────────────────┐
-                 ▼                                             ▼
-  ┌─────────────────────────────┐               ┌─────────────────────────────┐
-  │      Grounded Truth         │               │    Effortless Simplicity    │
-  │ • 100% Policy Citations     │               │ • 3-Column Modern Workspace │
-  │ • Zero Hallucination/Guess  │               │ • Universal System Plug     │
-  │ • In-Flight PII Redaction   │               │ • Single-Turn Execution     │
-  └─────────────────────────────┘               └─────────────────────────────┘
-```
+All technology and architectural topology choices were evaluated against leading industry alternatives across five standardized dimensions:
 
 ### 2.1. Dimension 1: Agent Orchestration Framework
 | Option | Description | Score | Why We Chose / Rejected It |
@@ -130,7 +112,9 @@ To provide total architectural transparency, all technology and architectural to
 
 ## 3. End-to-End System Decision Logic Flowchart
 
-The following flowchart details the complete, deterministic decision path executed by the system from the moment an employee submits a query to final response synthesis:
+The following official flow diagram and node-by-node explanation define the deterministic decision path executed by the multi-agent system:
+
+![Multi-Agent AI Flow](images/flow_diagram.jpg)
 
 ```mermaid
 flowchart TD
@@ -206,59 +190,7 @@ flowchart TD
 
 ## 4. Core Architecture & FastMCP Interface Contracts
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                               Target Solution Architecture                              │
-├─────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                         │
-│  [ PRESENTATION LAYER ]                                                                 │
-│  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ Google Aura 3-Column Web UI Workspace (HTML5 / CSS3 / Vanilla JS)                 │  │
-│  │ • Left Sidebar: Persistent Chat History & Session Manager (localStorage)          │  │
-│  │ • Center Canvas: Google Neon Aura Search Card + Morphing Multi-Turn Chat Stream   │  │
-│  │ • Right Sidebar: "My Hub" Live PTO Balances & Incident Tickets Telemetry Feed     │  │
-│  └─────────────────────────────────────────┬─────────────────────────────────────────┘  │
-│                                            │ REST / SSE Stream (/api/chat, /api/hub)    │
-│  [ APPLICATION & API GATEWAY LAYER ]       ▼                                            │
-│  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ FastAPI Server Runtime (ui/server.py — Port 8080 / 8090)                          │  │
-│  │ • Async Event Loop Orchestrator Bridge (run_query_traced_async)                   │  │
-│  │ • W3C Trace Context (traceparent) & Correlation ID (X-Correlation-ID) Injector    │  │
-│  │ • In-Flight DLP Sanitizer (Masks NRIC, Credit Cards, Credentials)                 │  │
-│  │ • Client-Side Token Bucket Rate Limiter & Circuit Breaker Manager                 │  │
-│  └─────────────────────────────────────────┬─────────────────────────────────────────┘  │
-│                                            │                                            │
-│  [ MULTI-AGENT ORCHESTRATION LAYER ]       ▼                                            │
-│  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ Google Agent Development Kit (ADK) — hr_orchestrator                              │  │
-│  │ Foundation Model: Gemini 2.5 Flash (Temp: 0.2, Top-P: 0.95)                       │  │
-│  │                                                                                   │  │
-│  │        ┌────────────────────────┼────────────────────────┐                        │  │
-│  │        ▼                        ▼                        ▼                        │  │
-│  │  ┌───────────┐            ┌───────────┐            ┌───────────┐                  │  │
-│  │  │  Policy   │            │ WorkWeek  │            │  Service  │                  │  │
-│  │  │Specialist │            │HCM Expert │            │Immediately│                  │  │
-│  │  └─────┬─────┘            └─────┬─────┘            └─────┬─────┘                  │  │
-│  └────────┼────────────────────────┼────────────────────────┼────────────────────────┘  │
-│           │                        │                        │                           │
-│  [ INTEGRATION LAYER ]             │ Streamable JSON-RPC    │ Streamable JSON-RPC       │
-│           │ Dynamic Hot-Reload     │ (X-MCP-Token Header)   │ (X-MCP-Token Header)      │
-│           │ (mtime Invalidation)   │ (429 Backoff & Breaker)│ (Tiered Quotas & Breaker) │
-│           ▼                        ▼                        ▼                           │
-│  ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐                  │
-│  │ OKF Policy Docs │      │ WorkWeek FastMCP│      │ ServiceImmed.   │                  │
-│  │ (38 Categories) │      │ (/work-week/mcp)│      │ (/service...mcp)│                  │
-│  │ Version-Indexed │      │ 60 req/min Cap  │      │ + Tier-2 Escalat│                  │
-│  └─────────────────┘      └────────┬────────┘      └────────┬────────┘                  │
-│                                    │                        │                           │
-│  [ ENTERPRISE SAAS LAYER ]         ▼                        ▼                           │
-│  ┌───────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ Mock SaaS Enterprise Portal (https://mock-saas.aishprabhat.demo.altostrat.com)    │  │
-│  │ • WorkWeek HCM: Employee Records, Vacation/Sick Accruals, Leave Approvals         │  │
-│  │ • ServiceImmediately ITSM: Incident Lifecycle, Activity Comments, Tier-2 Queues  │  │
-│  └───────────────────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────────────────┘
-```
+![System Architecture](images/system_architecture.jpg)
 
 ---
 
@@ -328,12 +260,11 @@ sequenceDiagram
 
 ## 6. Secure Identity Bridging Architecture (Email to Employee ID)
 
-```
-┌─────────────────────────┐       ┌─────────────────────────┐       ┌─────────────────────────┐
-│ Enterprise IdP (OIDC)   │       │ Identity Bridge Gateway │       │ Downstream FastMCP      │
-│ • Okta / Google SSO     │──────►│ • SCIM Directory Sync   │──────►│ • X-MCP-Token Header    │
-│ • Claims: email, sub    │       │ • Redis Cache (15m TTL) │       │ • Bound to EMP-380      │
-└─────────────────────────┘       └─────────────────────────┘       └─────────────────────────┘
+```mermaid
+flowchart LR
+    IdP[Enterprise IdP / OIDC SSO<br>email: emp380@enterprise.demo] --> Bridge[Identity Bridge Gateway<br>SCIM / Redis / Cloud SQL]
+    Bridge --> Session[Session Context Lock<br>employee_id: EMP-380]
+    Session --> Tools[Downstream FastMCP Layer<br>X-MCP-Token Header]
 ```
 
 1. **SSO Ingress**: The employee authenticates via corporate SSO (Google Workspace, Okta, or Azure AD). The frontend receives a verified JWT containing the employee's corporate email (`email: emp380@enterprise.demo`).
@@ -572,25 +503,12 @@ CREATE TABLE escalation_tickets (
 
 ## 11. Future Innovation Opportunities & Next-Phase Roadmap
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       Next-Phase Innovation Horizons                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  [ OMNICHANNEL EXPANSION ]                                                  │
-│  • Slack Bolt & MS Teams Bots: Direct interactive slash commands.           │
-│  • Contact Center AI (CCAI) Voice Gateway: Empathetic phone hotline.        │
-│                                                                             │
-│  [ PROACTIVE EVENT-DRIVEN AUTOMATION ]                                      │
-│  • Google Cloud Eventarc & Pub/Sub: Notifies employees of expiring PTO.     │
-│  • Proactive Manager Copilot: 1-click leave approvals based on team caps.   │
-│                                                                             │
-│  [ ADVANCED KNOWLEDGE GRAPHS ]                                              │
-│  • Graph RAG (Neo4j / Vertex): Multi-tier matrix reporting approval chains. │
-│  • Multilingual Vertex AI Search: Localized handbooks across 50+ countries. │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+### 11.1. Key Innovation Horizons
+* **Omnichannel Expansion**: Direct interactive Slack Bolt and Microsoft Teams slash commands (`/ask-hr`).
+* **Contact Center AI (CCAI) Voice Gateway**: Empathetic phone hotline for leave bookings and compassionate assistance.
+* **Proactive Event-Driven Notifications**: Google Cloud Eventarc & Pub/Sub alerting employees of expiring PTO before rollover.
+* **Manager Copilot Sub-Agent**: 1-click team leave approvals based on department coverage rules.
+* **Graph RAG Knowledge Modeling**: Multi-tier matrix reporting approval chains via Neo4j and Vertex AI.
 
 ---
 
