@@ -1,8 +1,52 @@
+# Python Bytecode & Cache
 __pycache__/
-*.pyc
-.env
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
 .venv/
-node_modules/
-.DS_Store
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+
+# Database & Session Storage
+*.db
+*.sqlite
+*.sqlite3
+hr_agentic_sessions.db
+
+# Archives & Large Bundles
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+HR_Agentic_Solution_Team_12_Final.zip
+
+# Logs & Diagnostics
+*.log
+logs/
+
+# ADK Runtime artifacts
 .adk/
 agents/.adk/
+
+# OS and Editor Metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+node_modules/
