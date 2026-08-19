@@ -136,6 +136,27 @@
       text-decoration: none;
       color: var(--text-main);
       cursor: pointer;
+      user-select: none;
+    }
+
+    .brand-logo-gemini {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .gemini-sparkle-svg {
+      animation: spinGlow 7s ease-in-out infinite alternate, floatSparkle 3s ease-in-out infinite;
+      filter: drop-shadow(0 2px 6px rgba(66, 133, 244, 0.4));
+    }
+    @keyframes spinGlow {
+      0% { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 6px rgba(66, 133, 244, 0.4)); }
+      50% { transform: rotate(90deg) scale(1.08); filter: drop-shadow(0 0 10px rgba(234, 67, 53, 0.5)); }
+      100% { transform: rotate(180deg) scale(1); filter: drop-shadow(0 0 8px rgba(52, 168, 83, 0.5)); }
+    }
+    @keyframes floatSparkle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-2px); }
     }
 
     .google-dots {
@@ -144,8 +165,8 @@
     }
 
     .dot {
-      width: 8.5px;
-      height: 8.5px;
+      width: 7.5px;
+      height: 7.5px;
       border-radius: 50%;
     }
     .dot-blue { background: var(--g-blue); }
@@ -153,18 +174,36 @@
     .dot-yellow { background: var(--g-yellow); }
     .dot-green { background: var(--g-green); }
 
+    .animated-dots .dot {
+      animation: bounceDot 1.6s ease-in-out infinite;
+    }
+    .animated-dots .dot:nth-child(1) { animation-delay: 0s; }
+    .animated-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+    .animated-dots .dot:nth-child(3) { animation-delay: 0.4s; }
+    .animated-dots .dot:nth-child(4) { animation-delay: 0.6s; }
+    @keyframes bounceDot {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3.5px); }
+    }
+
     .brand-text {
       font-size: 18.5px;
       font-weight: 700;
       letter-spacing: -0.4px;
     }
+    .gradient-text {
+      background: linear-gradient(135deg, #1a73e8 0%, #4285f4 40%, #1e8e3e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
     .brand-badge {
       font-size: 10.5px;
-      font-weight: 600;
-      background: var(--g-blue-light);
+      font-weight: 700;
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.15), rgba(52, 168, 83, 0.15));
       color: var(--g-blue);
-      padding: 2.5px 7px;
+      border: 1px solid rgba(66, 133, 244, 0.3);
+      padding: 2.5px 8px;
       border-radius: var(--radius-full);
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -205,51 +244,29 @@
       border-color: rgba(66, 133, 244, 0.35);
     }
 
-    .user-profile-widget {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-right: 6px;
+    /* Extreme Right Profile Dropdown Menu */
+    .user-profile-menu-wrapper {
+      position: relative;
     }
-    .btn-signout-compact {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: var(--surface);
-      border: 1px solid rgba(234, 67, 53, 0.35);
-      color: var(--g-red);
-      padding: 5px 11px;
-      border-radius: var(--radius-full);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .btn-signout-compact:hover {
-      background: #fce8e6;
-      border-color: #ea4335;
-      color: #d93025;
-      transform: translateY(-1px);
-    }
-
     .user-profile-pill {
       display: flex;
       align-items: center;
       gap: 7px;
-      background: var(--surface-subtle);
+      background: var(--surface);
       border: 1px solid var(--border-color);
-      padding: 4px 11px;
+      padding: 4px 12px;
       border-radius: var(--radius-full);
       font-size: 12px;
       font-weight: 600;
       color: var(--text-main);
       cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s;
     }
     .user-profile-pill:hover {
-      background: var(--surface);
+      background: var(--surface-subtle);
       border-color: var(--g-blue);
+      transform: translateY(-1px);
     }
     .user-avatar-circle {
       width: 22px;
@@ -263,6 +280,98 @@
       font-size: 11px;
       font-weight: 700;
       flex-shrink: 0;
+    }
+    .user-avatar-circle.large {
+      width: 38px;
+      height: 38px;
+      font-size: 16px;
+    }
+
+    .profile-dropdown-card {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 260px;
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      padding: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 1200;
+      animation: fadeInDown 0.18s ease-out;
+    }
+    .profile-dropdown-card.show {
+      display: flex;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .profile-dropdown-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 6px 10px;
+    }
+    .dropdown-user-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .dropdown-user-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dropdown-user-role {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--g-blue);
+    }
+    .dropdown-user-email {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .profile-dropdown-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 4px 0 6px;
+    }
+    .profile-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 10px;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .profile-dropdown-item:hover {
+      background: var(--surface-subtle);
+    }
+    .profile-dropdown-item.signout-item {
+      color: var(--g-red);
+      font-weight: 600;
+    }
+    .profile-dropdown-item.signout-item:hover {
+      background: #fce8e6;
     }
     .modal-field {
       margin-bottom: 15px;
@@ -1821,29 +1930,34 @@
   <!-- Header -->
   <header>
     <div class="header-left">
-      <div class="user-profile-widget" id="userProfileWidget">
-        <button class="user-profile-pill" id="btnUserIdentity" title="Manage Account & FastMCP Token">
-          <div class="user-avatar-circle" id="headerUserAvatar">👤</div>
-          <span id="headerUserName">Connect Account</span>
-        </button>
-        <button class="btn-signout-compact" id="btnHeaderSignOut" title="Sign Out from Workspace">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-          Sign Out
-        </button>
-      </div>
-
+  <!-- Header -->
+  <header>
+    <div class="header-left">
       <button class="btn-action active" id="btnToggleHistory" title="Toggle Conversation History Panel">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         Chats
       </button>
       <div class="brand" id="btnBrandHome" title="Start New Conversation">
-        <div class="google-dots">
+        <div class="brand-logo-gemini">
+          <svg class="gemini-sparkle-svg" viewBox="0 0 24 24" width="22" height="22">
+            <path fill="url(#sparkle-gradient-header)" d="M12 0C12 6.627 6.627 12 0 12c6.627 0 12 5.373 12 12 0-6.627 5.373-12 12-12-6.627 0-12-5.373-12-12z"/>
+            <defs>
+              <linearGradient id="sparkle-gradient-header" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4285F4"/>
+                <stop offset="33%" stop-color="#EA4335"/>
+                <stop offset="66%" stop-color="#FBBC05"/>
+                <stop offset="100%" stop-color="#34A853"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="google-dots animated-dots">
           <div class="dot dot-blue"></div>
           <div class="dot dot-red"></div>
           <div class="dot dot-yellow"></div>
           <div class="dot dot-green"></div>
         </div>
-        <span class="brand-text">Elevate HR</span>
+        <span class="brand-text gradient-text">Elevate HR</span>
         <span class="brand-badge">Team 12</span>
       </div>
     </div>
@@ -1861,7 +1975,7 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         Export
       </button>
-            <button class="btn-action" id="btnEvaluate" title="Run & Inspect Multi-Agent System Evaluations" style="background: linear-gradient(135deg, rgba(26, 115, 232, 0.08), rgba(52, 168, 83, 0.08)); border-color: rgba(26, 115, 232, 0.3); font-weight: 600;">
+      <button class="btn-action" id="btnEvaluate" title="Run & Inspect Multi-Agent System Evaluations" style="background: linear-gradient(135deg, rgba(26, 115, 232, 0.08), rgba(52, 168, 83, 0.08)); border-color: rgba(26, 115, 232, 0.3); font-weight: 600;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2.5"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
         <span style="color: var(--g-blue);">Evaluate</span>
       </button>
@@ -1876,6 +1990,36 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
         Portal
       </a>
+
+      <!-- Extreme Right Profile Menu with Dropdown -->
+      <div class="user-profile-menu-wrapper" id="profileMenuWrapper">
+        <button class="user-profile-pill" id="btnUserIdentity" title="Employee Account & Identity Settings">
+          <div class="user-avatar-circle" id="headerUserAvatar">👤</div>
+          <span id="headerUserName">Zuhaib</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+
+        <!-- Dropdown Card with Sign Out inside -->
+        <div class="profile-dropdown-card" id="profileDropdownCard">
+          <div class="profile-dropdown-header">
+            <div class="user-avatar-circle large" id="dropdownUserAvatar">👤</div>
+            <div class="dropdown-user-info">
+              <div class="dropdown-user-name" id="dropdownUserName">Zuhaib Parvez</div>
+              <div class="dropdown-user-role" id="dropdownUserRole">EMP-380 • Senior Cloud Engineer</div>
+              <div class="dropdown-user-email" id="dropdownUserEmail">zuhaibp@google.com</div>
+            </div>
+          </div>
+          <div class="profile-dropdown-divider"></div>
+          <button class="profile-dropdown-item" id="btnDropdownEdit">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>Switch Identity / Settings</span>
+          </button>
+          <button class="profile-dropdown-item signout-item" id="btnDropdownSignOut">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -2639,19 +2783,25 @@
     });
 
     // -------------------------------------------------------------------------
-    // User Workspace Identity & FastMCP Token Management
+    // User Workspace Identity & Profile Dropdown Management
     // -------------------------------------------------------------------------
     const loginGateScreen = document.getElementById('loginGateScreen');
     const gateUserEmail = document.getElementById('gateUserEmail');
-    const gateMcpToken = document.getElementById('gateMcpToken');
     const gateEmployeeId = document.getElementById('gateEmployeeId');
     const gateStatusMsg = document.getElementById('gateStatusMsg');
     const btnGateConnect = document.getElementById('btnGateConnect');
-    const btnGateDemo = document.getElementById('btnGateDemo');
 
     const btnUserIdentity = document.getElementById('btnUserIdentity');
     const headerUserName = document.getElementById('headerUserName');
     const headerUserAvatar = document.getElementById('headerUserAvatar');
+    const profileDropdownCard = document.getElementById('profileDropdownCard');
+    const dropdownUserAvatar = document.getElementById('dropdownUserAvatar');
+    const dropdownUserName = document.getElementById('dropdownUserName');
+    const dropdownUserRole = document.getElementById('dropdownUserRole');
+    const dropdownUserEmail = document.getElementById('dropdownUserEmail');
+    const btnDropdownEdit = document.getElementById('btnDropdownEdit');
+    const btnDropdownSignOut = document.getElementById('btnDropdownSignOut');
+
     const btnEditIdentity = document.getElementById('btnEditIdentity');
     const identityModal = document.getElementById('identityModal');
     const btnCloseIdentityModal = document.getElementById('btnCloseIdentityModal');
@@ -2660,31 +2810,9 @@
     const inputEmployeeId = document.getElementById('inputEmployeeId');
     const identityStatusMsg = document.getElementById('identityStatusMsg');
     const btnSaveIdentity = document.getElementById('btnSaveIdentity');
-    const btnDisconnectIdentity = document.getElementById('btnDisconnectIdentity');
     const hubEmployeeName = document.getElementById('hubEmployeeName');
     const hubEmployeeRole = document.getElementById('hubEmployeeRole');
     const hubEmployeeAddress = document.getElementById('hubEmployeeAddress');
-
-    function getUserIdentity() {
-      try {
-        const stored = localStorage.getItem('elevate_user_identity');
-        if (stored) return JSON.parse(stored);
-      } catch(e) {}
-      return {
-        token: '',
-        email: '',
-        employee_id: 'EMP-380',
-        name: 'Team 12 Member',
-        role: 'Senior Cloud Engineer',
-        address: 'Singapore Office, Pasir Panjang'
-      };
-    }
-
-    function saveUserIdentity(data) {
-      localStorage.setItem('elevate_user_identity', JSON.stringify(data));
-      sessionStorage.setItem('elevate_authenticated', 'true');
-      updateIdentityUI();
-    }
 
     function getUserIdentity() {
       try {
@@ -2717,27 +2845,52 @@
       }
     }
 
-    const btnHeaderSignOut = document.getElementById('btnHeaderSignOut');
-
     function updateIdentityUI() {
       const identity = getUserIdentity();
-      const hasSession = !!sessionStorage.getItem('elevate_user_identity') || !!localStorage.getItem('elevate_user_identity');
-      if (btnHeaderSignOut) {
-        btnHeaderSignOut.style.display = hasSession ? 'inline-flex' : 'none';
-      }
-      if (identity.email || identity.employee_id) {
-        headerUserName.innerText = identity.name || (identity.email ? identity.email.split('@')[0] : identity.employee_id);
-        headerUserAvatar.innerText = identity.email ? identity.email[0].toUpperCase() : '👤';
+      const initial = identity.email ? identity.email[0].toUpperCase() : '👤';
+      const cleanName = identity.name || (identity.email ? identity.email.split('@')[0] : identity.employee_id);
+
+      if (headerUserName) headerUserName.innerText = cleanName;
+      if (headerUserAvatar) {
+        headerUserAvatar.innerText = initial;
         headerUserAvatar.style.background = 'linear-gradient(135deg, #34a853, #4285f4)';
-      } else {
-        headerUserName.innerText = 'Connect Account';
-        headerUserAvatar.innerText = '👤';
-        headerUserAvatar.style.background = 'linear-gradient(135deg, var(--g-blue), var(--g-green))';
       }
 
-      if (hubEmployeeName) hubEmployeeName.innerText = identity.name || (identity.email ? identity.email.split('@')[0] : 'Team 12 Member');
+      if (dropdownUserName) dropdownUserName.innerText = identity.name || cleanName;
+      if (dropdownUserRole) dropdownUserRole.innerText = `${identity.employee_id || 'EMP-380'} • ${identity.role || 'Senior Cloud Engineer'}`;
+      if (dropdownUserEmail) dropdownUserEmail.innerText = identity.email || 'zuhaibp@google.com';
+      if (dropdownUserAvatar) {
+        dropdownUserAvatar.innerText = initial;
+        dropdownUserAvatar.style.background = 'linear-gradient(135deg, #34a853, #4285f4)';
+      }
+
+      if (hubEmployeeName) hubEmployeeName.innerText = identity.name || cleanName;
       if (hubEmployeeRole) hubEmployeeRole.innerText = `${identity.employee_id || 'EMP-380'} • ${identity.role || 'Senior Cloud Engineer'}`;
       if (hubEmployeeAddress) hubEmployeeAddress.innerText = `📍 ${identity.address || 'Singapore Office, Pasir Panjang'}`;
+    }
+
+    // Toggle Profile Dropdown
+    if (btnUserIdentity) {
+      btnUserIdentity.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (profileDropdownCard) {
+          profileDropdownCard.classList.toggle('show');
+        }
+      });
+    }
+
+    // Close Dropdown on Outside Click
+    document.addEventListener('click', (e) => {
+      if (profileDropdownCard && !e.target.closest('#profileMenuWrapper')) {
+        profileDropdownCard.classList.remove('show');
+      }
+    });
+
+    if (btnDropdownEdit) {
+      btnDropdownEdit.addEventListener('click', () => {
+        if (profileDropdownCard) profileDropdownCard.classList.remove('show');
+        openIdentityModal();
+      });
     }
 
     function openIdentityModal() {
@@ -2781,9 +2934,8 @@
       loadSideHubData();
     });
 
-    btnUserIdentity.addEventListener('click', openIdentityModal);
     if (btnEditIdentity) btnEditIdentity.addEventListener('click', openIdentityModal);
-    btnCloseIdentityModal.addEventListener('click', () => { identityModal.style.display = 'none'; });
+    if (btnCloseIdentityModal) btnCloseIdentityModal.addEventListener('click', () => { identityModal.style.display = 'none'; });
     const btnCancelId = document.getElementById('btnCancelIdentity');
     if (btnCancelId) {
       btnCancelId.addEventListener('click', () => { identityModal.style.display = 'none'; });
@@ -2798,6 +2950,7 @@
       sessionStorage.removeItem('elevate_demo_mode');
       sessionStorage.removeItem('elevate_authenticated');
       currentSessionId = null;
+      if (profileDropdownCard) profileDropdownCard.classList.remove('show');
       updateIdentityUI();
       if (identityModal) identityModal.style.display = 'none';
       startNewChat();
@@ -2808,7 +2961,7 @@
       loadSideHubData();
     }
 
-    if (btnHeaderSignOut) btnHeaderSignOut.addEventListener('click', performSignOut);
+    if (btnDropdownSignOut) btnDropdownSignOut.addEventListener('click', performSignOut);
 
     btnSaveIdentity.addEventListener('click', async () => {
       const token = inputMcpToken.value.trim();
