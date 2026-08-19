@@ -189,7 +189,7 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 5. Enable Required Google Cloud APIs & Secret Manager Setup
+# 5. Enable Required Google Cloud APIs, IAM Roles & Secret Manager Setup
 # -----------------------------------------------------------------------------
 if [ "$DRY_RUN" = false ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT_ID" ]; then
     echo ""
@@ -200,8 +200,34 @@ if [ "$DRY_RUN" = false ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT
         cloudbuild.googleapis.com \
         artifactregistry.googleapis.com \
         aiplatform.googleapis.com \
+        storage-component.googleapis.com \
         --project "$PROJECT_ID" 2>/dev/null || true
     echo "  [✓] Cloud Run, Secret Manager, Cloud Build & Vertex AI APIs enabled."
+
+    # IAM Role Bindings for Build & Runtime Service Accounts
+    PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || true)
+    if [ -n "$PROJECT_NUMBER" ]; then
+        echo "[*] Configuring IAM permissions for Cloud Build & Compute service accounts..."
+        COMPUTE_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+        CLOUDBUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
+
+        # Roles for Compute default service account (used by Cloud Build source deploy & Cloud Run runtime)
+        for ROLE in roles/storage.admin roles/logging.logWriter roles/artifactregistry.writer roles/cloudbuild.builds.builder roles/aiplatform.user roles/secretmanager.secretAccessor; do
+            gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+                --member="serviceAccount:${COMPUTE_SA}" \
+                --role="$ROLE" \
+                --condition=None 2>/dev/null || true
+        done
+
+        # Roles for Cloud Build service account
+        for ROLE in roles/storage.admin roles/logging.logWriter roles/artifactregistry.writer roles/aiplatform.user roles/secretmanager.secretAccessor; do
+            gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+                --member="serviceAccount:${CLOUDBUILD_SA}" \
+                --role="$ROLE" \
+                --condition=None 2>/dev/null || true
+        done
+        echo "  [✓] IAM permissions successfully configured."
+    fi
 
     # Secret Manager Setup for MCP Token
     if [ -n "$MCP_TOKEN_VAL" ]; then
@@ -215,15 +241,6 @@ if [ "$DRY_RUN" = false ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT
             --data-file=- \
             --project "$PROJECT_ID" 2>/dev/null || true
         echo "  [✓] Secret hr-agent-mcp-token updated in Secret Manager."
-
-        # Grant Secret Accessor to Default Compute Service Account
-        PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)' 2>/dev/null || true)
-        if [ -n "$PROJECT_NUMBER" ]; then
-            gcloud secrets add-iam-policy-binding hr-agent-mcp-token \
-                --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
-                --role="roles/secretmanager.secretAccessor" \
-                --project "$PROJECT_ID" >/dev/null 2>&1 || true
-        fi
     fi
 fi
 
