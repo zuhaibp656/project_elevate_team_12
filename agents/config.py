@@ -7,17 +7,23 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(REPO_ROOT, ".env"), override=True)
 
 # Google Cloud & Project Settings
-GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", os.getenv("PROJECT_ID", ""))
-GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", os.getenv("REGION", "us-central1"))
-GOOGLE_GENAI_USE_VERTEXAI = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "true").lower() in ("true", "1", "yes")
+GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", os.getenv("PROJECT_ID", "")).strip()
+if not GOOGLE_CLOUD_PROJECT:
+    GOOGLE_CLOUD_PROJECT = "elevate-817-c1-team12"
 
-# Auto-configure Vertex AI for Google GenAI / ADK when deployed on GCP or when no API key is specified
-if not os.getenv("GEMINI_API_KEY") or GOOGLE_GENAI_USE_VERTEXAI:
+GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", os.getenv("REGION", "us-central1")).strip() or "us-central1"
+raw_gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
+
+# Only treat GEMINI_API_KEY as valid if it follows the standard Google AI Studio prefix (AIza...)
+if raw_gemini_key and raw_gemini_key.startswith("AIza"):
+    os.environ["GEMINI_API_KEY"] = raw_gemini_key
+    os.environ.pop("GOOGLE_GENAI_USE_VERTEXAI", None)
+else:
+    # Use Vertex AI (Enterprise / ADC IAM on GCP or Local gcloud)
+    os.environ.pop("GEMINI_API_KEY", None)
     os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "true"
-    if GOOGLE_CLOUD_PROJECT:
-        os.environ["GOOGLE_CLOUD_PROJECT"] = GOOGLE_CLOUD_PROJECT
-    if GOOGLE_CLOUD_LOCATION:
-        os.environ["GOOGLE_CLOUD_LOCATION"] = GOOGLE_CLOUD_LOCATION
+    os.environ["GOOGLE_CLOUD_PROJECT"] = GOOGLE_CLOUD_PROJECT
+    os.environ["GOOGLE_CLOUD_LOCATION"] = GOOGLE_CLOUD_LOCATION
 
 
 def get_secret(secret_name: str, env_fallback: str, default: str = "") -> str:

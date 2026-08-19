@@ -285,7 +285,20 @@ async def chat_endpoint(req: ChatRequest, request: Request):
             correlation_id=correlation_id
         )
     except Exception as e:
-        err_msg = f"An error occurred while processing your request: {str(e)}"
+        err_str = str(e)
+        if "Reauthentication is needed" in err_str or "UNAUTHENTICATED" in err_str or "ACCESS_TOKEN_TYPE_UNSUPPORTED" in err_str:
+            err_msg = (
+                "⚠️ **Authentication Notice (Local Development Environment)**:\n\n"
+                "Your local Google Cloud Application Default Credentials (ADC) have expired or need a session refresh.\n\n"
+                "👉 **To fix in your local terminal**, run:\n"
+                "```bash\n"
+                "gcloud auth application-default login\n"
+                "```\n\n"
+                "*(Note: On live Google Cloud Run, authentication is managed automatically via Cloud Run's Compute IAM Service Account with zero credential expiration).*"
+            )
+        else:
+            err_msg = f"An error occurred while processing your request: {err_str}"
+
         record_message(session_id, correlation_id, "assistant", err_msg)
         return ChatResponse(
             response=err_msg,
