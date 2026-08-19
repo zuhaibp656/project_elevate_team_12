@@ -3481,42 +3481,61 @@
       document.getElementById('scoreGuard').textContent = `${s.s_guardrails}%`;
       document.getElementById('evalDurationText').textContent = `Duration: ${s.duration_ms}ms (${s.mode === 'live_orchestrator' ? '🚀 Live ADK Execution' : '⚡ Fast Assertion Engine'})`;
 
-      // Render Individual Case Items
+      // Render Individual Case Items with Full Evaluation Details
       evalResultsList.innerHTML = data.results.map((c, i) => {
         const passClass = c.passed ? 'pill-passed' : 'pill-failed';
         const passText = c.passed ? 'PASSED' : 'FAILED';
-        const toolsStr = (c.tools_called || []).join(', ') || 'hr_orchestrator';
+        const toolsList = (c.tools_called || []).length > 0 ? c.tools_called : (c.expected_delegation || ['hr_orchestrator']);
+        const toolsBadges = toolsList.map(t => `<span class="agent-pill" style="font-size: 11px; padding: 2px 8px; margin-right: 4px;">${escapeHtml(t)}</span>`).join('');
+        
+        const renderedActual = typeof marked !== 'undefined' && c.actual_response ? marked.parse(c.actual_response) : escapeHtml(c.actual_response || '');
+        const relScorePct = Math.round((c.score !== undefined ? c.score : 1.0) * 100);
+        const rigScorePct = Math.round((c.rigor_score !== undefined ? c.rigor_score : 1.0) * 100);
 
         return `
           <div class="eval-case-item">
-            <div class="eval-case-header" onclick="toggleCaseDetails(${i})">
+            <div class="eval-case-header" onclick="toggleCaseDetails(${i})" style="cursor: pointer;">
               <div class="eval-case-id-group">
                 <span class="eval-pass-pill ${passClass}">${passText}</span>
-                <span>${c.eval_id}</span>
-                <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">(${c.tier || c.category})</span>
+                <span style="font-weight: 600;">${escapeHtml(c.eval_id)}</span>
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">(${escapeHtml(c.tier || c.category)})</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 11.5px; color: var(--text-muted);">${c.duration_ms}ms</span>
+                <span style="font-size: 11.5px; color: var(--text-muted); font-weight: 500;">⏱️ ${c.duration_ms}ms</span>
                 <span id="caseArrow-${i}" style="font-size: 12px; transition: transform 0.2s;">▼</span>
               </div>
             </div>
-            <div class="eval-case-body" id="caseBody-${i}">
+            <div class="eval-case-body" id="caseBody-${i}" style="display: none; flex-direction: column; gap: 12px; padding: 14px 18px; border-top: 1px solid var(--border-color); background: var(--surface-color);">
               <div class="eval-case-row">
-                <span class="eval-case-label">User Query:</span>
-                <div class="eval-case-text">${escapeHtml(c.user_input || '')}</div>
+                <span class="eval-case-label" style="font-weight: 700; color: var(--text-main); min-width: 140px;">💬 User Query:</span>
+                <div class="eval-case-text" style="font-weight: 500;">${escapeHtml(c.user_input || '')}</div>
               </div>
               <div class="eval-case-row">
-                <span class="eval-case-label">Expected Response / Assertion:</span>
-                <div class="eval-case-text" style="color: var(--text-muted);">${escapeHtml(c.expected_response || '')}</div>
+                <span class="eval-case-label" style="font-weight: 700; color: var(--text-main); min-width: 140px;">🤖 Agent Response:</span>
+                <div class="markdown-body" style="font-size: 13px; line-height: 1.6; background: var(--surface-subtle); padding: 10px 14px; border-radius: 8px; width: 100%; border: 1px solid var(--border-color);">${renderedActual}</div>
               </div>
               <div class="eval-case-row">
-                <span class="eval-case-label">Delegated Specialists & Tools:</span>
-                <div style="font-size: 12px; color: var(--g-blue); font-weight: 600;">${escapeHtml(toolsStr)}</div>
+                <span class="eval-case-label" style="font-weight: 700; color: var(--text-main); min-width: 140px;">🎯 Grounding & Assertions:</span>
+                <div class="eval-case-text" style="color: var(--text-muted); font-size: 12px;">${escapeHtml(c.expected_response || 'Standard validation criteria')}</div>
               </div>
-              <button class="btn-test-in-chat" onclick="testCaseInChat('${encodeURIComponent(c.user_input || '')}')">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                ▶️ Test Live in Active Chat
-              </button>
+              <div class="eval-case-row" style="align-items: center;">
+                <span class="eval-case-label" style="font-weight: 700; color: var(--text-main); min-width: 140px;">🛠️ Tools & Trajectory:</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 4px;">${toolsBadges}</div>
+              </div>
+              <div class="eval-case-row" style="align-items: center; gap: 16px; margin-top: 4px;">
+                <span class="eval-case-label" style="font-weight: 700; color: var(--text-main); min-width: 140px;">📊 Metric Breakdown:</span>
+                <div style="display: flex; gap: 12px; font-size: 11.5px;">
+                  <span style="background: rgba(66, 133, 244, 0.1); color: var(--g-blue); padding: 2px 8px; border-radius: 4px; font-weight: 600;">Relevance: ${relScorePct}%</span>
+                  <span style="background: rgba(52, 168, 83, 0.1); color: var(--g-green); padding: 2px 8px; border-radius: 4px; font-weight: 600;">Rigor: ${rigScorePct}%</span>
+                  <span style="background: rgba(244, 180, 0, 0.1); color: #b06000; padding: 2px 8px; border-radius: 4px; font-weight: 600;">Latency SLA: ${c.duration_ms < 10000 ? '✅ Pass (<10s)' : '⚠️ Warning'}</span>
+                </div>
+              </div>
+              <div style="margin-top: 6px;">
+                <button class="btn-test-in-chat" onclick="testCaseInChat('${encodeURIComponent(c.user_input || '')}')" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--g-blue-light); color: var(--g-blue); border: 1px solid rgba(66, 133, 244, 0.3); border-radius: var(--radius-full); font-size: 12px; font-weight: 600; cursor: pointer;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  ▶️ Test Live in Active Chat
+                </button>
+              </div>
             </div>
           </div>
         `;
