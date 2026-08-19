@@ -1167,12 +1167,72 @@
       box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
     }
 
+    /* Enhanced Markdown Tables */
+    .markdown-body table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 16px 0;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      font-size: 13.5px;
+      box-shadow: var(--shadow-sm);
+    }
+    .markdown-body th {
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.08), rgba(52, 168, 83, 0.08));
+      color: var(--text-main);
+      font-weight: 700;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .markdown-body td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+    .markdown-body tr:last-child td {
+      border-bottom: none;
+    }
+    .markdown-body tr:nth-child(even) td {
+      background: rgba(100, 116, 139, 0.03);
+    }
+    .markdown-body tr:hover td {
+      background: rgba(66, 133, 244, 0.04);
+    }
+
+    /* Inline Code & Highlights */
+    .markdown-body code {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 12.5px;
+      background: var(--surface-subtle);
+      color: var(--g-blue);
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+    .markdown-body pre code {
+      display: block;
+      padding: 12px 16px;
+      overflow-x: auto;
+      background: var(--surface-subtle);
+      border-radius: var(--radius-md);
+      line-height: 1.6;
+    }
+
+    /* Enhanced Callout / Alerts */
     .markdown-body blockquote {
       border-left: 4px solid var(--g-blue);
-      background: var(--surface-subtle);
-      padding: 10px 16px;
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      margin: 12px 0;
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.06), rgba(52, 168, 83, 0.04));
+      padding: 12px 18px;
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      margin: 14px 0;
+      font-size: 13.5px;
+      color: var(--text-main);
+    }
+    .markdown-body blockquote strong {
+      color: var(--g-blue);
     }
 
     /* Dancing Dots Loader */
@@ -2028,7 +2088,7 @@
       <button class="btn-action" id="btnThemeToggle" title="Toggle Dark/Light Mode">
         🌙
       </button>
-      <button class="btn-action" id="btnHowToUse">
+      <button class="btn-action" id="btnHowToUse" onclick="openGuideModal()" title="How to Use & System Guide">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
         Guide
       </button>
@@ -3497,14 +3557,30 @@
     updateIdentityUI();
     loadSavedSessions();
     loadSideHubData();
-    initGoogleIdentity();
 
-    // Modal
-    btnHowToUse.addEventListener('click', () => { howToModal.style.display = 'flex'; });
-    modalClose.addEventListener('click', () => { howToModal.style.display = 'none'; });
-    howToModal.addEventListener('click', (e) => {
-      if (e.target === howToModal) howToModal.style.display = 'none';
-    });
+    // Guide Modal Functions
+    function openGuideModal() {
+      const modal = document.getElementById('howToModal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.style.zIndex = '99999';
+      }
+    }
+
+    function closeGuideModal() {
+      const modal = document.getElementById('howToModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    if (btnHowToUse) btnHowToUse.addEventListener('click', openGuideModal);
+    if (modalClose) modalClose.addEventListener('click', closeGuideModal);
+    if (howToModal) {
+      howToModal.addEventListener('click', (e) => {
+        if (e.target === howToModal) closeGuideModal();
+      });
+    }
 
     // Global link handler: ensure all outbound links open in a new tab without leaving the app
     document.addEventListener('click', (e) => {
