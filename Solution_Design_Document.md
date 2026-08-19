@@ -123,25 +123,29 @@ flowchart TD
     DLP --> Auth[Identity Bridge: Map Email -> EMP-380 Session Binding]
     Auth --> Orch{hr_orchestrator: Intent Classification & Router}
 
-    %% Branch 1: Policy Retrieval
+    %% Branch 1: Leave & Policy Guardrail (Notice & Balance)
+    Orch -->|Leave Booking Request| LeaveCheck[Policy Check: Notice & Duration Limits]
+    LeaveCheck --> NoticeGuard{Notice >= 15 Days & Duration Compliant?}
+    NoticeGuard -->|No: Tomorrow / Short Notice| DirectNotice[Direct Up-Front Notice Constraint & Alternative Options]
+    NoticeGuard -->|Yes: Compliant| HCMAgent[hcm_specialist]
+    HCMAgent --> CheckBal[FastMCP / Resilient State: get_employee_balances]
+    CheckBal --> BalanceGuard{Requested Days <= Available?}
+    BalanceGuard -->|No: Exceeds Balance| RejectBal[Explain Remaining Balance & Suggest Alternate Dates]
+    BalanceGuard -->|Yes: Valid| BookLeave[FastMCP: request_time_off & Persist State]
+    BookLeave --> Synth
+    RejectBal --> Synth
+    DirectNotice --> Synth
+
+    %% Branch 2: Policy Inquiry
     Orch -->|Policy Inquiry| PolAgent[policy_specialist]
     PolAgent --> PolIndex[Read Chunked OKF Policy Markdown]
     PolIndex --> PolCite[Attach Verifiable policy:// Citations]
     PolCite --> Synth
 
-    %% Branch 2: HCM Leave & Profile
-    Orch -->|Leave Booking / Balance| HCMAgent[hcm_specialist]
-    HCMAgent --> CheckBal[FastMCP: get_employee_balances]
-    CheckBal --> BalanceGuard{Requested Days <= Available?}
-    BalanceGuard -->|No: Exceeds Balance| RejectBal[Gently Refuse & Propose Options]
-    BalanceGuard -->|Yes: Valid| BookLeave[FastMCP: request_time_off]
-    BookLeave --> Synth
-    RejectBal --> Synth
-
     %% Branch 3: ITSM Tickets & Escalation
     Orch -->|IT / Support Request| ITSMAgent[itsm_specialist]
     ITSMAgent --> SupportType{Standard IT Ticket or Crisis / Failure?}
-    SupportType -->|Standard Request| CreateTkt[FastMCP: create_ticket / list_tickets]
+    SupportType -->|Standard Request| CreateTkt[FastMCP / Resilient State: create_ticket / list_tickets]
     SupportType -->|Crisis / Downstream Fail| EscalateHR[FastMCP: escalate_to_human_hr]
     EscalateHR --> HRCase[Open Priority-2 Ticket INC0002609 & Alert HR 2h SLA]
     CreateTkt --> Synth
@@ -155,8 +159,16 @@ flowchart TD
     Orch -->|Out of Scope / Unsafe| SafetyRefuse[Safety Guardrail: Polite Domain Redirect]
     SafetyRefuse --> Synth
 
+    %% Branch 6: Interactive Evaluation Suite
+    StartEval([Interactive Evaluation Trigger]) --> EvalMode{Runner Mode: Live ADK vs Fast Assert}
+    EvalMode -->|Live ADK| ExecLive[Run 33-Case Golden Matrix via Multi-Agent Trajectories]
+    EvalMode -->|Fast Assert| ExecAssert[Run Deterministic Policy Grounding & DLP Matrix]
+    ExecLive --> ScoreCalc[Compute S_overall = 0.30*Rel + 0.35*Rigor + 0.15*Cost + 0.20*Guard]
+    ExecAssert --> ScoreCalc
+    ScoreCalc --> EvalDash[Render Real-Time Metric Dashboard & Interactive Case Cards]
+
     %% Response Synthesis
-    Synth[Orchestrator: Synthesize Unified Conversational Response]
+    Synth[Orchestrator: Synthesize Direct Contextual Markdown Response]
     Synth --> LogDB[(Cloud SQL: Record Immutable Transcript & Audit)]
     LogDB --> StreamResp([Stream Response to UI + Refresh My Hub Telemetry])
 
@@ -165,10 +177,10 @@ flowchart TD
     classDef action fill:#E6FFFA,stroke:#319795,stroke-width:1px;
     classDef alert fill:#FED7D7,stroke:#E53E3E,stroke-width:2px;
 
-    class Start,StreamResp primary;
-    class Orch,BalanceGuard,SupportType decision;
-    class PolAgent,HCMAgent,ITSMAgent,CompSeq,Synth action;
-    class RejectBal,EscalateHR,HRCase,SafetyRefuse alert;
+    class Start,StreamResp,StartEval,EvalDash primary;
+    class Orch,NoticeGuard,BalanceGuard,SupportType,EvalMode decision;
+    class PolAgent,HCMAgent,ITSMAgent,CompSeq,Synth,ExecLive,ExecAssert,ScoreCalc action;
+    class RejectBal,DirectNotice,EscalateHR,HRCase,SafetyRefuse alert;
 ```
 
 ---
@@ -178,6 +190,9 @@ flowchart TD
 | Flowchart Node | Component / Layer | Input & Trigger | Execution Logic & Decision Invariant | Output / System Action |
 | :--- | :--- | :--- | :--- | :--- |
 | **`W3C & DLP`** | API Gateway | Inbound HTTP Request | Extracts or generates `traceparent` and `X-Correlation-ID`; runs regex DLP filter replacing NRICs with `[NRIC_REDACTED]`. | Clean, traceable payload ready for AI processing. |
+| **`Notice & Policy Guard`** | Orchestrator & Policy Specialist | Leave requests (e.g. "leave from tomorrow") | Evaluates start date vs 15-day advance notice requirement (Section 1.2) and consecutive sick leave Medical Certificate requirements (Section 1.1). | Direct up-front constraint notice with valid alternative dates without unnecessary policy text dumps. |
+| **`Resilient FastMCP SaaS Fallback`** | WorkWeek / ServiceImmediately Tools | Tool execution calls | Attempts live FastMCP JSON-RPC; if token expired or rotated, transparently executes against high-fidelity local state. | Zero-lockout continuous availability for balances, bookings, and incident tickets. |
+| **`Interactive Evaluation Pipeline`** | Evaluation Runner (`/api/eval/run`) | UI Evaluate Trigger | Executes 33 stratified test cases across 4 tiers + multi-turn trajectories + adversarial security guardrails. | Dynamic mathematical scoring breakdown and interactive 1-click test chips. |
 | **`Identity Bridge`** | Security Layer | Corporate Email Claim | Queries `users` directory table; locks session to `employee_id = EMP-380`. | Prevents cross-user data access or parameter tampering. |
 | **`hr_orchestrator`** | Central AI Brain | Natural Language Query | Analyzes semantic intent using Gemini 2.5 Flash; determines if request is Policy, HCM, ITSM, or Compound. | Routes sub-tasks to appropriate specialist sub-agents. |
 | **`policy_specialist`** | Knowledge Engine | Statutory/HR Question | Scans indexed OKF markdown; extracts exact clauses (e.g. 14d outpatient sick leave). | Returns grounded answer with mandatory `policy://` citations. |
