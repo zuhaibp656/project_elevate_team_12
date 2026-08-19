@@ -2400,6 +2400,22 @@
           </button>
         </div>
 
+        <!-- Dynamic Loading State -->
+        <div id="evalLoadingIndicator" style="display: none; padding: 48px 20px; text-align: center;">
+          <div class="google-dots animated-dots" style="justify-content: center; margin-bottom: 16px;">
+            <div class="dot dot-blue" style="width: 12px; height: 12px;"></div>
+            <div class="dot dot-red" style="width: 12px; height: 12px;"></div>
+            <div class="dot dot-yellow" style="width: 12px; height: 12px;"></div>
+            <div class="dot dot-green" style="width: 12px; height: 12px;"></div>
+          </div>
+          <div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;" id="evalLoadingText">
+            Executing Multi-Agent Evaluation Suite...
+          </div>
+          <div style="font-size: 12.5px; color: var(--text-muted);">
+            Running assertions, reasoning validation, grounding checks, and DLP safety guardrails
+          </div>
+        </div>
+
         <!-- Dynamic Results Section -->
         <div id="evalResultsSection" style="display: none;">
           <!-- Scorecards Grid -->
@@ -3350,11 +3366,22 @@
       });
     });
 
+    function showToast(msg, duration = 3000) {
+      if (!toastMsg) return;
+      toastMsg.innerText = msg;
+      toastMsg.classList.add('show');
+      setTimeout(() => toastMsg.classList.remove('show'), duration);
+    }
+
     // Execute Evaluation API
     async function executeEvaluation() {
       btnExecuteEval.disabled = true;
       btnExecuteEvalText.textContent = 'Running Benchmark...';
       const mode = document.querySelector('input[name="evalModeRadio"]:checked')?.value || 'fast_assert';
+      
+      const evalLoadingIndicator = document.getElementById('evalLoadingIndicator');
+      if (evalLoadingIndicator) evalLoadingIndicator.style.display = 'block';
+      if (evalResultsSection) evalResultsSection.style.display = 'none';
 
       try {
         const response = await fetch('/api/eval/run', {
@@ -3368,9 +3395,11 @@
 
         if (!response.ok) throw new Error('Evaluation execution failed');
         const data = await response.json();
+        if (evalLoadingIndicator) evalLoadingIndicator.style.display = 'none';
         renderEvalResults(data);
       } catch (err) {
         console.error('Eval error:', err);
+        if (evalLoadingIndicator) evalLoadingIndicator.style.display = 'none';
         showToast('❌ Error executing evaluation: ' + err.message);
       } finally {
         btnExecuteEval.disabled = false;
