@@ -459,6 +459,7 @@
       transition: opacity 0.4s ease, visibility 0.4s ease;
     }
     .login-gate-overlay.hidden {
+      display: none !important;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -1930,9 +1931,6 @@
   <!-- Header -->
   <header>
     <div class="header-left">
-  <!-- Header -->
-  <header>
-    <div class="header-left">
       <button class="btn-action active" id="btnToggleHistory" title="Toggle Conversation History Panel">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         Chats
@@ -2840,8 +2838,10 @@
       const stored = sessionStorage.getItem('elevate_user_identity') || localStorage.getItem('elevate_user_identity');
       if (stored) {
         loginGateScreen.classList.add('hidden');
+        loginGateScreen.style.display = 'none';
       } else {
         loginGateScreen.classList.remove('hidden');
+        loginGateScreen.style.display = 'flex';
       }
     }
 
@@ -2926,8 +2926,9 @@
         address: 'Singapore Office, Pasir Panjang'
       });
 
-      startNewChat();
       loginGateScreen.classList.add('hidden');
+      loginGateScreen.style.display = 'none';
+      startNewChat();
       toastMsg.innerText = `Welcome, ${name}! (${empId})`;
       toastMsg.classList.add('show');
       setTimeout(() => toastMsg.classList.remove('show'), 3000);
@@ -2955,6 +2956,7 @@
       if (identityModal) identityModal.style.display = 'none';
       startNewChat();
       loginGateScreen.classList.remove('hidden');
+      loginGateScreen.style.display = 'flex';
       toastMsg.innerText = 'Signed out from workspace';
       toastMsg.classList.add('show');
       setTimeout(() => toastMsg.classList.remove('show'), 2500);
