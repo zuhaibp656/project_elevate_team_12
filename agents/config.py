@@ -71,7 +71,7 @@ def get_current_mcp_token() -> str:
     token = ACTIVE_MCP_TOKEN_CV.get()
     if token and token.strip():
         return token.strip()
-    return MCP_TOKEN
+    return MCP_TOKEN or os.getenv("MCP_TOKEN", "")
 
 
 def get_current_user_id() -> str:

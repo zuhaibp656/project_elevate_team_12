@@ -59,7 +59,7 @@ def _get_active_mcp_token(token_override: str = None) -> str:
     tok = config.get_current_mcp_token()
     if tok and tok.strip():
         return tok.strip()
-    return getattr(config, "MCP_TOKEN", "")
+    return getattr(config, "MCP_TOKEN", "") or os.getenv("MCP_TOKEN", "")
 
 
 def _fallback_workweek_exec(tool_name: str, arguments: dict) -> str:

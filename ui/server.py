@@ -241,12 +241,16 @@ async def chat_endpoint(req: ChatRequest, request: Request):
     client_user_id = req.user_id or request.headers.get("X-Employee-ID") or request.headers.get("x-employee-id") or "EMP-380"
     client_email = req.user_email or request.headers.get("X-User-Email") or request.headers.get("x-user-email") or ""
 
-    if client_token:
-        config.ACTIVE_MCP_TOKEN_CV.set(client_token)
-    if client_user_id:
-        config.ACTIVE_USER_ID_CV.set(client_user_id)
-    if client_email:
-        config.ACTIVE_USER_EMAIL_CV.set(client_email)
+    if client_token and client_token.strip():
+        config.ACTIVE_MCP_TOKEN_CV.set(client_token.strip())
+    else:
+        # Always use the deployment-configured Secret Manager / .env token
+        config.ACTIVE_MCP_TOKEN_CV.set(config.MCP_TOKEN or os.getenv("MCP_TOKEN", ""))
+
+    if client_user_id and client_user_id.strip():
+        config.ACTIVE_USER_ID_CV.set(client_user_id.strip())
+    if client_email and client_email.strip():
+        config.ACTIVE_USER_EMAIL_CV.set(client_email.strip())
 
     correlation_id = getattr(request.state, "correlation_id", f"trace-{uuid.uuid4().hex[:12]}")
     session_id = req.session_id or "session-1"
@@ -315,10 +319,13 @@ async def get_hub_data(request: Request, employee_id: Optional[str] = None):
     client_token = request.headers.get("X-MCP-Token") or request.headers.get("x-mcp-token") or ""
     client_user_id = employee_id or request.headers.get("X-Employee-ID") or request.headers.get("x-employee-id") or "EMP-380"
     
-    if client_token:
-        config.ACTIVE_MCP_TOKEN_CV.set(client_token)
-    if client_user_id:
-        config.ACTIVE_USER_ID_CV.set(client_user_id)
+    if client_token and client_token.strip():
+        config.ACTIVE_MCP_TOKEN_CV.set(client_token.strip())
+    else:
+        config.ACTIVE_MCP_TOKEN_CV.set(config.MCP_TOKEN or os.getenv("MCP_TOKEN", ""))
+
+    if client_user_id and client_user_id.strip():
+        config.ACTIVE_USER_ID_CV.set(client_user_id.strip())
         
     emp_id = client_user_id
     
