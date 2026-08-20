@@ -1,5 +1,36 @@
 # Elevate HR: Complete Architecture & Query Flow
 
+
+## Logic & Decision Flow Diagram
+
+```mermaid
+flowchart TD
+    A([User Request]) --> B[Orchestrator Agent]
+    B --> C{Bulk Action?}
+    
+    C -- Yes --> D[Autonomous Loop: Read -> Parse -> Write]
+    D --> L([Sync UI & Return Response])
+    
+    C -- No --> E{Actionable Request?}
+    
+    E -- No (Info) --> F[Policy Specialist / Read Tools]
+    F --> L
+    
+    E -- Yes (Write) --> G[Pre-Action Policy Gatekeeper]
+    G --> H{Policy Allows?}
+    
+    H -- Yes --> I[Call Specialist Write Tool]
+    I --> L
+    
+    H -- No --> J[Strict Deny & Suggest Escalation]
+    J --> K{User Confirms Escalation?}
+    
+    K -- Yes --> M[Execute escalate_to_human_hr]
+    M --> L
+    
+    K -- No --> L
+```
+
 ## 1. System Components
 - **Client (Browser)**: Runs `index.html`. Handles the chat UI, the "My Hub" sidebar, and user identity selection.
 - **FastAPI Backend (`ui/server.py`)**: Acts as the orchestrator for the UI. It hosts the REST endpoints (`/api/chat`, `/api/hub`, etc.). It also securely holds the agent session IDs in memory.

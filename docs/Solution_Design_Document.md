@@ -207,6 +207,39 @@ flowchart TD
 
 ![System Architecture](images/system_architecture.jpg)
 
+
+### 3.1.2 Agentic Reasoning & Policy Gatekeeper Logic Flow
+
+```mermaid
+flowchart TD
+    A([User Request]) --> B[Orchestrator Agent]
+    B --> C{Bulk Action?}
+    
+    C -- Yes --> D[Autonomous Loop: Read -> Parse -> Write]
+    D --> L([Sync UI & Return Response])
+    
+    C -- No --> E{Actionable Request?}
+    
+    E -- No (Info) --> F[Policy Specialist / Read Tools]
+    F --> L
+    
+    E -- Yes (Write) --> G[Pre-Action Policy Gatekeeper]
+    G --> H{Policy Allows?}
+    
+    H -- Yes --> I[Call Specialist Write Tool]
+    I --> L
+    
+    H -- No --> J[Strict Deny & Suggest Escalation]
+    J --> K{User Confirms Escalation?}
+    
+    K -- Yes --> M[Execute escalate_to_human_hr]
+    M --> L
+    
+    K -- No --> L
+```
+
+
+
 ---
 
 ### 4.1. FastMCP Interface Contracts & Tool Catalog
