@@ -10,6 +10,7 @@ from tools.workweek_tools import (
     get_leave_requests,
     cancel_leave_request,
 )
+from tools.web_search_tool import web_search
 
 
 def create_hcm_subagent() -> LlmAgent:
@@ -22,6 +23,7 @@ def create_hcm_subagent() -> LlmAgent:
         update_personal_info,
         get_leave_requests,
         cancel_leave_request,
+        web_search,
     ]
 
     return LlmAgent(

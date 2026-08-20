@@ -9,6 +9,7 @@ from tools.serviceimmediately_tools import (
     update_ticket_status,
     escalate_to_human_hr,
 )
+from tools.web_search_tool import web_search
 
 
 def create_itsm_subagent() -> LlmAgent:
@@ -20,6 +21,7 @@ def create_itsm_subagent() -> LlmAgent:
         add_ticket_comment,
         update_ticket_status,
         escalate_to_human_hr,
+        web_search,
     ]
 
     return LlmAgent(

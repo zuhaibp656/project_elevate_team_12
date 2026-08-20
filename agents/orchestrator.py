@@ -6,6 +6,8 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
+from datetime import datetime, timezone
+from tools.web_search_tool import web_search
 from agents import config, prompts
 from agents.subagents import (
     create_policy_subagent,
@@ -15,7 +17,7 @@ from agents.subagents import (
 
 
 def create_orchestrator_agent() -> LlmAgent:
-    """Instantiate the Central Orchestrator root agent with all sub-agents."""
+    """Instantiate the Central Orchestrator root agent with all sub-agents and web intelligence."""
     policy_subagent = create_policy_subagent()
     hcm_subagent = create_hcm_subagent()
     itsm_subagent = create_itsm_subagent()
@@ -23,8 +25,9 @@ def create_orchestrator_agent() -> LlmAgent:
     return LlmAgent(
         name="hr_orchestrator",
         model=config.GEMINI_MODEL,
-        description="Central HR Orchestrator managing self-service inquiries and cross-system workflows.",
+        description="Central Intelligent HR Orchestrator managing self-service inquiries, cross-system workflows, and web intelligence.",
         instruction=prompts.ORCHESTRATOR_PROMPT,
+        tools=[web_search],
         sub_agents=[policy_subagent, hcm_subagent, itsm_subagent],
     )
 
@@ -53,17 +56,18 @@ async def _run_query_traced_async(query: str, user_id: str = "learner", session_
     active_emp = user_id or config.get_current_user_id()
     active_email = config.ACTIVE_USER_EMAIL_CV.get()
 
-    context_parts = []
-    if active_emp:
-        context_parts.append(f"Employee ID={active_emp}")
-    if active_email:
-        context_parts.append(f"Email={active_email}")
+    now = datetime.now(timezone.utc)
+    today_str = now.strftime("%Y-%m-%d")
+    day_name = now.strftime("%A")
 
-    if context_parts:
-        context_tag = f"[Authenticated Employee: {', '.join(context_parts)}]\n"
-        full_prompt = f"{context_tag}{query}" if not query.startswith("[Authenticated Employee") else query
-    else:
-        full_prompt = query
+    context_parts = [
+        f"Employee ID={active_emp or 'EMP-380'}",
+        f"Email={active_email or 'emp380@enterprise.demo'}",
+        f"Today's Date={today_str} ({day_name}, Operational Year=2026)"
+    ]
+
+    context_tag = f"[Authenticated Context: {', '.join(context_parts)}]\n"
+    full_prompt = f"{context_tag}{query}" if not query.startswith("[Authenticated") else query
 
     message = types.Content(role="user", parts=[types.Part(text=full_prompt)])
     final_texts = []
