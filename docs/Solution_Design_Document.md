@@ -118,100 +118,6 @@ The following official flow diagram and node-by-node explanation define the dete
 
 ```mermaid
 flowchart TD
-    Start([Employee Submits Query in Aura Web UI]) --> W3C[API Gateway: Inject W3C Tracing & Correlation ID]
-    W3C --> DLP[In-Flight DLP: Mask NRIC, Credit Cards, Credentials]
-    DLP --> Auth[Identity Bridge: Map Email -> EMP-380 Session Binding]
-    Auth --> Orch{hr_orchestrator: Intent Classification & Router}
-
-    %% Branch 1: Leave & Policy Guardrail (Notice & Balance)
-    Orch -->|Leave Booking Request| LeaveCheck[Policy Check: Notice & Duration Limits]
-    LeaveCheck --> NoticeGuard{Notice >= 15 Days & Duration Compliant?}
-    NoticeGuard -->|No: Tomorrow / Short Notice| DirectNotice[Direct Up-Front Notice Constraint & Alternative Options]
-    NoticeGuard -->|Yes: Compliant| HCMAgent[hcm_specialist]
-    HCMAgent --> CheckBal[FastMCP / Resilient State: get_employee_balances]
-    CheckBal --> BalanceGuard{Requested Days <= Available?}
-    BalanceGuard -->|No: Exceeds Balance| RejectBal[Explain Remaining Balance & Suggest Alternate Dates]
-    BalanceGuard -->|Yes: Valid| BookLeave[FastMCP: request_time_off & Persist State]
-    BookLeave --> Synth
-    RejectBal --> Synth
-    DirectNotice --> Synth
-
-    %% Branch 2: Policy Inquiry
-    Orch -->|Policy Inquiry| PolAgent[policy_specialist]
-    PolAgent --> PolIndex[Read Chunked OKF Policy Markdown]
-    PolIndex --> PolCite[Attach Verifiable policy:// Citations]
-    PolCite --> Synth
-
-    %% Branch 3: ITSM Tickets & Escalation
-    Orch -->|IT / Support Request| ITSMAgent[itsm_specialist]
-    ITSMAgent --> SupportType{Standard IT Ticket or Crisis / Failure?}
-    SupportType -->|Standard Request| CreateTkt[FastMCP / Resilient State: create_ticket / list_tickets]
-    SupportType -->|Crisis / Downstream Fail| EscalateHR[FastMCP: escalate_to_human_hr]
-    EscalateHR --> HRCase[Open Priority-2 Ticket INC0002609 & Alert HR 2h SLA]
-    CreateTkt --> Synth
-    HRCase --> Synth
-
-    %% Branch 4: Compound Multi-System Workflow
-    Orch -->|Compound Workflow| CompSeq[Sequential Chaining: Policy -> HCM -> ITSM]
-    CompSeq --> Synth
-
-    %% Branch 5: Out of Scope
-    Orch -->|Out of Scope / Unsafe| SafetyRefuse[Safety Guardrail: Polite Domain Redirect]
-    SafetyRefuse --> Synth
-
-    %% Branch 6: Interactive Evaluation Suite
-    StartEval([Interactive Evaluation Trigger]) --> EvalMode{Runner Mode: Live ADK vs Fast Assert}
-    EvalMode -->|Live ADK| ExecLive[Run 33-Case Golden Matrix via Multi-Agent Trajectories]
-    EvalMode -->|Fast Assert| ExecAssert[Run Deterministic Policy Grounding & DLP Matrix]
-    ExecLive --> ScoreCalc[Compute S_overall = 0.30*Rel + 0.35*Rigor + 0.15*Cost + 0.20*Guard]
-    ExecAssert --> ScoreCalc
-    ScoreCalc --> EvalDash[Render Real-Time Metric Dashboard & Interactive Case Cards]
-
-    %% Response Synthesis
-    Synth[Orchestrator: Synthesize Direct Contextual Markdown Response]
-    Synth --> LogDB[(Cloud SQL: Record Immutable Transcript & Audit)]
-    LogDB --> StreamResp([Stream Response to UI + Refresh My Hub Telemetry])
-
-    classDef primary fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
-    classDef decision fill:#FEFCBF,stroke:#D69E2E,stroke-width:2px;
-    classDef action fill:#E6FFFA,stroke:#319795,stroke-width:1px;
-    classDef alert fill:#FED7D7,stroke:#E53E3E,stroke-width:2px;
-
-    class Start,StreamResp,StartEval,EvalDash primary;
-    class Orch,NoticeGuard,BalanceGuard,SupportType,EvalMode decision;
-    class PolAgent,HCMAgent,ITSMAgent,CompSeq,Synth,ExecLive,ExecAssert,ScoreCalc action;
-    class RejectBal,DirectNotice,EscalateHR,HRCase,SafetyRefuse alert;
-```
-
----
-
-### 3.1. Detailed Node-by-Node Flowchart Explanation
-
-| Flowchart Node | Component / Layer | Input & Trigger | Execution Logic & Decision Invariant | Output / System Action |
-| :--- | :--- | :--- | :--- | :--- |
-| **`W3C & DLP`** | API Gateway | Inbound HTTP Request | Extracts or generates `traceparent` and `X-Correlation-ID`; runs regex DLP filter replacing NRICs with `[NRIC_REDACTED]`. | Clean, traceable payload ready for AI processing. |
-| **`Notice & Policy Guard`** | Orchestrator & Policy Specialist | Leave requests (e.g. "leave from tomorrow") | Evaluates start date vs 15-day advance notice requirement (Section 1.2) and consecutive sick leave Medical Certificate requirements (Section 1.1). | Direct up-front constraint notice with valid alternative dates without unnecessary policy text dumps. |
-| **`Resilient FastMCP SaaS Fallback`** | WorkWeek / ServiceImmediately Tools | Tool execution calls | Attempts live FastMCP JSON-RPC; if token expired or rotated, transparently executes against high-fidelity local state. | Zero-lockout continuous availability for balances, bookings, and incident tickets. |
-| **`Interactive Evaluation Pipeline`** | Evaluation Runner (`/api/eval/run`) | UI Evaluate Trigger | Executes 33 stratified test cases across 4 tiers + multi-turn trajectories + adversarial security guardrails. | Dynamic mathematical scoring breakdown and interactive 1-click test chips. |
-| **`Identity Bridge`** | Security Layer | Corporate Email Claim | Queries `users` directory table; locks session to `employee_id = EMP-380`. | Prevents cross-user data access or parameter tampering. |
-| **`hr_orchestrator`** | Central AI Brain | Natural Language Query | Analyzes semantic intent using Gemini 2.5 Flash; determines if request is Policy, HCM, ITSM, or Compound. | Routes sub-tasks to appropriate specialist sub-agents. |
-| **`policy_specialist`** | Knowledge Engine | Statutory/HR Question | Scans indexed OKF markdown; extracts exact clauses (e.g. 14d outpatient sick leave). | Returns grounded answer with mandatory `policy://` citations. |
-| **`BalanceGuard`** | Safety Guardrail | Leave Request Parameters | Compares requested days against live WorkWeek vacation/sick balances. | • If $\le$ balance: Submits `request_time_off`.<br>• If $>$ balance: Explains shortage and offers alternatives. |
-| **`SupportType`** | IT / Escalation Router | IT Query or Crisis | Checks if user reported an urgent personal crisis (bereavement, medical) or SaaS 5xx timeout. | • Standard: Calls `create_ticket` (Category: Hardware/Access).<br>• Crisis: Calls `escalate_to_human_hr` (Priority 2, 2h SLA). |
-| **`CompSeq`** | Chained Coordinator | Compound Request | Executes sequential pipeline: Step 1 Policy $\rightarrow$ Step 2 HCM $\rightarrow$ Step 3 ITSM. | Ensures all cross-system tasks succeed atomically. |
-| **`Synth & LogDB`** | Response Generator | Sub-Agent Evidence | Aggregates all JSON outputs into a friendly Markdown message; logs turn to Cloud SQL `hr_agentic_sessions.db`. | Streams response to Web UI and updates "My Hub" sidebar. |
-
----
-
-## 4. Core Architecture & FastMCP Interface Contracts
-
-![System Architecture](images/system_architecture.jpg)
-
-
-### 3.1.2 Agentic Reasoning & Policy Gatekeeper Logic Flow
-
-```mermaid
-flowchart TD
     A([User Request]) --> B[Orchestrator Agent]
     B --> C{Bulk Action?}
     
@@ -237,6 +143,26 @@ flowchart TD
     
     K -- No --> L
 ```
+
+---
+
+### 3.1. Detailed Node-by-Node Flowchart Explanation
+
+| Flowchart Node | Component / Agent | Description |
+| :--- | :--- | :--- |
+| **`User Request`** | Browser UI & API Gateway | The employee submits a query (e.g., "Close my tickets", "Apply for leave"). |
+| **`Orchestrator Agent`** | Central AI Brain | Classifies the intent and delegates to the appropriate sub-agent (HCM, ITSM, or Policy). |
+| **`Autonomous Loop`** | Sub-Agents | For bulk requests (like closing multiple tickets), the agent autonomously calls Read tools, parses the JSON, and iterates over Write tools without prompting the user. |
+| **`Policy Gatekeeper`** | Sub-Agents | Before executing any Write action, mathematically validates the request against enterprise rules (e.g., 15-day notice for leaves). |
+| **`Strict Deny`** | Sub-Agents | If policy is violated, halts execution entirely and provides alternative options. Does not secretly downgrade parameters. |
+| **`Escalation`** | ITSM Agent | If the user confirms, executes a high-priority escalation ticket to Human HR. |
+
+---
+
+## 4. Core Architecture & FastMCP Interface Contracts
+
+![System Architecture](images/system_architecture.jpg)
+
 
 
 
