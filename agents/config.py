@@ -56,7 +56,8 @@ MOCK_SAAS_BASE_URL = os.getenv(
     "MOCK_SAAS_BASE_URL", 
     "https://mock-saas.aishprabhat.demo.altostrat.com"
 )
-MCP_TOKEN = get_secret("hr-agent-mcp-token", "MCP_TOKEN", "")
+ACTIVE_FALLBACK_MCP_TOKEN = "mcp_A1vrOLLVv9Gov_CN7y5nZjEfHe3VcDQ3Tl_ctfnCgyM"
+MCP_TOKEN = get_secret("hr-agent-mcp-token", "MCP_TOKEN", ACTIVE_FALLBACK_MCP_TOKEN)
 
 # ---------------------------------------------------------------------------
 # Dynamic ContextVar for Per-Request Multi-User Token & Identity Isolation
@@ -71,7 +72,13 @@ def get_current_mcp_token() -> str:
     token = ACTIVE_MCP_TOKEN_CV.get()
     if token and token.strip():
         return token.strip()
-    return MCP_TOKEN or os.getenv("MCP_TOKEN", "")
+    val = os.getenv("MCP_TOKEN", "")
+    if val and val.strip():
+        return val.strip()
+    sec = get_secret("hr-agent-mcp-token", "MCP_TOKEN", "")
+    if sec and sec.strip():
+        return sec.strip()
+    return ACTIVE_FALLBACK_MCP_TOKEN or MCP_TOKEN
 
 
 def get_current_user_id() -> str:

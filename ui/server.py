@@ -244,8 +244,8 @@ async def chat_endpoint(req: ChatRequest, request: Request):
     if client_token and client_token.strip():
         config.ACTIVE_MCP_TOKEN_CV.set(client_token.strip())
     else:
-        # Always use the deployment-configured Secret Manager / .env token
-        config.ACTIVE_MCP_TOKEN_CV.set(config.MCP_TOKEN or os.getenv("MCP_TOKEN", ""))
+        # Use dynamic token resolution (Secret Manager / Environment / Active Token)
+        config.ACTIVE_MCP_TOKEN_CV.set(config.get_current_mcp_token())
 
     if client_user_id and client_user_id.strip():
         config.ACTIVE_USER_ID_CV.set(client_user_id.strip())
