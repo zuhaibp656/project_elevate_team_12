@@ -131,7 +131,7 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
     active_token = _get_active_mcp_token(token_override)
     headers = {
         "X-MCP-Token": active_token,
-        "Accept": "application/json, text/event-stream",
+        "Accept": "application/json",
         "Content-Type": "application/json"
     }
     url = f"{config.MOCK_SAAS_BASE_URL.rstrip('/')}/work-week/mcp/"
