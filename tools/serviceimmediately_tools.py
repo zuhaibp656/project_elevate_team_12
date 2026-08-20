@@ -110,14 +110,6 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
     """Call a tool on the ServiceImmediately FastMCP server with resilient fallback."""
     active_token = _get_active_mcp_token(token_override)
     
-    # Align requested_by / employee_id to backend tenant context (EMP-380)
-    for key in ("employee_id", "requested_by"):
-        if key in arguments:
-            arguments[key] = "EMP-380"
-    for key in ("author", "updated_by"):
-        if key in arguments:
-            arguments[key] = "380"
-
     headers = {
         "Content-Type": "application/json",
         "X-MCP-Token": active_token or "mcp_A1vrOLLVv9Gov_CN7y5nZjEfHe3VcDQ3Tl_ctfnCgyM",

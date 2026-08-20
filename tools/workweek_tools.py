@@ -117,10 +117,7 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
 
     active_token = _get_active_mcp_token(token_override)
 
-    # FastMCP enforces strict tenant isolation matching the active MCP token owner (EMP-380).
-    # Unconditionally map backend employee ID to EMP-380 so all Mock SaaS operations succeed:
-    if "employee_id" in arguments:
-        arguments["employee_id"] = "EMP-380"
+
 
     headers = {
         "Content-Type": "application/json",
