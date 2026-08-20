@@ -118,30 +118,48 @@ The following official flow diagram and node-by-node explanation define the dete
 
 ```mermaid
 flowchart TD
-    A([User Request]) --> B[Orchestrator Agent]
-    B --> C{Bulk Action?}
+    %% User Input & Gateway
+    User([Employee in Aura UI]) --> Gateway[API Gateway & Identity Bridge]
+    Gateway --> Armor{Model Armor: Security Check}
     
-    C -- Yes --> D[Autonomous Loop: Read -> Parse -> Write]
-    D --> L([Sync UI & Return Response])
+    %% Security & Routing
+    Armor -- Safe --> Orch[hr_orchestrator: Central Router]
+    Armor -- Unsafe / PII / Injection --> Block[Block & Redact Request]
     
-    C -- No --> E{Actionable Request?}
+    %% Multi-Agent Delegation
+    Orch -->|Leave & Balances| HCM[hcm_specialist]
+    Orch -->|IT Support| ITSM[itsm_specialist]
+    Orch -->|HR Rules| Policy[policy_specialist]
     
-    E -- No (Info) --> F[Policy Specialist / Read Tools]
-    F --> L
+    %% Policy & FastMCP Data Access
+    Policy --> OKF[(OKF Policy RAG)]
+    HCM --> Gatekeeper{Policy Gatekeeper: Allowed?}
+    ITSM --> Gatekeeper
     
-    E -- Yes (Write) --> G[Pre-Action Policy Gatekeeper]
-    G --> H{Policy Allows?}
+    %% Gatekeeper Logic
+    Gatekeeper -- Yes --> MCP[FastMCP Tool Execution]
+    Gatekeeper -- No --> Deny[Strict Deny & Explain Policy]
     
-    H -- Yes --> I[Call Specialist Write Tool]
-    I --> L
+    %% Tool Execution & Services
+    MCP --> SaaS[(Mock SaaS: WorkWeek / ServiceImmediately)]
     
-    H -- No --> J[Strict Deny & Suggest Escalation]
-    J --> K{User Confirms Escalation?}
+    %% Return Flow
+    SaaS -.-> Synth[Orchestrator Synthesis]
+    Deny -.-> Synth
+    OKF -.-> Synth
     
-    K -- Yes --> M[Execute escalate_to_human_hr]
-    M --> L
+    Synth --> Sync([Return Markdown to UI & Real-Time Sync])
     
-    K -- No --> L
+    %% Styling
+    classDef security fill:#FED7D7,stroke:#E53E3E,stroke-width:2px;
+    classDef agent fill:#EBF8FF,stroke:#3182CE,stroke-width:2px;
+    classDef data fill:#E6FFFA,stroke:#319795,stroke-width:2px;
+    classDef decision fill:#FEFCBF,stroke:#D69E2E,stroke-width:2px;
+    
+    class Armor,Block security;
+    class Orch,HCM,ITSM,Policy agent;
+    class SaaS,OKF data;
+    class Gatekeeper decision;
 ```
 
 ---
@@ -150,12 +168,13 @@ flowchart TD
 
 | Flowchart Node | Component / Agent | Description |
 | :--- | :--- | :--- |
-| **`User Request`** | Browser UI & API Gateway | The employee submits a query (e.g., "Close my tickets", "Apply for leave"). |
-| **`Orchestrator Agent`** | Central AI Brain | Classifies the intent and delegates to the appropriate sub-agent (HCM, ITSM, or Policy). |
-| **`Autonomous Loop`** | Sub-Agents | For bulk requests (like closing multiple tickets), the agent autonomously calls Read tools, parses the JSON, and iterates over Write tools without prompting the user. |
+| **`Gateway & Model Armor`** | API Gateway & Security | Receives request, injects auth (Identity Bridge), and runs security checks (DLP, Prompt Injection). Blocks unsafe requests. |
+| **`Orchestrator`** | Central AI Brain | Classifies intent (Leave, IT, Policy) and delegates the task to the correct specialized sub-agent. |
+| **`Sub-Agents`** | HCM, ITSM, Policy | Domain experts that process the request. Policy Specialist retrieves context from the OKF RAG store. |
 | **`Policy Gatekeeper`** | Sub-Agents | Before executing any Write action, mathematically validates the request against enterprise rules (e.g., 15-day notice for leaves). |
-| **`Strict Deny`** | Sub-Agents | If policy is violated, halts execution entirely and provides alternative options. Does not secretly downgrade parameters. |
-| **`Escalation`** | ITSM Agent | If the user confirms, executes a high-priority escalation ticket to Human HR. |
+| **`Strict Deny`** | Sub-Agents | If policy is violated, halts execution entirely and provides alternative options. Does not silently downgrade parameters. |
+| **`FastMCP Tool Execution`** | Integration Layer | If allowed, securely executes API calls against mock SaaS backends using the session's X-MCP-Token. |
+| **`Synthesis & Sync`** | Orchestrator | Aggregates JSON results into a unified Markdown response and triggers real-time side-bar UI sync. |
 
 ---
 
