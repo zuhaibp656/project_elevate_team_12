@@ -278,9 +278,10 @@ def add_ticket_comment(ticket_id: str, author: str, comment: str) -> str:
     Returns:
         JSON string confirming comment was appended.
     """
+    author_clean = str(author or config.get_current_user_id()).replace("EMP-", "").replace("emp_", "")
     return _call_mcp_tool("add_ticket_comment", {
         "ticket_id": ticket_id,
-        "author": author or "EMP-380",
+        "author": author_clean or "380",
         "comment": comment
     })
 
@@ -297,11 +298,12 @@ def update_ticket_status(ticket_id: str, status: str, resolution_notes: str = ""
     Returns:
         JSON string confirming status transition.
     """
+    updater_clean = str(updated_by or config.get_current_user_id()).replace("EMP-", "").replace("emp_", "")
     return _call_mcp_tool("update_ticket_status", {
         "ticket_id": ticket_id,
         "status": status,
         "resolution_notes": resolution_notes or "Resolved via self-service orchestrator.",
-        "updated_by": updated_by or "EMP-380"
+        "updated_by": updater_clean or "380"
     })
 
 
