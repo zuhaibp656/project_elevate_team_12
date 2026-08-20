@@ -16,27 +16,21 @@ _COOLDOWN_PERIOD = 30.0  # seconds
 # In-Memory Resilient Mock Cache for Offline / Token Expiry Fallback
 _MOCK_BALANCES = {
     "EMP-380": {
-        "vacation": {"accrued": 20.0, "used": 4.0, "remaining": 16.0},
-        "sick": {"accrued": 10.0, "used": 2.0, "remaining": 8.0},
-        "childcare": {"accrued": 6.0, "used": 0.0, "remaining": 6.0}
+        "vacation": {"accrued": 20.0, "used": 0.0, "remaining": 20.0},
+        "sick": {"accrued": 10.0, "used": 0.0, "remaining": 10.0}
     },
     "EMP-102": {
-        "vacation": {"accrued": 21.0, "used": 5.0, "remaining": 16.0},
-        "sick": {"accrued": 10.0, "used": 0.0, "remaining": 10.0},
-        "childcare": {"accrued": 6.0, "used": 2.0, "remaining": 4.0}
+        "vacation": {"accrued": 21.0, "used": 0.0, "remaining": 21.0},
+        "sick": {"accrued": 10.0, "used": 0.0, "remaining": 10.0}
     },
     "EMP-001": {
-        "vacation": {"accrued": 22.0, "used": 10.0, "remaining": 12.0},
-        "sick": {"accrued": 10.0, "used": 1.0, "remaining": 9.0},
-        "childcare": {"accrued": 6.0, "used": 0.0, "remaining": 6.0}
+        "vacation": {"accrued": 22.0, "used": 0.0, "remaining": 22.0},
+        "sick": {"accrued": 10.0, "used": 0.0, "remaining": 10.0}
     }
 }
 
 _MOCK_LEAVE_REQUESTS = {
-    "EMP-380": [
-        {"request_id": "LR-2026-001", "leave_type": "Vacation", "start_date": "2026-04-10", "end_date": "2026-04-14", "days": 4, "status": "Approved"},
-        {"request_id": "LR-2026-002", "leave_type": "Sick", "start_date": "2026-06-02", "end_date": "2026-06-03", "days": 2, "status": "Approved"}
-    ]
+    "EMP-380": []
 }
 
 _MOCK_PERSONAL_INFO = {
