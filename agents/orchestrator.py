@@ -50,7 +50,15 @@ async def _run_query_traced_async(query: str, user_id: str = "learner", session_
     except Exception:
         pass  # Session already exists
 
-    message = types.Content(role="user", parts=[types.Part(text=query)])
+    active_emp = user_id or config.get_current_user_id() or "EMP-380"
+    active_email = config.ACTIVE_USER_EMAIL_CV.get()
+    if not active_email or not active_email.strip():
+        active_email = "zuhaibp@google.com" if active_emp == "EMP-380" else f"{active_emp.lower().replace('-', '')}@altostrat.demo"
+
+    context_tag = f"[Authenticated Employee: Employee ID={active_emp}, Email={active_email}]\n"
+    full_prompt = f"{context_tag}{query}" if not query.startswith("[Authenticated Employee") else query
+
+    message = types.Content(role="user", parts=[types.Part(text=full_prompt)])
     final_texts = []
     evidence = []
 
