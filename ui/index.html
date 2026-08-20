@@ -2015,6 +2015,14 @@
         <input type="text" id="gateEmployeeId" class="modal-input" placeholder="e.g. EMP-380 or emp_001" value="EMP-380" />
       </div>
 
+      <div class="modal-field">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <label for="gateMcpToken" style="margin-bottom: 0;">FastMCP Token (Optional)</label>
+          <a href="https://mock-saas.aishprabhat.demo.altostrat.com/" target="_blank" style="font-size: 11px; color: var(--primary); text-decoration: none;">🔗 Get from Mock SaaS Portal</a>
+        </div>
+        <input type="password" id="gateMcpToken" class="modal-input" placeholder="mcp_... (leave empty to use server default)" />
+      </div>
+
       <!-- Quick Preset Selection -->
       <div style="display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center;">
         <button type="button" class="chip" style="font-size: 11px; padding: 4px 9px;" onclick="document.getElementById('gateUserEmail').value='zuhaibp@google.com'; document.getElementById('gateEmployeeId').value='EMP-380';">
@@ -3066,10 +3074,14 @@
       identityModal.style.display = 'flex';
     }
 
-    // Login Gate Connect Handler (Simple Email & Emp ID)
+    // Login Gate Connect Handler (Simple Email, Emp ID & FastMCP Token)
     btnGateConnect.addEventListener('click', () => {
       const email = gateUserEmail.value.trim();
       const empId = gateEmployeeId.value.trim() || 'EMP-380';
+      const tokenInput = document.getElementById('gateMcpToken');
+      const enteredToken = tokenInput ? tokenInput.value.trim() : '';
+      const existingToken = (getUserIdentity() || {}).token || '';
+      const activeToken = enteredToken || existingToken;
 
       if (!email) {
         gateStatusMsg.style.display = 'block';
@@ -3082,7 +3094,7 @@
       currentSessionId = 'session_' + empId.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
       const name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
       saveUserIdentity({
-        token: '',
+        token: activeToken,
         email: email,
         employee_id: empId,
         name: name,

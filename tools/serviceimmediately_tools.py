@@ -172,7 +172,7 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
 
     # Attempt live FastMCP request
     try:
-        with httpx.Client(timeout=8.0) as client:
+        with httpx.Client(timeout=10.0) as client:
             response = client.post(url, headers=headers, json=payload)
             if response.status_code == 200:
                 data = response.json()
@@ -182,10 +182,16 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
                     if content and isinstance(content, list) and len(content) > 0:
                         return content[0].get("text", json.dumps(result))
                     return json.dumps(result)
+            elif response.status_code in (401, 403):
+                return json.dumps({
+                    "error": f"Live SaaS Authentication Required ({response.status_code}): The FastMCP token is expired or invalid on https://mock-saas.aishprabhat.demo.altostrat.com/. Please copy your active token from the SaaS portal and update it in your Profile Settings (top right).",
+                    "auth_error": True,
+                    "portal_url": "https://mock-saas.aishprabhat.demo.altostrat.com/"
+                })
     except Exception:
         pass
 
-    # Seamless Fallback to High-Fidelity Local State
+    # Seamless Fallback to High-Fidelity Local State for offline sandbox testing
     return _fallback_tool_exec(tool_name, arguments)
 
 
