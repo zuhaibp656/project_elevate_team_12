@@ -81,7 +81,7 @@ while [[ $# -gt 0 ]]; do
             API_KEY_VAL="$2"
             shift 2
             ;;
-        -m|--mcp-token)
+        -m|--mcp-token|--token)
             MCP_TOKEN_VAL="$2"
             shift 2
             ;;
@@ -255,11 +255,11 @@ if [ "$DRY_RUN" = false ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT
             gcloud secrets create hr-agent-mcp-token \
                 --replication-policy="automatic" \
                 --project "$PROJECT_ID" 2>/dev/null || true
-            echo -n "$MCP_TOKEN_VAL" | gcloud secrets versions add hr-agent-mcp-token \
-                --data-file=- \
-                --project "$PROJECT_ID" 2>/dev/null || true
-            echo "  [✓] Secret hr-agent-mcp-token created in Secret Manager."
         fi
+        echo -n "$MCP_TOKEN_VAL" | gcloud secrets versions add hr-agent-mcp-token \
+            --data-file=- \
+            --project "$PROJECT_ID" 2>/dev/null || true
+        echo "  [✓] Secret hr-agent-mcp-token updated with latest version in Secret Manager."
     fi
 fi
 
