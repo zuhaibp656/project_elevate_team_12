@@ -152,21 +152,21 @@ fi
 echo ""
 echo "[*] Resolving FastMCP token and Secret Manager configuration..."
 
-# 1. Check if token is in .env if not set via CLI or env
+# 1. Check if secret exists in Google Cloud Secret Manager first
+if [ -z "$MCP_TOKEN_VAL" ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT_ID" ]; then
+    EXISTING_SECRET=$(gcloud secrets versions access latest --secret=hr-agent-mcp-token --project="$PROJECT_ID" 2>/dev/null || true)
+    if [ -n "$EXISTING_SECRET" ]; then
+        MCP_TOKEN_VAL="$EXISTING_SECRET"
+        echo "  [✓] Auto-loaded FastMCP token from Google Cloud Secret Manager (hr-agent-mcp-token)."
+    fi
+fi
+
+# 2. Check if token is in .env if not found in Secret Manager or CLI
 if [ -z "$MCP_TOKEN_VAL" ] && [ -f "$REPO_ROOT/.env" ]; then
     ENV_TOKEN=$(grep -E '^MCP_TOKEN=' "$REPO_ROOT/.env" 2>/dev/null | head -n1 | cut -d '=' -f2- | tr -d '"' | tr -d "'" | tr -d '\r' || true)
     if [ -n "$ENV_TOKEN" ]; then
         MCP_TOKEN_VAL="$ENV_TOKEN"
         echo "  [✓] Auto-loaded FastMCP token from .env file."
-    fi
-fi
-
-# 2. Check if secret exists in Google Cloud Secret Manager
-if [ -z "$MCP_TOKEN_VAL" ] && command -v gcloud >/dev/null 2>&1 && [ -n "$PROJECT_ID" ]; then
-    EXISTING_SECRET=$(gcloud secrets versions access latest --secret=hr-agent-mcp-token --project="$PROJECT_ID" 2>/dev/null || true)
-    if [ -n "$EXISTING_SECRET" ]; then
-        MCP_TOKEN_VAL="$EXISTING_SECRET"
-        echo "  [✓] Auto-loaded FastMCP token from Google Cloud Secret Manager."
     fi
 fi
 
