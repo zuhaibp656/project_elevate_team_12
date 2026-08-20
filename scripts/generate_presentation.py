@@ -11,7 +11,7 @@ from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 
-OUTPUT_PPTX = "/Users/zuhaibp/Documents/Project_elevate_team_12/Elevate_HR_Team_12_Autonomous_MAS_Presentation.pptx"
+OUTPUT_PPTX = "/Users/zuhaibp/Documents/Project_elevate_team_12/docs/Elevate_HR_Team_12_Autonomous_MAS_Presentation.pptx"
 
 # Modern Color Palette (Google / Enterprise Tech Theme)
 C_DARK_BG = RGBColor(15, 23, 42)       # Slate 900
