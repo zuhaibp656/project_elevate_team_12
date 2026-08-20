@@ -340,14 +340,20 @@ async def get_hub_data(request: Request, employee_id: Optional[str] = None):
             try:
                 bal_data = json.loads(raw_bal)
                 if isinstance(bal_data, dict):
+                    # FastMCP raw response or Mock JSON structure
                     if "vacation_days" in bal_data:
                         vacation_rem = float(bal_data.get("vacation_days", 20.0))
-                        vacation_total = 20.0
-                        vacation_used = max(0.0, vacation_total - vacation_rem)
+                    elif "vacation" in bal_data and isinstance(bal_data["vacation"], dict):
+                        vacation_rem = float(bal_data["vacation"].get("remaining", 20.0))
+                    vacation_total = 20.0
+                    vacation_used = max(0.0, vacation_total - vacation_rem)
+
                     if "sick_days" in bal_data:
                         sick_rem = float(bal_data.get("sick_days", 10.0))
-                        sick_total = 10.0
-                        sick_used = max(0.0, sick_total - sick_rem)
+                    elif "sick" in bal_data and isinstance(bal_data["sick"], dict):
+                        sick_rem = float(bal_data["sick"].get("remaining", 10.0))
+                    sick_total = 10.0
+                    sick_used = max(0.0, sick_total - sick_rem)
             except Exception:
                 # Regex parse formatted string from FastMCP
                 v_match = re.search(r'Vacation:\s*([\d\.]+)\s*days\s*remaining\s*(?:\(([\d\.]+)/([\d\.]+)\s*used\))?', raw_bal, re.IGNORECASE)
@@ -372,12 +378,17 @@ async def get_hub_data(request: Request, employee_id: Optional[str] = None):
         elif isinstance(raw_bal, dict):
             if "vacation_days" in raw_bal:
                 vacation_rem = float(raw_bal.get("vacation_days", 20.0))
-                vacation_total = 20.0
-                vacation_used = max(0.0, vacation_total - vacation_rem)
+            elif "vacation" in raw_bal and isinstance(raw_bal["vacation"], dict):
+                vacation_rem = float(raw_bal["vacation"].get("remaining", 20.0))
+            vacation_total = 20.0
+            vacation_used = max(0.0, vacation_total - vacation_rem)
+
             if "sick_days" in raw_bal:
                 sick_rem = float(raw_bal.get("sick_days", 10.0))
-                sick_total = 10.0
-                sick_used = max(0.0, sick_total - sick_rem)
+            elif "sick" in raw_bal and isinstance(raw_bal["sick"], dict):
+                sick_rem = float(raw_bal["sick"].get("remaining", 10.0))
+            sick_total = 10.0
+            sick_used = max(0.0, sick_total - sick_rem)
     except Exception:
         pass
 
