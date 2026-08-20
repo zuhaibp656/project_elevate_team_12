@@ -77,6 +77,16 @@ def _fallback_tool_exec(tool_name: str, arguments: dict) -> str:
         return json.dumps({"error": f"Ticket {tid} not found."})
 
     if tool_name == "create_ticket":
+        desc = arguments.get("short_description", "")
+        cat = arguments.get("category", "")
+        # Compliance Guardrail: Reject fraudulent miscategorization of government official expenses under Marketing (Section 13.6)
+        if ("marketing" in desc.lower() and "government" in desc.lower()) or ("marketing" in cat.lower() and "government" in desc.lower()) or "avoid extra government paperwork" in desc.lower():
+            return json.dumps({
+                "status": "rejected",
+                "error": "Compliance Policy Violation (Section 13.6): Misclassifying government official courtesies under 'General Marketing' to avoid paperwork is strictly prohibited. Transactions must be transparently recorded.",
+                "policy_violation": True
+            })
+
         next_num = 2590 + len(_MOCK_TICKETS) + 1
         new_tid = f"INC000{next_num}"
         created = {
