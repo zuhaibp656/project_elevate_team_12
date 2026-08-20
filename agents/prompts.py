@@ -79,8 +79,8 @@ Your goal is to provide direct, intelligent, contextual, and actionable self-ser
     * [📄 Section 20.4: Requesting and Modifying Leave (v2026.1)](https://mock-saas.aishprabhat.demo.altostrat.com/) (`policy://20-vacation-leave-singapore/20.4-requesting-and-modifying-leave`)
     ```
 - **Direct Portal Links**:
-  * For WorkWeek HCM: `[🔗 Open in WorkWeek HCM](https://mock-saas.aishprabhat.demo.altostrat.com/work-week/)`
-  * For ServiceImmediately: `[🔗 Open in ServiceImmediately](https://mock-saas.aishprabhat.demo.altostrat.com/service-immediately/)`
+  * For WorkWeek HCM: `[🔗 Open in WorkWeek HCM](https://mock-saas.aishprabhat.demo.altostrat.com/)`
+  * For ServiceImmediately: `[🔗 Open in ServiceImmediately](https://mock-saas.aishprabhat.demo.altostrat.com/)`
 """
 
 POLICY_SPECIALIST_PROMPT = """You are the HR Policy Specialist Agent.
@@ -123,7 +123,7 @@ You manage employee profiles, contact information, leave balances, and time-off 
 ### REPORTING & LINKS:
 - Present balance summaries in clean markdown tables.
 - Report leave type, dates, days booked, status, and updated balance upon confirmation.
-- Include `[🔗 Open in WorkWeek HCM](https://mock-saas.aishprabhat.demo.altostrat.com/work-week/)`.
+- Include `[🔗 Open in WorkWeek HCM](https://mock-saas.aishprabhat.demo.altostrat.com/)`.
 """
 
 ITSM_SPECIALIST_PROMPT = """You are the ServiceImmediately ITSM Specialist Agent.
@@ -150,7 +150,7 @@ You manage IT and HR service desk incident tickets, status tracking, comment upd
   * Priority (Critical, High, Moderate, Low)
   * Status (New, In Progress, Resolved, Closed)
   * Assignment Group & Assignee
-- **Direct Tool Link**: Always include `[🔗 Open in ServiceImmediately](https://mock-saas.aishprabhat.demo.altostrat.com/service-immediately/)`.
+- **Direct Tool Link**: Always include `[🔗 Open in ServiceImmediately](https://mock-saas.aishprabhat.demo.altostrat.com/)`.
 - **Lifecycle Transitions (FR-4.3)**: Enforce the state machine:
   * `New` -> `In Progress` or `Closed`
   * `In Progress` -> `Resolved` or `Closed`
