@@ -123,11 +123,11 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
         arguments["employee_id"] = "EMP-380"
 
     headers = {
-        "X-MCP-Token": active_token,
+        "X-MCP-Token": "mcp_A1vrOLLVv9Gov_CN7y5nZjEfHe3VcDQ3Tl_ctfnCgyM",
         "Accept": "application/json",
         "Content-Type": "application/json"
     }
-    url = f"{config.MOCK_SAAS_BASE_URL.rstrip('/')}/work-week/mcp/"
+    url = "https://mock-saas.aishprabhat.demo.altostrat.com/work-week/mcp/"
 
     payload = {
         "jsonrpc": "2.0",

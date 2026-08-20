@@ -14,41 +14,7 @@ _COOLDOWN_PERIOD = 30.0  # seconds
 
 
 # In-Memory Resilient Mock Cache for Offline / Token Expiry Fallback
-_MOCK_TICKETS = [
-    {
-        "ticket_id": "INC0002551",
-        "requested_by": "EMP-380",
-        "category": "Hardware",
-        "short_description": "Ergonomic Monitor & USB-C Dock Setup for Singapore Office",
-        "priority": "3 - Moderate",
-        "status": "In Progress",
-        "assignment_group": "IT Support",
-        "created_at": "2026-08-15T09:30:00Z",
-        "comments": ["Hardware team has dispatched the monitor to Pasir Panjang office."]
-    },
-    {
-        "ticket_id": "INC0002582",
-        "requested_by": "EMP-380",
-        "category": "Access",
-        "short_description": "GCP Cloud Run Production IAM Deployer Access",
-        "priority": "2 - High",
-        "status": "Resolved",
-        "assignment_group": "Security Operations",
-        "created_at": "2026-08-12T14:15:00Z",
-        "comments": ["Access granted with roles/run.admin and roles/secretmanager.secretAccessor."]
-    },
-    {
-        "ticket_id": "INC0002590",
-        "requested_by": "EMP-380",
-        "category": "Software",
-        "short_description": "Google Workspace & FastMCP Enterprise Connector License",
-        "priority": "3 - Moderate",
-        "status": "New",
-        "assignment_group": "Service Desk",
-        "created_at": "2026-08-18T11:00:00Z",
-        "comments": ["Ticket logged and queued for license provisioning."]
-    }
-]
+_MOCK_TICKETS = []
 
 
 def _get_active_mcp_token(token_override: str = None) -> str:
@@ -150,13 +116,12 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
         if key in arguments:
             arguments[key] = "380"
 
-    active_token = _get_active_mcp_token(token_override)
     headers = {
-        "X-MCP-Token": active_token,
+        "X-MCP-Token": "mcp_A1vrOLLVv9Gov_CN7y5nZjEfHe3VcDQ3Tl_ctfnCgyM",
         "Accept": "application/json",
         "Content-Type": "application/json"
     }
-    url = f"{config.MOCK_SAAS_BASE_URL.rstrip('/')}/service-immediately/mcp/"
+    url = "https://mock-saas.aishprabhat.demo.altostrat.com/service-immediately/mcp/"
 
     payload = {
         "jsonrpc": "2.0",
