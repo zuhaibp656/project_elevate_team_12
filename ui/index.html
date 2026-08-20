@@ -3098,8 +3098,8 @@
         email: email,
         employee_id: empId,
         name: name,
-        role: 'Senior Cloud Engineer',
-        address: 'Singapore Office, Pasir Panjang'
+        role: empId === 'EMP-380' ? 'Senior Cloud Engineer' : (empId === 'EMP-102' ? 'HR Business Partner' : (empId === 'EMP-001' ? 'Staff Infrastructure Architect' : 'Enterprise Associate')),
+        address: 'Singapore Office'
       });
 
       loginGateScreen.classList.add('hidden');
