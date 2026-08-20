@@ -200,12 +200,17 @@ def request_time_off(employee_id: str, start_date: str, end_date: str, leave_typ
     Returns:
         JSON string confirmation of the submitted leave request.
     """
+    emp_clean = employee_id or config.get_current_user_id()
+    try:
+        days_val = float(days)
+    except Exception:
+        days_val = 1.0
     return _call_mcp_tool("request_time_off", {
-        "employee_id": employee_id or "EMP-380",
-        "start_date": start_date,
-        "end_date": end_date,
-        "leave_type": leave_type,
-        "days": days
+        "employee_id": emp_clean,
+        "start_date": str(start_date),
+        "end_date": str(end_date),
+        "leave_type": str(leave_type).capitalize(),
+        "days": days_val
     })
 
 
@@ -218,7 +223,8 @@ def get_personal_info(employee_id: str = "EMP-380") -> str:
     Returns:
         JSON string with employee's email, phone, and home address.
     """
-    return _call_mcp_tool("get_personal_info", {"employee_id": employee_id or "EMP-380"})
+    emp_clean = employee_id or config.get_current_user_id()
+    return _call_mcp_tool("get_personal_info", {"employee_id": emp_clean})
 
 
 def update_personal_info(employee_id: str, address: str = None, phone: str = None) -> str:
@@ -232,7 +238,8 @@ def update_personal_info(employee_id: str, address: str = None, phone: str = Non
     Returns:
         JSON string confirming updated profile information.
     """
-    args = {"employee_id": employee_id or "EMP-380"}
+    emp_clean = employee_id or config.get_current_user_id()
+    args = {"employee_id": emp_clean}
     if address:
         args["address"] = address
     if phone:
@@ -249,7 +256,8 @@ def get_leave_requests(employee_id: str = "EMP-380") -> str:
     Returns:
         JSON string with list of past leave requests and their statuses.
     """
-    return _call_mcp_tool("get_leave_requests", {"employee_id": employee_id or "EMP-380"})
+    emp_clean = employee_id or config.get_current_user_id()
+    return _call_mcp_tool("get_leave_requests", {"employee_id": emp_clean})
 
 
 def cancel_leave_request(employee_id: str, request_id: str) -> str:
@@ -262,7 +270,12 @@ def cancel_leave_request(employee_id: str, request_id: str) -> str:
     Returns:
         JSON string confirming cancellation and restored leave balance.
     """
+    emp_clean = employee_id or config.get_current_user_id()
+    try:
+        req_id_int = int(str(request_id).replace("REQ-", "").replace("req_", "").replace("#", "").strip())
+    except Exception:
+        req_id_int = 1
     return _call_mcp_tool("cancel_leave_request", {
-        "employee_id": employee_id or "EMP-380",
-        "request_id": request_id
+        "employee_id": emp_clean,
+        "request_id": req_id_int
     })
