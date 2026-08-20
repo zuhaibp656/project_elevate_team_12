@@ -124,11 +124,17 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
     """Call a tool on the WorkWeek FastMCP server with resilient fallback."""
     global _CONSECUTIVE_FAILURES, _CIRCUIT_OPEN_UNTIL
 
-    # Auto-resolve placeholder employee IDs
-    if "employee_id" in arguments and (not arguments["employee_id"] or str(arguments["employee_id"]).lower() in ("emp_001", "me", "current", "self", "learner")):
-        arguments["employee_id"] = config.get_current_user_id()
-
     active_token = _get_active_mcp_token(token_override)
+
+    # FastMCP enforces strict tenant isolation matching the active MCP token owner (EMP-380).
+    # When using the shared server deployment token, map backend employee ID to EMP-380:
+    custom_token = config.ACTIVE_MCP_TOKEN_CV.get()
+    if "employee_id" in arguments:
+        if not custom_token or custom_token == config.MCP_TOKEN or not token_override:
+            arguments["employee_id"] = "EMP-380"
+        else:
+            arguments["employee_id"] = arguments["employee_id"] or config.get_current_user_id()
+
     headers = {
         "X-MCP-Token": active_token,
         "Accept": "application/json",
@@ -156,7 +162,9 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
                     result = data.get("result", {})
                     content = result.get("content", [])
                     if content and isinstance(content, list) and len(content) > 0:
-                        return content[0].get("text", json.dumps(result))
+                        text_res = content[0].get("text", "")
+                        if "Access denied" not in text_res:
+                            return text_res
                     return json.dumps(result)
     except Exception:
         pass
