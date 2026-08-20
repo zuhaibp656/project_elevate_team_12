@@ -386,41 +386,89 @@ def create_presentation():
     # =========================================================================
     s5 = prs.slides.add_slide(blank_layout)
     set_bg(s5, C_LIGHT_BG)
-    add_header(s5, "Autonomous Execution Flow", "Compound Multi-Hop Workflow Delegation")
+    add_header(s5, "Architecture Flow", "Service & Agentic Execution Path")
 
-    if os.path.exists(IMG_FLOW):
-        s5.shapes.add_picture(IMG_FLOW, Inches(0.8), Inches(1.6), width=Inches(6.2))
+    # Let's draw the flowchart using python-pptx shapes on the left side
+    # We will use simple rectangles and text boxes
+    
+    # Helper to draw a box
+    def draw_box(slide, left, top, width, height, text, bg_color=C_PRIMARY_LIGHT, font_color=C_TEXT_MAIN, is_diamond=False):
+        shape_type = MSO_SHAPE.DIAMOND if is_diamond else MSO_SHAPE.ROUNDED_RECTANGLE
+        shape = slide.shapes.add_shape(shape_type, left, top, width, height)
+        shape.fill.solid()
+        shape.fill.fore_color.rgb = bg_color
+        shape.line.color.rgb = C_PRIMARY
+        shape.line.width = Pt(1.5)
+        
+        # Add text
+        tf = shape.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.text = text
+        p.font.size = Pt(11)
+        p.font.bold = True
+        p.font.color.rgb = font_color
+        p.alignment = pptx.enum.text.PP_ALIGN.CENTER
+        return shape
 
-    top_w = Inches(1.6)
+    # Draw nodes
+    col1 = Inches(0.8)
+    col2 = Inches(2.8)
+    col3 = Inches(4.8)
+    
+    box_w = Inches(1.5)
+    box_h = Inches(0.6)
+    
+    # Gateway -> Model Armor
+    draw_box(s5, col1, Inches(1.8), Inches(5.5), box_h, "User Request -> API Gateway & Identity Bridge")
+    draw_box(s5, col2, Inches(2.6), box_w, box_h, "Model Armor (Safe?)", bg_color=C_ACCENT_YELLOW, is_diamond=True)
+    
+    # Orchestrator
+    draw_box(s5, col2, Inches(3.5), box_w, box_h, "hr_orchestrator\n(Router)", bg_color=C_PRIMARY, font_color=C_WHITE)
+    
+    # Sub-agents
+    draw_box(s5, col1, Inches(4.5), box_w, box_h, "hcm_specialist")
+    draw_box(s5, col2, Inches(4.5), box_w, box_h, "itsm_specialist")
+    draw_box(s5, col3, Inches(4.5), box_w, box_h, "policy_specialist")
+    
+    # Gatekeeper
+    draw_box(s5, Inches(1.8), Inches(5.4), Inches(2.0), box_h, "Policy Gatekeeper (Allow?)", bg_color=C_ACCENT_YELLOW, is_diamond=True)
+    
+    # FastMCP
+    draw_box(s5, Inches(1.8), Inches(6.3), Inches(2.0), box_h, "FastMCP (WorkWeek / ITSM)", bg_color=C_ACCENT_GREEN, font_color=C_WHITE)
+
+    # Explanation cards on the right
+    top_w = Inches(1.8)
     workflow_steps = [
-        ("Step 1: Ingestion & In-Flight Masking", "User prompt is intercepted by Model Armor regex filter; NRIC, cards, and credentials are redacted prior to LLM submission."),
-        ("Step 2: Orchestrator Intent Decomposition", "Root agent analyzes query (e.g. 'I need 2 days leave and a ticket to forward emails') and decomposes into parallel/sequential sub-tasks."),
-        ("Step 3: Specialist Tool Invocation", "Policy Specialist verifies notice rules -> HCM Specialist books time off -> ITSM Specialist creates email routing incident."),
-        ("Step 4: Synthesis, Citation & UI Stream", "Results are collated with ticket IDs, balance confirmations, and bottom policy sources, streamed back to user in sub-second response.")
+        ("1. Security & Identity", "API Gateway injects Auth. Model Armor blocks prompt injections and masks PII/NRICs."),
+        ("2. Agentic Routing", "Orchestrator acts as the brain, determining intent and parallelizing tasks to sub-agents."),
+        ("3. Policy Gatekeeper", "Crucial constraint step: Sub-agents mathematically verify rules (e.g. 15-day notice) BEFORE taking any action. Denies non-compliant requests."),
+        ("4. Service Integration (FastMCP)", "Allowed actions are executed against Mock SaaS (WorkWeek/ServiceImmediately) using context-injected Auth tokens.")
     ]
 
     for s_title, s_desc in workflow_steps:
-        add_card(s5, Inches(7.3), top_w, Inches(5.2), Inches(1.2))
-        tb = s5.shapes.add_textbox(Inches(7.5), top_w + Inches(0.1), Inches(4.8), Inches(1.0))
+        add_card(s5, Inches(7.0), top_w, Inches(5.5), Inches(1.1))
+        tb = s5.shapes.add_textbox(Inches(7.2), top_w + Inches(0.1), Inches(5.1), Inches(0.9))
         tf = tb.text_frame
         tf.word_wrap = True
 
         p = tf.paragraphs[0]
         p.text = s_title
-        p.font.size = Pt(12)
+        p.font.size = Pt(13)
         p.font.bold = True
         p.font.color.rgb = C_PRIMARY
         p.space_after = Pt(2)
 
         pd = tf.add_paragraph()
         pd.text = s_desc
-        pd.font.size = Pt(10)
+        pd.font.size = Pt(11)
         pd.font.color.rgb = C_TEXT_MAIN
 
-        top_w += Inches(1.35)
+        top_w += Inches(1.25)
 
     # =========================================================================
     # SLIDE 6: Live Web Application & Workspace UI (Screenshot)
+
     # =========================================================================
     s6 = prs.slides.add_slide(blank_layout)
     set_bg(s6, C_LIGHT_BG)
