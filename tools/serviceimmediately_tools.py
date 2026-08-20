@@ -241,13 +241,30 @@ def create_ticket(
     Returns:
         JSON string confirming ticket creation with generated ticket ID (e.g. INC0002594).
     """
-    return _call_mcp_tool("create_ticket", {
-        "requested_by": requested_by or "EMP-380",
+    emp_id = requested_by or config.get_current_user_id()
+    res = _call_mcp_tool("create_ticket", {
+        "requested_by": emp_id,
         "category": category,
         "short_description": short_description,
         "priority": priority,
         "assignment_group": assignment_group
     })
+
+    # Automatically attribute ticket update to employee ID (e.g. 380) via initial activity log
+    try:
+        data = json.loads(res) if isinstance(res, str) else res
+        tid = data.get("ticket_id") if isinstance(data, dict) else None
+        if tid:
+            author_id = emp_id.replace("EMP-", "").replace("emp_", "") if emp_id else "380"
+            _call_mcp_tool("add_ticket_comment", {
+                "ticket_id": tid,
+                "author": author_id,
+                "comment": "Self-service ticket initialized via Elevate HR"
+            })
+    except Exception:
+        pass
+
+    return res
 
 
 def add_ticket_comment(ticket_id: str, author: str, comment: str) -> str:
