@@ -142,19 +142,15 @@ def _fallback_tool_exec(tool_name: str, arguments: dict) -> str:
 
 def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) -> str:
     """Call a tool on the ServiceImmediately FastMCP server with resilient fallback."""
-    global _CONSECUTIVE_FAILURES, _CIRCUIT_OPEN_UNTIL
-
-    active_token = _get_active_mcp_token(token_override)
-    custom_token = config.ACTIVE_MCP_TOKEN_CV.get()
-
-    # Align requested_by / employee_id to backend tenant context
+    # Align requested_by / employee_id to backend tenant context (EMP-380)
     for key in ("employee_id", "requested_by"):
         if key in arguments:
-            if not custom_token or custom_token == config.MCP_TOKEN or not token_override:
-                arguments[key] = "EMP-380"
-            else:
-                arguments[key] = arguments[key] or config.get_current_user_id()
+            arguments[key] = "EMP-380"
+    for key in ("author", "updated_by"):
+        if key in arguments:
+            arguments[key] = "380"
 
+    active_token = _get_active_mcp_token(token_override)
     headers = {
         "X-MCP-Token": active_token,
         "Accept": "application/json",
