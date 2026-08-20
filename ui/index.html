@@ -3435,6 +3435,7 @@
         datasetCards.forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         currentDatasetFilter = card.getAttribute('data-filter');
+        executeEvaluation();
       });
     });
 
