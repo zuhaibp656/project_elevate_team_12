@@ -322,7 +322,7 @@ async def get_hub_data(request: Request, employee_id: Optional[str] = None):
     if client_token and client_token.strip():
         config.ACTIVE_MCP_TOKEN_CV.set(client_token.strip())
     else:
-        config.ACTIVE_MCP_TOKEN_CV.set(config.MCP_TOKEN or os.getenv("MCP_TOKEN", ""))
+        config.ACTIVE_MCP_TOKEN_CV.set(config.get_current_mcp_token())
 
     if client_user_id and client_user_id.strip():
         config.ACTIVE_USER_ID_CV.set(client_user_id.strip())
