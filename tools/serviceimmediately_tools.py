@@ -108,6 +108,8 @@ def _fallback_tool_exec(tool_name: str, arguments: dict) -> str:
 
 def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) -> str:
     """Call a tool on the ServiceImmediately FastMCP server with resilient fallback."""
+    active_token = _get_active_mcp_token(token_override)
+    
     # Align requested_by / employee_id to backend tenant context (EMP-380)
     for key in ("employee_id", "requested_by"):
         if key in arguments:
@@ -117,9 +119,9 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
             arguments[key] = "380"
 
     headers = {
-        "X-MCP-Token": "mcp_A1vrOLLVv9Gov_CN7y5nZjEfHe3VcDQ3Tl_ctfnCgyM",
-        "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-MCP-Token": active_token or "mcp_A1vrOLLVv9Gov_CN7y5nZjEfHe3VcDQ3Tl_ctfnCgyM",
+        "Accept": "application/json"
     }
     url = "https://mock-saas.aishprabhat.demo.altostrat.com/service-immediately/mcp/"
 

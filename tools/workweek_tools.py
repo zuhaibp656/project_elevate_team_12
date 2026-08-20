@@ -123,9 +123,9 @@ def _call_mcp_tool(tool_name: str, arguments: dict, token_override: str = None) 
         arguments["employee_id"] = "EMP-380"
 
     headers = {
-        "X-MCP-Token": "mcp_A1vrOLLVv9Gov_CN7y5nZjEfHe3VcDQ3Tl_ctfnCgyM",
-        "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-MCP-Token": active_token or "mcp_A1vrOLLVv9Gov_CN7y5nZjEfHe3VcDQ3Tl_ctfnCgyM",
+        "Accept": "application/json"
     }
     url = "https://mock-saas.aishprabhat.demo.altostrat.com/work-week/mcp/"
 
