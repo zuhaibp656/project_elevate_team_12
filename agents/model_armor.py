@@ -13,7 +13,7 @@ from typing import Tuple, Dict, Any
 # 1. Regex Patterns for In-Flight PII / SPII Redaction (Cloud DLP)
 # ---------------------------------------------------------------------------
 NRIC_PATTERN = re.compile(r"\b[STFGM]\d{7}[A-Z]\b", re.IGNORECASE)
-CREDIT_CARD_PATTERN = re.compile(r"\b(?:\d[ -]*?){13,16}\b")
+CREDIT_CARD_PATTERN = re.compile(r"\b(?:4[0-9]{3}|5[1-5][0-9]{2}|6011|3[47][0-9]{2})[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{3,4}\b")
 CREDENTIAL_PATTERN = re.compile(r"(?i)(password|secret|api[_-]?key|bearer|token)\s*[:=]\s*['\"]?([A-Za-z0-9_\-\.]{8,})['\"]?")
 SSN_PATTERN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
 SQL_INJECTION_PATTERN = re.compile(r"(?i)\b(UNION\s+SELECT|DROP\s+TABLE|ALTER\s+TABLE|DELETE\s+FROM|EXEC(\s|\()+xp_)\b")
